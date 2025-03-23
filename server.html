@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPPER Server ထိန်းချုပ်မှု</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+        h2 { color: #2e7d32; }
+        pre { background: #fff; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .control { margin: 10px 0; }
+        input { padding: 10px; margin-right: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px; background: #2e7d32; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Server ထိန်းချုပ်မှု</h2>
+    <div class="control">
+        <label>ဖုန်းနံပါတ်:</label>
+        <input type="tel" id="control-phone" placeholder="09xxxxxxxxx">
+        <label>ငွေပမာဏ (Ks):</label>
+        <input type="number" id="control-amount" placeholder="ငွေပမာဏ">
+        <button onclick="addFunds()">ငွေသွင်းရန်</button>
+        <button onclick="withdrawFunds()">ငွေထုတ်ရန်</button>
+        <button onclick="clearHistory()">မှတ်တမ်းဖျက်ရန်</button>
+    </div>
+    <pre id="server-output">Server အချက်အလက်များ ဒီမှာ ပေါ်ပါမယ်...</pre>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
+        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function handleRequest(action, body) {
+            switch (action) {
+                case 'signup':
+                    const { data: existingUser } = await supabase.from('users').select('*').eq('phone', body.phone).single();
+                    if (existingUser) return { success: false, message: 'ဖုန်းနံပါတ်ရှိပြီးသားပါ။' };
+                    await supabase.from('users').insert({ name: body.name, nrc: body.nrc, phone: body.phone, pin: body.pin, balance: 0, daily_limit: 10000000 });
+                    return { success: true };
+
+                case 'login':
+                    const { data: user } = await supabase.from('users').select('*').eq('phone', body.phone).eq('pin', body.pin).single();
+                    if (user) return { success: true, balance: user.balance, user };
+                    return { success: false, message: 'ဖုန်း သို့မဟုတ် PIN မမှန်ပါ။' };
+
+                case 'transfer':
+                    const { data: sender } = await supabase.from('users').select('*').eq('phone', body.fromPhone).eq('pin', body.pin).single();
+                    const { data: receiver } = await supabase.from('users').select('*').eq('phone', body.toPhone).single();
+                    if (!sender || !receiver || sender.balance < body.amount || body.amount > 1000000) {
+                        return { success: false, message: 'လွှဲမှု မဖြစ်နိုင်ပါ' };
+                    }
+                    const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
+                    await supabase.from('users').update({ balance: sender.balance - body.amount }).eq('phone', body.fromPhone);
+                    await supabase.from('users').update({ balance: receiver.balance + body.amount }).eq('phone', body.toPhone);
+                    await supabase.from('transactions').insert({ from_phone: body.fromPhone, to_phone: body.toPhone, amount: body.amount, timestamp: now, name: receiver.name });
+                    return { success: true, newBalance: sender.balance - body.amount };
+
+                case 'updateProfileImg':
+                    await supabase.from('users').update({ profile_img: body.img }).eq('phone', body.phone);
+                    return { success: true };
+
+                case 'getHistory':
+                    const monthFilter = body.month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
+                    const { data: transactions } = await supabase.from('transactions')
+                        .select('*')
+                        .or(`from_phone.eq.${body.phone},to_phone.eq.${body.phone}`)
+                        .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
+                    return { success: true, transactions };
+
+                case 'addFunds':
+                    const { data: userForAdd } = await supabase.from('users').select('balance').eq('phone', body.phone).single();
+                    if (!userForAdd) return { success: false, message: 'ဖုန်းနံပါတ် မရှိပါ။' };
+                    await supabase.from('users').update({ balance: userForAdd.balance + body.amount }).eq('phone', body.phone);
+                    return { success: true };
+
+                case 'withdrawFunds':
+                    const { data: userForWithdraw } = await supabase.from('users').select('balance').eq('phone', body.phone).single();
+                    if (!userForWithdraw) return { success: false, message: 'ဖုန်းနံပါတ် မရှိပါ။' };
+                    if (userForWithdraw.balance >= body.amount) {
+                        await supabase.from('users').update({ balance: userForWithdraw.balance - body.amount }).eq('phone', body.phone);
+                        return { success: true };
+                    }
+                    return { success: false, message: 'လက်ကျန်မလုံလောက်ပါ' };
+
+                case 'clearHistory':
+                    await supabase.from('transactions').delete().eq('from_phone', body.phone);
+                    return { success: true };
+            }
+        }
+
+        async function addFunds() {
+            const phone = document.getElementById('control-phone').value;
+            const amount = parseInt(document.getElementById('control-amount').value);
+            if (!phone.match(/^09\d{9}$/) || !amount) {
+                alert('ဖုန်းနံပါတ် သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
+                return;
+            }
+            const result = await handleRequest('addFunds', { phone, amount });
+            document.getElementById('server-output').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function withdrawFunds() {
+            const phone = document.getElementById('control-phone').value;
+            const amount = parseInt(document.getElementById('control-amount').value);
+            if (!phone.match(/^09\d{9}$/) || !amount) {
+                alert('ဖုန်းနံပါတ် သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
+                return;
+            }
+            const result = await handleRequest('withdrawFunds', { phone, amount });
+            document.getElementById('server-output').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function clearHistory() {
+            const phone = document.getElementById('control-phone').value;
+            if (!phone.match(/^09\d{9}$/)) {
+                alert('ဖုန်းနံပါတ် မမှန်ပါ။');
+                return;
+            }
+            const result = await handleRequest('clearHistory', { phone });
+            document.getElementById('server-output').textContent = JSON.stringify(result, null, 2);
+        }
+    </script>
+</body>
+</html>
