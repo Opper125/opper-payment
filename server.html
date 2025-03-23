@@ -39,12 +39,17 @@
                 alert('ဖုန်းနံပါတ် သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
                 return;
             }
-            const { data: user } = await supabase.from('users').select('balance').eq('phone', phone).single();
-            if (!user) {
+            const { data: user, error } = await supabase.from('users').select('balance').eq('phone', phone).single();
+            if (error || !user) {
                 document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'ဖုန်းနံပါတ် မရှိပါ။' }, null, 2);
                 return;
             }
-            await supabase.from('users').update({ balance: user.balance + amount }).eq('phone', phone);
+            const { error: updateError } = await supabase.from('users').update({ balance: user.balance + amount }).eq('phone', phone);
+            if (updateError) {
+                console.error('Add Funds Error:', updateError);
+                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'ငွေသွင်းမှု မအောင်မြင်ပါ။' }, null, 2);
+                return;
+            }
             document.getElementById('server-output').textContent = JSON.stringify({ success: true, newBalance: user.balance + amount }, null, 2);
         }
 
@@ -55,12 +60,17 @@
                 alert('ဖုန်းနံပါတ် သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
                 return;
             }
-            const { data: user } = await supabase.from('users').select('balance').eq('phone', phone).single();
-            if (!user || user.balance < amount) {
+            const { data: user, error } = await supabase.from('users').select('balance').eq('phone', phone).single();
+            if (error || !user || user.balance < amount) {
                 document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: user ? 'လက်ကျန်မလုံလောက်ပါ' : 'ဖုန်းနံပါတ် မရှိပါ။' }, null, 2);
                 return;
             }
-            await supabase.from('users').update({ balance: user.balance - amount }).eq('phone', phone);
+            const { error: updateError } = await supabase.from('users').update({ balance: user.balance - amount }).eq('phone', phone);
+            if (updateError) {
+                console.error('Withdraw Funds Error:', updateError);
+                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'ငွေထုတ်မှု မအောင်မြင်ပါ။' }, null, 2);
+                return;
+            }
             document.getElementById('server-output').textContent = JSON.stringify({ success: true, newBalance: user.balance - amount }, null, 2);
         }
 
@@ -70,7 +80,12 @@
                 alert('ဖုန်းနံပါတ် မမှန်ပါ။');
                 return;
             }
-            await supabase.from('transactions').delete().eq('from_phone', phone);
+            const { error } = await supabase.from('transactions').delete().eq('from_phone', phone);
+            if (error) {
+                console.error('Clear History Error:', error);
+                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'မှတ်တမ်းဖျက်မှု မအောင်မြင်ပါ။' }, null, 2);
+                return;
+            }
             document.getElementById('server-output').textContent = JSON.stringify({ success: true, message: 'မှတ်တမ်းဖျက်ပြီးပါပြီ။' }, null, 2);
         }
     </script>
