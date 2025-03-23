@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPPER Payment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 400px; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 20px auto; }
+        h2 { text-align: center; color: #2e7d32; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; color: #616161; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none; }
+        button { width: 100%; padding: 12px; background: linear-gradient(90deg, #2e7d32, #4caf50); color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: linear-gradient(90deg, #1b5e20, #388e3c); }
+        .switch { text-align: center; margin-top: 10px; color: #616161; cursor: pointer; }
+        .menu { display: flex; justify-content: space-around; position: fixed; bottom: 0; width: 100%; background: #fff; padding: 10px; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); }
+        .menu button { flex: 1; margin: 0 5px; display: flex; flex-direction: column; align-items: center; font-size: 12px; padding: 5px; }
+        .menu img { width: 24px; height: 24px; margin-bottom: 5px; }
+        .hidden { display: none; }
+        .approval { background: #c8e6c9; color: #000; padding: 5px 10px; border-radius: 5px; margin-left: 10px; display: inline-block; }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 10px auto; display: block; }
+        .history-item { padding: 10px; border-bottom: 1px solid #ddd; }
+        .history-header { background: #e8f5e9; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .about-btn { background: #ff1744; color: #fff; padding: 8px 15px; border-radius: 5px; text-align: center; cursor: pointer; font-family: 'Segoe UI', sans-serif; margin-top: 15px; }
+        .about-content { margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px; }
+        .about-content img { width: 20px; height: 20px; vertical-align: middle; margin-right: 10px; }
+        @media (min-width: 768px) { 
+            .container { max-width: 500px; }
+            .menu { padding: 15px; }
+            .menu button { font-size: 14px; }
+            .menu img { width: 30px; height: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Signup Form -->
+    <div id="signup" class="container">
+        <h2>အကောင့်ဖွင့်ရန်</h2>
+        <div class="form-group">
+            <label>အမည်</label>
+            <input type="text" id="name" placeholder="သင့်အမည်ထည့်ပါ" required>
+        </div>
+        <div class="form-group">
+            <label>မှတ်ပုံတင် (ဥပမာ: 12/ဒပန/နိုင် 893009)</label>
+            <input type="text" id="nrc" placeholder="12/ဒပန/နိုင် 893009" required>
+        </div>
+        <div class="form-group">
+            <label>ဖုန်းနံပါတ် (ဥပမာ: 09xxxxxxxxx)</label>
+            <input type="tel" id="phone" placeholder="09xxxxxxxxx" required>
+        </div>
+        <div class="form-group">
+            <label>ငွေပေးချေမှု PIN (အများဆုံး ၆ လုံး)</label>
+            <input type="password" id="pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
+        </div>
+        <button id="signup-btn">အကောင့်ဖွင့်ရန်</button>
+        <div class="switch" onclick="toggleForm('login')">အကောင့်ရှိပြီးသားလား? ဝင်ရောက်ပါ</div>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login" class="container hidden">
+        <h2>ဝင်ရောက်ရန်</h2>
+        <div class="form-group">
+            <label>ဖုန်းနံပါတ်</label>
+            <input type="tel" id="login-phone" placeholder="09xxxxxxxxx" required>
+        </div>
+        <div class="form-group">
+            <label>ငွေပေးချေမှု PIN</label>
+            <input type="password" id="login-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
+        </div>
+        <button id="login-btn">ဝင်ရောက်ရန်</button>
+        <div class="switch" onclick="toggleForm('signup')">အကောင့်မရှိသေးဘူးလား? အကောင့်ဖွင့်ပါ</div>
+    </div>
+
+    <!-- Home Page -->
+    <div id="home" class="container hidden">
+        <h2>OPPER မှကြိုဆိုပါတယ်</h2>
+
+        <!-- My Wallet Section -->
+        <div id="wallet" class="form-group">
+            <label>ကျွန်ုပ်၏ပိုက်ဆံအိတ်</label>
+            <p>လက်ကျန်ငွေ: <span id="balance">0 Ks</span></p>
+            <button onclick="showTransfer()">ငွေလွှဲရန်</button>
+        </div>
+        <div id="transfer" class="hidden">
+            <div class="form-group">
+                <label>လွှဲမည့်ဖုန်းနံပါတ်</label>
+                <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required>
+            </div>
+            <div class="form-group">
+                <label>ငွေပမာဏ (Ks)</label>
+                <input type="number" id="transfer-amount" placeholder="အများဆုံး 1,000,000 Ks" required>
+            </div>
+            <div class="form-group">
+                <label>ငွေပေးချေမှု PIN</label>
+                <input type="password" id="transfer-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
+            </div>
+            <button id="transfer-btn">ငွေလွှဲအတည်ပြုရန်</button>
+        </div>
+
+        <!-- MI Section (Profile) -->
+        <div id="mi" class="hidden">
+            <label>ကျွန်ုပ်၏ပရိုဖိုင်</label>
+            <img id="profile-img" class="profile-img" src="https://via.placeholder.com/100" alt="Profile">
+            <input type="file" id="profile-upload" accept="image/*" onchange="uploadProfile()">
+            <p>အမည်: <span id="mi-name"></span></p>
+            <p>မှတ်ပုံတင်: <span id="mi-nrc"></span> <span class="approval">Approval NRC</span></p>
+            <p>ဖုန်းနံပါတ်: <span id="mi-phone"></span></p>
+            <div class="about-btn" onclick="toggleAbout()">About</div>
+            <div id="about-content" class="about-content hidden">
+                <p><img src="/assets/email.png" alt="Email"> Email: wecharopper@gmail.com</p>
+                <p><img src="/assets/phone.png" alt="Phone"> Phone: 09983254678</p>
+                <p><img src="/assets/address.png" alt="Address"> Address: Mandalay Katao Line Street 4 No 290</p>
+                <p><img src="/assets/telegram.png" alt="Telegram"> Telegram: <a href="https://t.me/OPPERN">https://t.me/OPPERN</a></p>
+                <p><img src="/assets/telegram.png" alt="Telegram Group"> Telegram Group: <a href="https://t.me/opperpaymentMMR">https://t.me/opperpaymentMMR</a></p>
+            </div>
+        </div>
+
+        <!-- Host Section (Transaction History) -->
+        <div id="host" class="hidden">
+            <label>ငွေလွှဲ/ငွေဝင် မှတ်တမ်း</label>
+            <div class="history-header">
+                <select id="month-filter" onchange="loadHistory()">
+                    <option value="current">လက်ရှိလ</option>
+                    <option value="previous">ယခင်လ</option>
+                </select>
+                <p>စုစုပေါင်း ငွေဝင်: <span id="total-in">0 Ks</span></p>
+                <p>စုစုပေါင်း ငွေလွှဲ: <span id="total-out">0 Ks</span></p>
+            </div>
+            <div id="history-list"></div>
+        </div>
+
+        <!-- Menu Bar -->
+        <div class="menu">
+            <button onclick="showSection('wallet')"><img src="/assets/home-icon.png" alt="Home">ကျွန်ုပ်၏ပိုက်ဆံအိတ်</button>
+            <button onclick="showSection('shop')"><img src="/assets/shop-icon.png" alt="Shop">ဆိုင်</button>
+            <button onclick="showSection('host')"><img src="/assets/host-icon.png" alt="Host">မှတ်တမ်း</button>
+            <button onclick="showSection('mi')"><img src="/assets/mi-icon.png" alt="MI">ကျွန်ုပ်</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function toggleForm(form) {
+            document.getElementById('signup').classList.toggle('hidden', form !== 'signup');
+            document.getElementById('login').classList.toggle('hidden', form !== 'login');
+            document.getElementById('home').classList.add('hidden');
+        }
+
+        function showSection(section) {
+            ['wallet', 'transfer', 'mi', 'host'].forEach(s => {
+                document.getElementById(s).classList.toggle('hidden', s !== section);
+            });
+        }
+
+        function showTransfer() {
+            document.getElementById('transfer').classList.remove('hidden');
+        }
+
+        function toggleAbout() {
+            document.getElementById('about-content').classList.toggle('hidden');
+        }
+
+        function uploadProfile() {
+            const file = document.getElementById('profile-upload').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('profile-img').src = e.target.result;
+                    fetch('/server', {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'updateProfileImg', phone: currentUser.phone, img: e.target.result })
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function loadHistory() {
+            const month = document.getElementById('month-filter').value;
+            const response = await fetch('/server', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getHistory', phone: currentUser.phone, month })
+            });
+            const data = await response.json();
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            let totalIn = 0, totalOut = 0;
+
+            data.transactions.forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `${t.from_phone === currentUser.phone ? 'လွှဲသည်' : 'ဝင်သည်'}: ${t.amount} Ks<br>ဖုန်း: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>အမည်: ${t.name}<br>အချိန်: ${t.timestamp}`;
+                historyList.appendChild(item);
+                if (t.from_phone === currentUser.phone) totalOut += t.amount;
+                else totalIn += t.amount;
+            });
+
+            document.getElementById('total-in').textContent = `${totalIn} Ks`;
+            document.getElementById('total-out').textContent = `${totalOut} Ks`;
+        }
+
+        document.getElementById('signup-btn').addEventListener('click', async () => {
+            const name = document.getElementById('name').value;
+            const nrc = document.getElementById('nrc').value;
+            const phone = document.getElementById('phone').value;
+            const pin = document.getElementById('pin').value;
+
+            if (!name || !nrc.match(/^\d{2}\/[A-Za-z]+\/[A-Za-z]+\s\d{6}$/) || !phone.match(/^09\d{9}$/) || pin.length !== 6) {
+                alert('အချက်အလက်များကို မှန်ကန်စွာ ဖြည့်ပါ။');
+                return;
+            }
+
+            const response = await fetch('/server', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'signup', name, nrc, phone, pin })
+            });
+            const data = await response.json();
+            if (data.success) {
+                currentUser = { name, nrc, phone, pin };
+                toggleForm('home');
+                document.getElementById('balance').textContent = '0 Ks';
+                document.getElementById('mi-name').textContent = name;
+                document.getElementById('mi-nrc').textContent = nrc;
+                document.getElementById('mi-phone').textContent = phone;
+            } else {
+                alert('အကောင့်ဖွင့်မှု မအောင်မြင်ပါ။');
+            }
+        });
+
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const phone = document.getElementById('login-phone').value;
+            const pin = document.getElementById('login-pin').value;
+
+            const response = await fetch('/server', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'login', phone, pin })
+            });
+            const data = await response.json();
+            if (data.success) {
+                currentUser = data.user;
+                toggleForm('home');
+                document.getElementById('balance').textContent = `${data.balance} Ks`;
+                document.getElementById('mi-name').textContent = data.user.name;
+                document.getElementById('mi-nrc').textContent = data.user.nrc;
+                document.getElementById('mi-phone').textContent = data.user.phone;
+                loadHistory();
+            } else {
+                alert('အချက်အလက်မမှန်ပါ။');
+            }
+        });
+
+        document.getElementById('transfer-btn').addEventListener('click', async () => {
+            const phone = document.getElementById('transfer-phone').value;
+            const amount = parseInt(document.getElementById('transfer-amount').value);
+            const pin = document.getElementById('transfer-pin').value;
+
+            if (!phone.match(/^09\d{9}$/) || amount > 1000000 || !pin) {
+                alert('ထည့်သွင်းမှုမမှန်ပါ။ အများဆုံး 1,000,000 Ks');
+                return;
+            }
+
+            const response = await fetch('/server', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'transfer', fromPhone: currentUser.phone, toPhone: phone, amount, pin })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert(`${amount} Ks ကို ${phone} သို့ လွှဲပြီးပါပြီ။`);
+                document.getElementById('balance').textContent = `${data.newBalance} Ks`;
+                showSection('wallet');
+                loadHistory();
+            } else {
+                alert(data.message || 'ငွေလွှဲမှု မအောင်မြင်ပါ။');
+            }
+        });
+    </script>
+</body>
+</html>
