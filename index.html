@@ -5,144 +5,279 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPPER Payment</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 20px auto; }
-        h2 { text-align: center; color: #2e7d32; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; color: #616161; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body {
+            background: url('https://i.imgur.com/ice-background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(173, 216, 230, 0.8), rgba(135, 206, 235, 0.6));
+            animation: waterFlow 10s infinite linear;
+            z-index: -1;
+        }
+        @keyframes waterFlow {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .id-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(173, 216, 230, 0.9);
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .container {
+            width: 90%;
+            max-width: 500px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            margin: 20px auto;
+            position: relative;
+            z-index: 1;
+        }
+        .logo {
+            width: 100px;
+            display: block;
+            margin: 0 auto 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #2e7d32;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; color: #444; margin-bottom: 8px; font-weight: bold; }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            background: rgba(173, 216, 230, 0.8);
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus { border-color: #4682b4; }
         .nrc-group { display: flex; gap: 10px; }
         .nrc-group select, .nrc-group input { width: 33%; }
-        button { width: 100%; padding: 12px; background: linear-gradient(90deg, #2e7d32, #4caf50); color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: linear-gradient(90deg, #1b5e20, #388e3c); }
-        .switch { text-align: center; margin-top: 10px; color: #616161; cursor: pointer; }
-        .menu { display: flex; justify-content: space-around; position: fixed; bottom: 0; width: 100%; background: #fff; padding: 10px; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); }
-        .menu button { flex: 1; margin: 0 5px; display: flex; flex-direction: column; align-items: center; font-size: 12px; padding: 5px; }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: rgba(173, 216, 230, 0.9);
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: rgba(135, 206, 235, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+        .menu button {
+            flex: 1;
+            margin: 0 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            padding: 5px;
+            background: rgba(173, 216, 230, 0.8);
+        }
         .menu img { width: 24px; height: 24px; margin-bottom: 5px; }
         .hidden { display: none; }
-        .approval { background: #c8e6c9; color: #000; padding: 5px 10px; border-radius: 5px; margin-left: 10px; display: inline-block; }
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 10px auto; display: block; }
-        .history-item { padding: 10px; border-bottom: 1px solid #ddd; }
-        .history-header { background: #e8f5e9; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
-        .about-btn { background: #ff1744; color: #fff; padding: 8px 15px; border-radius: 5px; text-align: center; cursor: pointer; font-family: 'Segoe UI', sans-serif; margin-top: 15px; }
-        .about-content { margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px; }
-        .about-content img { width: 20px; height: 20px; vertical-align: middle; margin-right: 10px; }
-        .logout-btn { background: #d32f2f; margin-top: 20px; }
-        .logout-btn:hover { background: #b71c1c; }
-        @media (min-width: 768px) { 
-            .container { max-width: 500px; }
-            .menu { padding: 15px; }
-            .menu button { font-size: 14px; }
-            .menu img { width: 30px; height: 30px; }
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+            border: 3px solid #8b4513;
+        }
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .history-header {
+            background: rgba(173, 216, 230, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #8b4513;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .status.pending { background: #ffeb3b; color: #333; }
+        .status.approved { background: #4caf50; color: #fff; }
+        .status.rejected { background: #f44336; color: #fff; }
+        .transfer-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #4caf50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+            animation: transferPulse 1.5s ease-out;
+            z-index: 10;
+        }
+        @keyframes transferPulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+        .error-message {
+            color: #f44336;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .level-badge {
+            background: #4caf50;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Signup Form -->
-    <div id="signup" class="container">
-        <h2>အကောင့်ဖွင့်ရန်</h2>
-        <div class="form-group">
-            <label>အမည်</label>
-            <input type="text" id="name" placeholder="သင့်အမည်ထည့်ပါ" required>
-        </div>
-        <div class="form-group">
-            <label>မှတ်ပုံတင်</label>
-            <div class="nrc-group">
-                <select id="nrc-region" required>
-                    <option value="">ဒေသ ရွေးပါ</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                    <option value="11">11</option>
-                    <option value="12">12</option>
-                    <option value="13">13</option>
-                    <option value="14">14</option>
-                </select>
-                <input type="text" id="nrc-town" placeholder="မြို့" required>
-                <select id="nrc-type" required>
-                    <option value="">အမျိုးအစား</option>
-                    <option value="ဧည့်">ဧည့်</option>
-                    <option value="နိုင်">နိုင်</option>
-                </select>
-            </div>
-            <input type="text" id="nrc-number" maxlength="6" placeholder="NRC နံပါတ်ထည့်ရန်" required>
-        </div>
-        <div class="form-group">
-            <label>ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
-            <input type="tel" id="phone" placeholder="09xxxxxxxxx" required>
-        </div>
-        <div class="form-group">
-            <label>ငွေပေးချေမှု PIN (၆ လုံး)</label>
-            <input type="password" id="pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
-        </div>
-        <button id="signup-btn">အကောင့်ဖွင့်ရန်</button>
-        <div class="switch" onclick="toggleForm('login')">အကောင့်ရှိပြီးသားလား? ဝင်ရောက်ပါ</div>
-    </div>
-
-    <!-- Login Form -->
-    <div id="login" class="container hidden">
-        <h2>ဝင်ရောက်ရန်</h2>
-        <div class="form-group">
-            <label>ဖုန်းနံပါတ်</label>
-            <input type="tel" id="login-phone" placeholder="09xxxxxxxxx" required>
-        </div>
-        <div class="form-group">
-            <label>ငွေပေးချေမှု PIN</label>
-            <input type="password" id="login-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
-        </div>
-        <button id="login-btn">ဝင်ရောက်ရန်</button>
-        <div class="switch" onclick="toggleForm('signup')">အကောင့်မရှိသေးဘူးလား? အကောင့်ဖွင့်ပါ</div>
-    </div>
-
-    <!-- Home Page -->
+    <div class="id-badge" id="device-id-badge"></div>
     <div id="home" class="container hidden">
+        <img src="https://i.imgur.com/opper-logo.png" alt="OPPER Logo" class="logo">
         <h2>OPPER မှကြိုဆိုပါတယ်</h2>
 
         <!-- My Wallet Section -->
         <div id="wallet" class="form-group">
             <label>ကျွန်ုပ်၏ပိုက်ဆံအိတ်</label>
             <p>လက်ကျန်ငွေ: <span id="balance">0 Ks</span></p>
-            <button onclick="showTransfer()">ငွေလွှဲရန်</button>
+            <button id="transfer-btn" onclick="showTransfer()" disabled>ငွေလွှဲရန်</button>
+            <p id="wallet-status" class="status pending">NRC အတည်ပြုရန် လိုအပ်ပါသည်</p>
         </div>
         <div id="transfer" class="hidden">
             <div class="form-group">
-                <label>လွှဲမည့်ဖုန်းနံပါတ်</label>
-                <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required>
+                <label>လွှဲမည့် ဖုန်းနံပါတ်</label>
+                <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
+                <p id="receiver-name"></p>
             </div>
             <div class="form-group">
                 <label>ငွေပမာဏ (Ks)</label>
                 <input type="number" id="transfer-amount" placeholder="အများဆုံး 1,000,000 Ks" required>
             </div>
             <div class="form-group">
-                <label>ငွေပေးချေမှု PIN</label>
+                <label>မှတ်ချက်</label>
+                <input type="text" id="transfer-note" placeholder="မှတ်ချက် (ချန်လှပ်ထားနိုင်)">
+            </div>
+            <div class="form-group">
+                <label>PIN (၆ လုံး)</label>
                 <input type="password" id="transfer-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
             </div>
-            <button id="transfer-btn">ငွေလွှဲအတည်ပြုရန်</button>
+            <button id="confirm-transfer-btn">ငွေလွှဲအတည်ပြုရန်</button>
+            <p id="transfer-error" class="error-message hidden"></p>
         </div>
 
         <!-- MI Section (Profile) -->
         <div id="mi" class="hidden">
             <label>ကျွန်ုပ်၏ပရိုဖိုင်</label>
-            <img id="profile-img" class="profile-img" src="https://via.placeholder.com/100" alt="Profile">
+            <img id="profile-img" class="profile-img" src="https://via.placeholder.com/120" alt="Profile">
             <input type="file" id="profile-upload" accept="image/*" onchange="uploadProfile()">
-            <p>အမည်: <span id="mi-name"></span></p>
-            <p>မှတ်ပုံတင်: <span id="mi-nrc"></span> <span class="approval">Approval NRC</span></p>
-            <p>ဖုန်းနံပါတ်: <span id="mi-phone"></span></p>
+            <p>သင့် ID: <span id="mi-device-id"></span></p>
+            <p id="mi-status" class="status pending">NRC အတည်ပြုရန် လိုအပ်ပါသည်</p>
+            <div id="nrc-form" class="form-group">
+                <h3>NRC အချက်အလက် တင်ပြရန်</h3>
+                <div class="form-group">
+                    <label>မှတ်ပုံတင်</label>
+                    <div class="nrc-group">
+                        <select id="nrc-region" required>
+                            <option value="">ဒေသ ရွေးပါ</option>
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                            <option value="13">13</option><option value="14">14</option>
+                        </select>
+                        <input type="text" id="nrc-town" placeholder="မြို့" required>
+                        <select id="nrc-type" required>
+                            <option value="">အမျိုးအစား</option>
+                            <option value="ဧည့်">ဧည့်</option>
+                            <option value="နိုင်">နိုင်</option>
+                        </select>
+                    </div>
+                    <input type="text" id="nrc-number" maxlength="6" placeholder="NRC နံပါတ်" required>
+                </div>
+                <div class="form-group">
+                    <label>ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
+                    <input type="tel" id="nrc-phone" placeholder="09xxxxxxxxx" required>
+                </div>
+                <div class="form-group">
+                    <label>PIN (၆ လုံး)</label>
+                    <input type="password" id="nrc-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
+                </div>
+                <div class="form-group">
+                    <label>NRC အရှေ့ပုံ</label>
+                    <input type="file" id="nrc-front" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label>NRC နောက်ပုံ</label>
+                    <input type="file" id="nrc-back" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label>NRC ကိုင်ထားသော Selfie</label>
+                    <input type="file" id="nrc-selfie" accept="image/*" required>
+                </div>
+                <button id="submit-nrc-btn">တင်ပြမည်</button>
+            </div>
+            <div id="nrc-info" class="form-group hidden">
+                <p>ဖုန်းနံပါတ်: <span id="mi-phone"></span></p>
+                <p>မှတ်ပုံတင်: <span id="mi-nrc"></span></p>
+                <p class="level-badge">Level 2 - Approved</p>
+            </div>
             <div class="about-btn" onclick="toggleAbout()">About</div>
-            <div id="about-content" class="about-content hidden">
+            <div id="about-content" class="hidden">
                 <p><img src="/assets/email.png" alt="Email"> Email: wecharopper@gmail.com</p>
                 <p><img src="/assets/phone.png" alt="Phone"> Phone: 09983254678</p>
                 <p><img src="/assets/address.png" alt="Address"> Address: Mandalay Katao Line Street 4 No 290</p>
                 <p><img src="/assets/telegram.png" alt="Telegram"> Telegram: <a href="https://t.me/OPPERN">https://t.me/OPPERN</a></p>
-                <p><img src="/assets/telegram.png" alt="Telegram Group"> Telegram Group: <a href="https://t.me/opperpaymentMMR">https://t.me/opperpaymentMMR</a></p>
             </div>
         </div>
 
@@ -160,13 +295,9 @@
             <div id="history-list"></div>
         </div>
 
-        <!-- Logout Button -->
-        <button class="logout-btn" onclick="logout()">အကောင့်ထွက်ရန်</button>
-
         <!-- Menu Bar -->
         <div class="menu">
-            <button onclick="showSection('wallet')"><img src="/assets/home-icon.png" alt="Home">ကျွန်ုပ်၏ပိုက်ဆံအိတ်</button>
-            <button onclick="showSection('shop')"><img src="/assets/shop-icon.png" alt="Shop">ဆိုင်</button>
+            <button onclick="showSection('wallet')"><img src="/assets/home-icon.png" alt="Home">ပိုက်ဆံအိတ်</button>
             <button onclick="showSection('host')"><img src="/assets/host-icon.png" alt="Host">မှတ်တမ်း</button>
             <button onclick="showSection('mi')"><img src="/assets/mi-icon.png" alt="MI">ကျွန်ုပ်</button>
         </div>
@@ -178,12 +309,36 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-        let currentUser = null;
+        let currentDevice = null;
 
-        function toggleForm(form) {
-            document.getElementById('signup').classList.toggle('hidden', form !== 'signup');
-            document.getElementById('login').classList.toggle('hidden', form !== 'login');
-            document.getElementById('home').classList.toggle('hidden', form === 'home');
+        function generateDeviceId() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        async function initializeDevice() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = generateDeviceId();
+                const { data: existingDevice, error } = await supabase.from('users').select('*').eq('device_id', deviceId).single();
+                if (existingDevice) deviceId = generateDeviceId();
+                await supabase.from('users').insert({ device_id: deviceId, balance: 0, nrc_status: 'pending' });
+                localStorage.setItem('deviceId', deviceId);
+            }
+
+            const { data: user, error } = await supabase.from('users').select('*').eq('device_id', deviceId).single();
+            if (error) {
+                console.error('Device Init Error:', error);
+                return;
+            }
+
+            currentDevice = user;
+            document.getElementById('device-id-badge').textContent = `ID: ${deviceId}`;
+            document.getElementById('mi-device-id').textContent = deviceId;
+            document.getElementById('balance').textContent = `${user.balance} Ks`;
+            if (user.profile_img) document.getElementById('profile-img').src = user.profile_img;
+            updateStatus(user.nrc_status);
+            document.getElementById('home').classList.remove('hidden');
+            loadHistory();
         }
 
         function showSection(section) {
@@ -193,16 +348,15 @@
         }
 
         function showTransfer() {
+            if (currentDevice.nrc_status !== 'approved') {
+                alert('NRC အတည်ပြုမှသာ ငွေလွှဲနိုင်ပါသည်။');
+                return;
+            }
             document.getElementById('transfer').classList.remove('hidden');
         }
 
         function toggleAbout() {
             document.getElementById('about-content').classList.toggle('hidden');
-        }
-
-        function logout() {
-            currentUser = null;
-            toggleForm('login');
         }
 
         async function uploadProfile() {
@@ -211,9 +365,23 @@
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     document.getElementById('profile-img').src = e.target.result;
-                    await supabase.from('users').update({ profile_img: e.target.result }).eq('phone', currentUser.phone);
+                    await supabase.from('users').update({ profile_img: e.target.result }).eq('device_id', currentDevice.device_id);
                 };
                 reader.readAsDataURL(file);
+            }
+        }
+
+        async function checkPhone() {
+            const phone = document.getElementById('transfer-phone').value;
+            if (phone.match(/^09\d{9}$/)) {
+                const { data: receiver, error } = await supabase.from('users').select('phone, nrc_status').eq('phone', phone).single();
+                if (receiver && receiver.nrc_status === 'approved') {
+                    document.getElementById('receiver-name').textContent = `လက်ခံသူ: ${phone}`;
+                } else {
+                    document.getElementById('receiver-name').textContent = 'အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။';
+                }
+            } else {
+                document.getElementById('receiver-name').textContent = '';
             }
         }
 
@@ -222,7 +390,7 @@
             const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
             const { data: transactions, error } = await supabase.from('transactions')
                 .select('*')
-                .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
+                .or(`from_device_id.eq.${currentDevice.device_id},to_device_id.eq.${currentDevice.device_id}`)
                 .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
             
             if (error) {
@@ -237,9 +405,9 @@
             transactions.forEach(t => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
-                item.innerHTML = `${t.from_phone === currentUser.phone ? 'လွှဲသည်' : 'ဝင်သည်'}: ${t.amount} Ks<br>ဖုန်း: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>အမည်: ${t.name}<br>အချိန်: ${t.timestamp}`;
+                item.innerHTML = `${t.from_device_id === currentDevice.device_id ? 'လွှဲသည်' : 'ဝင်သည်'}: ${t.amount} Ks<br>ID: ${t.from_device_id === currentDevice.device_id ? t.to_device_id : t.from_device_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
                 historyList.appendChild(item);
-                if (t.from_phone === currentUser.phone) totalOut += t.amount;
+                if (t.from_device_id === currentDevice.device_id) totalOut += t.amount;
                 else totalIn += t.amount;
             });
 
@@ -247,108 +415,118 @@
             document.getElementById('total-out').textContent = `${totalOut} Ks`;
         }
 
-        document.getElementById('signup-btn').addEventListener('click', async () => {
-            const name = document.getElementById('name').value;
+        function updateStatus(status) {
+            const walletStatus = document.getElementById('wallet-status');
+            const miStatus = document.getElementById('mi-status');
+            walletStatus.className = `status ${status}`;
+            miStatus.className = `status ${status}`;
+            if (status === 'pending') {
+                walletStatus.textContent = 'NRC အတည်ပြုရန် လိုအပ်ပါသည်';
+                miStatus.textContent = 'NRC အတည်ပြုရန် လိုအပ်ပါသည်';
+            } else if (status === 'approved') {
+                walletStatus.textContent = 'အတည်ပြုပြီး';
+                miStatus.textContent = 'အတည်ပြုပြီး';
+                document.getElementById('transfer-btn').disabled = false;
+                document.getElementById('nrc-form').classList.add('hidden');
+                document.getElementById('nrc-info').classList.remove('hidden');
+                document.getElementById('mi-phone').textContent = currentDevice.phone;
+                document.getElementById('mi-nrc').textContent = `${currentDevice.nrc_region}/${currentDevice.nrc_town}/${currentDevice.nrc_type} ${currentDevice.nrc_number}`;
+            } else if (status === 'rejected') {
+                walletStatus.textContent = 'NRC ငြင်းဆိုခံရသည်';
+                miStatus.textContent = 'NRC ငြင်းဆိုခံရသည်';
+            }
+        }
+
+        document.getElementById('submit-nrc-btn').addEventListener('click', async () => {
             const nrcRegion = document.getElementById('nrc-region').value;
             const nrcTown = document.getElementById('nrc-town').value;
             const nrcType = document.getElementById('nrc-type').value;
             const nrcNumber = document.getElementById('nrc-number').value;
-            const phone = document.getElementById('phone').value;
-            const pin = document.getElementById('pin').value;
+            const phone = document.getElementById('nrc-phone').value;
+            const pin = document.getElementById('nrc-pin').value;
+            const frontFile = document.getElementById('nrc-front').files[0];
+            const backFile = document.getElementById('nrc-back').files[0];
+            const selfieFile = document.getElementById('nrc-selfie').files[0];
 
-            const nrc = `${nrcRegion}/${nrcTown}/${nrcType} ${nrcNumber}`;
-
-            if (!name || !nrcRegion || !nrcTown || !nrcType || !nrcNumber.match(/^\d{6}$/) || !phone.match(/^09\d{9}$/) || pin.length !== 6) {
+            if (!nrcRegion || !nrcTown || !nrcType || !nrcNumber.match(/^\d{6}$/) || !phone.match(/^09\d{9}$/) || pin.length !== 6 || !frontFile || !backFile || !selfieFile) {
                 alert('အချက်အလက်များကို ပြည့်စုံစွာ ဖြည့်ပါ။');
                 return;
             }
 
-            const { data: existingUser, error: checkError } = await supabase.from('users').select('*').eq('phone', phone).single();
-            if (existingUser) {
-                alert('ဖုန်းနံပါတ်ရှိပြီးသားပါ။');
-                return;
-            }
-            if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = No rows found
-                console.error('Check Error:', checkError);
-                alert('အကောင့်ဖွင့်မှု မအောင်မြင်ပါ။');
-                return;
-            }
+            const readFile = (file) => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
 
-            const { error } = await supabase.from('users').insert({ name, nrc, phone, pin, balance: 0, daily_limit: 10000000 });
+            const [frontImg, backImg, selfieImg] = await Promise.all([
+                readFile(frontFile),
+                readFile(backFile),
+                readFile(selfieFile)
+            ]);
+
+            const { error } = await supabase.from('users').update({
+                phone, pin, nrc_status: 'pending', nrc_front: frontImg, nrc_back: backImg, nrc_selfie: selfieImg,
+                nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber,
+                submitted_at: new Date().toISOString()
+            }).eq('device_id', currentDevice.device_id);
+
             if (error) {
-                console.error('Signup Error:', error);
-                alert('အကောင့်ဖွင့်မှု မအောင်မြင်ပါ။');
+                console.error('NRC Submit Error:', error);
+                alert('NRC တင်ပြမှု မအောင်မြင်ပါ။');
                 return;
             }
 
-            currentUser = { name, nrc, phone, pin, balance: 0 };
-            alert('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါပြီ။ သင့်အကောင့်ကို အသုံးပြုနိုင်ပါပြီ။');
-            toggleForm('home');
-            document.getElementById('balance').textContent = '0 Ks';
-            document.getElementById('mi-name').textContent = name;
-            document.getElementById('mi-nrc').textContent = nrc;
-            document.getElementById('mi-phone').textContent = phone;
+            currentDevice = { ...currentDevice, phone, pin, nrc_status: 'pending', nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber };
+            alert('NRC အချက်အလက် တင်ပြပြီးပါပြီ။ အတည်ပြုရန် စောင့်ဆိုင်းပါ။');
+            updateStatus('pending');
         });
 
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const phone = document.getElementById('login-phone').value;
-            const pin = document.getElementById('login-pin').value;
-
-            if (!phone.match(/^09\d{9}$/) || pin.length !== 6) {
-                alert('ဖုန်းနံပါတ် သို့မဟုတ် PIN မမှန်ပါ။');
-                return;
-            }
-
-            const { data: user, error } = await supabase.from('users').select('*').eq('phone', phone).eq('pin', pin).single();
-            if (error || !user) {
-                console.error('Login Error:', error);
-                alert('ဖုန်းနံပါတ် သို့မဟုတ် PIN မမှန်ပါ။');
-                return;
-            }
-
-            currentUser = user;
-            toggleForm('home');
-            document.getElementById('balance').textContent = `${user.balance} Ks`;
-            document.getElementById('mi-name').textContent = user.name;
-            document.getElementById('mi-nrc').textContent = user.nrc;
-            document.getElementById('mi-phone').textContent = user.phone;
-            loadHistory();
-        });
-
-        document.getElementById('transfer-btn').addEventListener('click', async () => {
+        document.getElementById('confirm-transfer-btn').addEventListener('click', async () => {
             const phone = document.getElementById('transfer-phone').value;
             const amount = parseInt(document.getElementById('transfer-amount').value);
+            const note = document.getElementById('transfer-note').value;
             const pin = document.getElementById('transfer-pin').value;
 
-            if (!phone.match(/^09\d{9}$/) || amount > 1000000 || !pin) {
-                alert('ထည့်သွင်းမှုမမှန်ပါ။ အများဆုံး 1,000,000 Ks');
+            if (!phone.match(/^09\d{9}$/) || amount > 1000000 || amount <= 0 || pin.length !== 6) {
+                document.getElementById('transfer-error').textContent = 'ထည့်သွင်းမှု မမှန်ပါ။ အများဆုံး 1,000,000 Ks';
+                document.getElementById('transfer-error').classList.remove('hidden');
                 return;
             }
 
-            const { data: sender, error: senderError } = await supabase.from('users').select('*').eq('phone', currentUser.phone).eq('pin', pin).single();
+            const { data: sender, error: senderError } = await supabase.from('users').select('*').eq('device_id', currentDevice.device_id).eq('pin', pin).single();
             const { data: receiver, error: receiverError } = await supabase.from('users').select('*').eq('phone', phone).single();
-            if (senderError || receiverError || !sender || !receiver || sender.balance < amount) {
-                console.error('Transfer Error:', senderError || receiverError);
-                alert('လွှဲမှု မဖြစ်နိုင်ပါ။');
+            if (senderError || receiverError || !sender || !receiver || sender.balance < amount || receiver.nrc_status !== 'approved') {
+                document.getElementById('transfer-error').textContent = senderError || receiverError ? 'လွှဲမှု မဖြစ်နိုင်ပါ။' : !sender ? 'PIN မမှန်ပါ။' : !receiver ? 'လက်ခံသူ အကောင့်မရှိပါ။' : sender.balance < amount ? 'လက်ကျန်မလုံလောက်ပါ။' : 'လက်ခံသူ NRC အတည်မပြုရသေးပါ။';
+                document.getElementById('transfer-error').classList.remove('hidden');
                 return;
             }
 
             const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
-            const { error: updateSenderError } = await supabase.from('users').update({ balance: sender.balance - amount }).eq('phone', currentUser.phone);
-            const { error: updateReceiverError } = await supabase.from('users').update({ balance: receiver.balance + amount }).eq('phone', phone);
-            const { error: insertError } = await supabase.from('transactions').insert({ from_phone: currentUser.phone, to_phone: phone, amount, timestamp: now, name: receiver.name });
+            const { error: updateSenderError } = await supabase.from('users').update({ balance: sender.balance - amount }).eq('device_id', currentDevice.device_id);
+            const { error: updateReceiverError } = await supabase.from('users').update({ balance: receiver.balance + amount }).eq('device_id', receiver.device_id);
+            const { error: insertError } = await supabase.from('transactions').insert({ from_device_id: currentDevice.device_id, to_device_id: receiver.device_id, amount, note, timestamp: now });
 
             if (updateSenderError || updateReceiverError || insertError) {
                 console.error('Transfer Update Error:', updateSenderError || updateReceiverError || insertError);
-                alert('ငွေလွှဲမှု မအောင်မြင်ပါ။');
+                document.getElementById('transfer-error').textContent = 'ငွေလွှဲမှု မအောင်မြင်ပါ။';
+                document.getElementById('transfer-error').classList.remove('hidden');
                 return;
             }
 
-            alert(`${amount} Ks ကို ${phone} သို့ လွှဲပြီးပါပြီ။`);
+            const animation = document.createElement('div');
+            animation.className = 'transfer-animation';
+            animation.innerHTML = `${amount} Ks လွှဲပြီးပါပြီ<br><span style="font-size: 40px;">✔</span>`;
+            document.body.appendChild(animation);
+            setTimeout(() => animation.remove(), 1500);
+
             document.getElementById('balance').textContent = `${sender.balance - amount} Ks`;
+            document.getElementById('transfer-error').classList.add('hidden');
             showSection('wallet');
             loadHistory();
         });
+
+        window.onload = initializeDevice;
     </script>
 </body>
 </html>
