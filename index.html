@@ -9,8 +9,9 @@
         body {
             background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
             overflow-x: hidden;
+            font-size: 16px;
         }
         .id-badge {
             position: fixed;
@@ -19,29 +20,37 @@
             background: #80deea;
             border: 2px solid #5d4037;
             border-radius: 8px;
-            padding: 8px;
+            padding: 8px 12px;
             font-weight: bold;
             color: #333;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 10;
+            z-index: 100;
         }
         .container {
-            width: 90%;
+            width: 100%;
             max-width: 500px;
             padding: 20px;
             background: #ffffff;
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
             margin: 20px auto;
+            display: none; /* Default အနေနဲ့ ဖျောက်ထားမယ် */
         }
+        .container.active { display: block; } /* Menu နှိပ်ရင် ပြမယ် */
         h2 {
             text-align: center;
             color: #2e7d32;
             margin-bottom: 20px;
-            font-size: 24px;
+            font-size: 1.5rem;
         }
         .form-group { margin-bottom: 20px; }
-        label { display: block; color: #444; margin-bottom: 8px; font-weight: bold; }
+        label {
+            display: block;
+            color: #444;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
         input, select {
             width: 100%;
             padding: 12px;
@@ -50,11 +59,16 @@
             background: #e0f7fa;
             color: #333;
             outline: none;
-            transition: all 0.3s ease;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
         }
         input:focus, select:focus { border-color: #0288d1; }
-        .nrc-group { display: flex; gap: 10px; }
-        .nrc-group select, .nrc-group input { width: 33%; }
+        .nrc-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nrc-group select, .nrc-group input { width: 32%; min-width: 80px; }
         button {
             width: 100%;
             padding: 12px;
@@ -64,6 +78,7 @@
             color: #333;
             font-weight: bold;
             cursor: pointer;
+            font-size: 1rem;
             transition: all 0.3s ease;
         }
         button:hover {
@@ -76,11 +91,12 @@
             justify-content: space-around;
             position: fixed;
             bottom: 0;
+            left: 0;
             width: 100%;
             background: #ffffff;
             padding: 10px;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 10;
+            z-index: 100;
         }
         .menu button {
             flex: 1;
@@ -88,14 +104,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 12px;
+            font-size: 0.9rem;
             padding: 5px;
             background: #80deea;
+            border: none;
         }
         .menu img { width: 24px; height: 24px; margin-bottom: 5px; }
         .profile-img {
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             object-fit: cover;
             margin: 10px auto;
@@ -108,6 +125,7 @@
             background: #f5f5f5;
             border-radius: 5px;
             margin-bottom: 5px;
+            font-size: 0.9rem;
         }
         .history-header {
             background: #80deea;
@@ -115,12 +133,14 @@
             border-radius: 8px;
             margin-bottom: 10px;
             border: 2px solid #5d4037;
+            font-size: 0.9rem;
         }
         .status {
             padding: 5px 10px;
             border-radius: 5px;
             display: inline-block;
             font-weight: bold;
+            font-size: 0.9rem;
         }
         .status.pending { background: #ffeb3b; color: #333; }
         .status.approved { background: #4caf50; color: #fff; }
@@ -130,11 +150,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
+            font-size: 1.5rem;
             color: #4caf50;
             text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
             animation: transferPulse 1.5s ease-out;
-            z-index: 10;
+            z-index: 200;
         }
         @keyframes transferPulse {
             0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
@@ -146,6 +166,7 @@
             text-align: center;
             margin-top: 10px;
             font-weight: bold;
+            font-size: 0.9rem;
         }
         .level-badge {
             background: #4caf50;
@@ -154,22 +175,64 @@
             border-radius: 5px;
             display: inline-block;
             margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .about-content {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .about-content p {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .about-content img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        .about-btn {
+            cursor: pointer;
+            color: #0288d1;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .hidden { display: none; }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            body { padding: 5px; font-size: 14px; }
+            .id-badge { padding: 6px 10px; font-size: 0.9rem; }
+            .container { padding: 15px; margin: 10px auto; }
+            h2 { font-size: 1.2rem; }
+            input, select, button { padding: 10px; font-size: 0.9rem; }
+            .nrc-group select, .nrc-group input { width: 31%; min-width: 70px; }
+            .menu button { font-size: 0.8rem; padding: 3px; }
+            .menu img { width: 20px; height: 20px; }
+            .profile-img { width: 80px; height: 80px; }
+            .history-item, .history-header, .status, .level-badge { font-size: 0.8rem; }
+            .transfer-animation { font-size: 1.2rem; }
+            .about-content img { width: 16px; height: 16px; }
         }
     </style>
 </head>
 <body>
     <div class="id-badge" id="device-id-badge">ID: Loading...</div>
 
-    <!-- My Wallet Section -->
-    <div id="wallet" class="container">
+    <!-- Wallet Section -->
+    <div id="wallet" class="container active">
         <h2>ကျွန်ုပ်၏ပိုက်ဆံအိတ်</h2>
         <div class="form-group">
             <label>လက်ကျန်ငွေ</label>
             <p><span id="balance">0 Ks</span></p>
-            <button id="transfer-btn" onclick="showTransfer()" disabled>ငွေလွှဲရန်</button>
+            <button id="transfer-btn" onclick="toggleTransfer()" disabled>ငွေလွှဲရန်</button>
             <p id="wallet-status" class="status pending">NRC အတည်ပြုရန် လိုအပ်ပါသည်</p>
         </div>
-        <div id="transfer" class="form-group">
+        <div id="transfer" class="form-group hidden">
             <label>လွှဲမည့် ဖုန်းနံပါတ်</label>
             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
             <p id="receiver-name"></p>
@@ -181,6 +244,22 @@
             <input type="password" id="transfer-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
             <button id="confirm-transfer-btn">ငွေလွှဲအတည်ပြုရန်</button>
             <p id="transfer-error" class="error-message hidden"></p>
+        </div>
+    </div>
+
+    <!-- Host Section (Transaction History) -->
+    <div id="host" class="container">
+        <h2>ငွေလွှဲ/ငွေဝင် မှတ်တမ်း</h2>
+        <div class="form-group">
+            <div class="history-header">
+                <select id="month-filter" onchange="loadHistory()">
+                    <option value="current">လက်ရှိလ</option>
+                    <option value="previous">ယခင်လ</option>
+                </select>
+                <p>စုစုပေါင်း ငွေဝင်: <span id="total-in">0 Ks</span></p>
+                <p>စုစုပေါင်း ငွေလွှဲ: <span id="total-out">0 Ks</span></p>
+            </div>
+            <div id="history-list"></div>
         </div>
     </div>
 
@@ -230,36 +309,20 @@
                 <p class="level-badge">Level 2 - Approved</p>
             </div>
             <div class="about-btn" onclick="toggleAbout()">About</div>
-            <div id="about-content" class="hidden">
-                <p><img src="/assets/email.png" alt="Email"> Email: wecharopper@gmail.com</p>
-                <p><img src="/assets/phone.png" alt="Phone"> Phone: 09983254678</p>
-                <p><img src="/assets/address.png" alt="Address"> Address: Mandalay Katao Line Street 4 No 290</p>
-                <p><img src="/assets/telegram.png" alt="Telegram"> Telegram: <a href="https://t.me/OPPERN">https://t.me/OPPERN</a></p>
+            <div id="about-content" class="about-content hidden">
+                <p><img src="https://cdn-icons-png.flaticon.com/512/561/561127.png" alt="Email"> Email: wecharopper@gmail.com</p>
+                <p><img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" alt="Phone"> Phone: 09983254678</p>
+                <p><img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Address"> Address: Mandalay Katao Line Street 4 No 290</p>
+                <p><img src="https://cdn-icons-png.flaticon.com/512/2111/2111728.png" alt="Telegram"> Telegram: <a href="https://t.me/OPPERN">https://t.me/OPPERN</a></p>
             </div>
-        </div>
-    </div>
-
-    <!-- Host Section (Transaction History) -->
-    <div id="host" class="container">
-        <h2>ငွေလွှဲ/ငွေဝင် မှတ်တမ်း</h2>
-        <div class="form-group">
-            <div class="history-header">
-                <select id="month-filter" onchange="loadHistory()">
-                    <option value="current">လက်ရှိလ</option>
-                    <option value="previous">ယခင်လ</option>
-                </select>
-                <p>စုစုပေါင်း ငွေဝင်: <span id="total-in">0 Ks</span></p>
-                <p>စုစုပေါင်း ငွေလွှဲ: <span id="total-out">0 Ks</span></p>
-            </div>
-            <div id="history-list"></div>
         </div>
     </div>
 
     <!-- Menu Bar -->
     <div class="menu">
-        <button onclick="scrollToSection('wallet')"><img src="/assets/home-icon.png" alt="Home">ပိုက်ဆံအိတ်</button>
-        <button onclick="scrollToSection('host')"><img src="/assets/host-icon.png" alt="Host">မှတ်တမ်း</button>
-        <button onclick="scrollToSection('mi')"><img src="/assets/mi-icon.png" alt="MI">ကျွန်ုပ်</button>
+        <button onclick="showSection('wallet')"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">ပိုက်ဆံအိတ်</button>
+        <button onclick="showSection('host')"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">မှတ်တမ်း</button>
+        <button onclick="showSection('mi')"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">ကျွန်ုပ်</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -273,6 +336,7 @@
         } catch (error) {
             console.error('Supabase Client Error:', error);
             alert('Supabase ချိတ်ဆက်မှု မအောင်မြင်ပါ။ URL နှင့် Key ကို ပြန်စစ်ပါ။');
+            return;
         }
 
         let currentDevice = null;
@@ -309,16 +373,21 @@
             }
         }
 
-        function scrollToSection(sectionId) {
-            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        function showSection(sectionId) {
+            const sections = ['wallet', 'host', 'mi'];
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                section.classList.toggle('active', id === sectionId);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function showTransfer() {
+        function toggleTransfer() {
             if (currentDevice.nrc_status !== 'approved') {
                 alert('NRC အတည်ပြုမှသာ ငွေလွှဲနိုင်ပါသည်။');
                 return;
             }
-            document.getElementById('transfer').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('transfer').classList.toggle('hidden');
         }
 
         function toggleAbout() {
@@ -326,15 +395,20 @@
         }
 
         async function uploadProfile() {
-            const file = document.getElementById('profile-upload').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    document.getElementById('profile-img').src = e.target.result;
-                    const { error } = await supabase.from('users').update({ profile_img: e.target.result }).eq('device_id', currentDevice.device_id);
-                    if (error) console.error('Profile Upload Error:', error);
-                };
-                reader.readAsDataURL(file);
+            try {
+                const file = document.getElementById('profile-upload').files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        document.getElementById('profile-img').src = e.target.result;
+                        const { error } = await supabase.from('users').update({ profile_img: e.target.result }).eq('device_id', currentDevice.device_id);
+                        if (error) throw new Error('Profile Upload Error: ' + error.message);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('ပရိုဖိုင်ပုံ တင်မှု မအောင်မြင်ပါ။');
             }
         }
 
@@ -484,12 +558,13 @@
 
                 const animation = document.createElement('div');
                 animation.className = 'transfer-animation';
-                animation.innerHTML = `${amount} Ks လွှဲပြီးပါပြီ<br><span style="font-size: 40px;">✔</span>`;
+                animation.innerHTML = `${amount} Ks လွှဲပြီးပါပြီ<br><span style="font-size: 2rem;">✔</span>`;
                 document.body.appendChild(animation);
                 setTimeout(() => animation.remove(), 1500);
 
                 document.getElementById('balance').textContent = `${sender.balance - amount} Ks`;
                 document.getElementById('transfer-error').classList.add('hidden');
+                document.getElementById('transfer').classList.add('hidden');
                 loadHistory();
             } catch (error) {
                 console.error(error);
