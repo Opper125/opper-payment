@@ -1,0 +1,11 @@
+{
+  "name": "opper-payment",
+  "version": "1.0.0",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7",
+    "node-fetch": "^3.3.2"
+  },
+  "scripts": {
+    "start": "netlify dev"
+  }
+}
