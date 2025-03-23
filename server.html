@@ -5,26 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPPER Server ထိန်းချုပ်မှု</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-        h2 { color: #2e7d32; }
-        pre { background: #fff; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .control { margin: 10px 0; }
-        input { padding: 10px; margin-right: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { padding: 10px; background: #2e7d32; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+            background: url('https://i.imgur.com/ice-background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(173, 216, 230, 0.8), rgba(135, 206, 235, 0.6));
+            animation: waterFlow 10s infinite linear;
+            z-index: -1;
+        }
+        @keyframes waterFlow {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        h2 { color: #2e7d32; text-align: center; font-size: 24px; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); }
+        .control {
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        input {
+            padding: 12px;
+            margin-right: 10px;
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            background: rgba(173, 216, 230, 0.8);
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus { border-color: #4682b4; }
+        button {
+            padding: 12px;
+            background: rgba(173, 216, 230, 0.9);
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: rgba(135, 206, 235, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .nrc-entry {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .nrc-entry img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin: 5px;
+            border: 1px solid #8b4513;
+            border-radius: 5px;
+        }
+        .approve-btn { background: #4caf50; color: #fff; }
+        .reject-btn { background: #f44336; color: #fff; }
     </style>
 </head>
 <body>
     <h2>Server ထိန်းချုပ်မှု</h2>
     <div class="control">
-        <label>ဖုန်းနံပါတ်:</label>
-        <input type="tel" id="control-phone" placeholder="09xxxxxxxxx">
+        <label>Device ID (6 လုံး):</label>
+        <input type="text" id="control-id" maxlength="6" placeholder="Device ID">
         <label>ငွေပမာဏ (Ks):</label>
         <input type="number" id="control-amount" placeholder="ငွေပမာဏ">
         <button onclick="addFunds()">ငွေသွင်းရန်</button>
         <button onclick="withdrawFunds()">ငွေထုတ်ရန်</button>
-        <button onclick="clearHistory()">မှတ်တမ်းဖျက်ရန်</button>
     </div>
-    <pre id="server-output">Server အချက်အလက်များ ဒီမှာ ပေါ်ပါမယ်...</pre>
+    <div id="nrc-pending" class="control">
+        <h3>စစ်ဆေးရန် NRC များ</h3>
+        <div id="nrc-list"></div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -32,62 +103,98 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
+        async function loadPendingNRC() {
+            const { data: pendingUsers, error } = await supabase.from('users').select('*').eq('nrc_status', 'pending').neq('nrc_front', null);
+            if (error) {
+                console.error('Load NRC Error:', error);
+                return;
+            }
+
+            const nrcList = document.getElementById('nrc-list');
+            nrcList.innerHTML = '';
+            pendingUsers.forEach(user => {
+                const entry = document.createElement('div');
+                entry.className = 'nrc-entry';
+                entry.innerHTML = `
+                    <p>ID: ${user.device_id}</p>
+                    <p>ဖုန်း: ${user.phone}</p>
+                    <p>NRC: ${user.nrc_region}/${user.nrc_town}/${user.nrc_type} ${user.nrc_number}</p>
+                    <p>တင်ပြချိန်: ${user.submitted_at}</p>
+                    <img src="${user.nrc_front}" alt="NRC Front">
+                    <img src="${user.nrc_back}" alt="NRC Back">
+                    <img src="${user.nrc_selfie}" alt="NRC Selfie">
+                    <button class="approve-btn" onclick="approveNRC('${user.device_id}')">အတည်ပြုမည်</button>
+                    <button class="reject-btn" onclick="rejectNRC('${user.device_id}')">ငြင်းဆိုမည်</button>
+                `;
+                nrcList.appendChild(entry);
+            });
+        }
+
+        async function approveNRC(deviceId) {
+            const { error } = await supabase.from('users').update({ nrc_status: 'approved' }).eq('device_id', deviceId);
+            if (error) {
+                console.error('Approve Error:', error);
+                alert('အတည်ပြုမှု မအောင်မြင်ပါ။');
+                return;
+            }
+            alert('အတည်ပြုပြီးပါပြီ။');
+            loadPendingNRC();
+        }
+
+        async function rejectNRC(deviceId) {
+            const { error } = await supabase.from('users').update({ nrc_status: 'rejected' }).eq('device_id', deviceId);
+            if (error) {
+                console.error('Reject Error:', error);
+                alert('ငြင်းဆိုမှု မအောင်မြင်ပါ။');
+                return;
+            }
+            alert('ငြင်းဆိုပြီးပါပြီ။');
+            loadPendingNRC();
+        }
+
         async function addFunds() {
-            const phone = document.getElementById('control-phone').value;
+            const deviceId = document.getElementById('control-id').value;
             const amount = parseInt(document.getElementById('control-amount').value);
-            if (!phone.match(/^09\d{9}$/) || !amount) {
-                alert('ဖုန်းနံပါတ် သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
+            if (!deviceId.match(/^\d{6}$/) || !amount) {
+                alert('Device ID သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
                 return;
             }
-            const { data: user, error } = await supabase.from('users').select('balance').eq('phone', phone).single();
-            if (error || !user) {
-                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'ဖုန်းနံပါတ် မရှိပါ။' }, null, 2);
+            const { data: user, error } = await supabase.from('users').select('balance, nrc_status').eq('device_id', deviceId).single();
+            if (error || !user || user.nrc_status !== 'approved') {
+                alert(user ? 'NRC အတည်မပြုရသေးပါ။' : 'Device ID မရှိပါ။');
                 return;
             }
-            const { error: updateError } = await supabase.from('users').update({ balance: user.balance + amount }).eq('phone', phone);
+            const { error: updateError } = await supabase.from('users').update({ balance: user.balance + amount }).eq('device_id', deviceId);
             if (updateError) {
                 console.error('Add Funds Error:', updateError);
-                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'ငွေသွင်းမှု မအောင်မြင်ပါ။' }, null, 2);
+                alert('ငွေသွင်းမှု မအောင်မြင်ပါ။');
                 return;
             }
-            document.getElementById('server-output').textContent = JSON.stringify({ success: true, newBalance: user.balance + amount }, null, 2);
+            alert('ငွေသွင်းပြီးပါပြီ။');
         }
 
         async function withdrawFunds() {
-            const phone = document.getElementById('control-phone').value;
+            const deviceId = document.getElementById('control-id').value;
             const amount = parseInt(document.getElementById('control-amount').value);
-            if (!phone.match(/^09\d{9}$/) || !amount) {
-                alert('ဖုန်းနံပါတ် သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
+            if (!deviceId.match(/^\d{6}$/) || !amount) {
+                alert('Device ID သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
                 return;
             }
-            const { data: user, error } = await supabase.from('users').select('balance').eq('phone', phone).single();
-            if (error || !user || user.balance < amount) {
-                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: user ? 'လက်ကျန်မလုံလောက်ပါ' : 'ဖုန်းနံပါတ် မရှိပါ။' }, null, 2);
+            const { data: user, error } = await supabase.from('users').select('balance, nrc_status').eq('device_id', deviceId).single();
+            if (error || !user || user.balance < amount || user.nrc_status !== 'approved') {
+                alert(user ? user.balance < amount ? 'လက်ကျန်မလုံလောက်ပါ။' : 'NRC အတည်မပြုရသေးပါ။' : 'Device ID မရှိပါ။');
                 return;
             }
-            const { error: updateError } = await supabase.from('users').update({ balance: user.balance - amount }).eq('phone', phone);
+            const { error: updateError } = await supabase.from('users').update({ balance: user.balance - amount }).eq('device_id', deviceId);
             if (updateError) {
                 console.error('Withdraw Funds Error:', updateError);
-                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'ငွေထုတ်မှု မအောင်မြင်ပါ။' }, null, 2);
+                alert('ငွေထုတ်မှု မအောင်မြင်ပါ။');
                 return;
             }
-            document.getElementById('server-output').textContent = JSON.stringify({ success: true, newBalance: user.balance - amount }, null, 2);
+            alert('ငွေထုတ်ပြီးပါပြီ။');
         }
 
-        async function clearHistory() {
-            const phone = document.getElementById('control-phone').value;
-            if (!phone.match(/^09\d{9}$/)) {
-                alert('ဖုန်းနံပါတ် မမှန်ပါ။');
-                return;
-            }
-            const { error } = await supabase.from('transactions').delete().eq('from_phone', phone);
-            if (error) {
-                console.error('Clear History Error:', error);
-                document.getElementById('server-output').textContent = JSON.stringify({ success: false, message: 'မှတ်တမ်းဖျက်မှု မအောင်မြင်ပါ။' }, null, 2);
-                return;
-            }
-            document.getElementById('server-output').textContent = JSON.stringify({ success: true, message: 'မှတ်တမ်းဖျက်ပြီးပါပြီ။' }, null, 2);
-        }
+        window.onload = loadPendingNRC;
     </script>
 </body>
 </html>
