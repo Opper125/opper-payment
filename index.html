@@ -28,6 +28,8 @@
         .about-btn { background: #ff1744; color: #fff; padding: 8px 15px; border-radius: 5px; text-align: center; cursor: pointer; font-family: 'Segoe UI', sans-serif; margin-top: 15px; }
         .about-content { margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px; }
         .about-content img { width: 20px; height: 20px; vertical-align: middle; margin-right: 10px; }
+        .logout-btn { background: #d32f2f; margin-top: 20px; }
+        .logout-btn:hover { background: #b71c1c; }
         @media (min-width: 768px) { 
             .container { max-width: 500px; }
             .menu { padding: 15px; }
@@ -158,6 +160,9 @@
             <div id="history-list"></div>
         </div>
 
+        <!-- Logout Button -->
+        <button class="logout-btn" onclick="logout()">အကောင့်ထွက်ရန်</button>
+
         <!-- Menu Bar -->
         <div class="menu">
             <button onclick="showSection('wallet')"><img src="/assets/home-icon.png" alt="Home">ကျွန်ုပ်၏ပိုက်ဆံအိတ်</button>
@@ -167,13 +172,18 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
+        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+
         let currentUser = null;
 
         function toggleForm(form) {
             document.getElementById('signup').classList.toggle('hidden', form !== 'signup');
             document.getElementById('login').classList.toggle('hidden', form !== 'login');
-            document.getElementById('home').classList.add('hidden');
+            document.getElementById('home').classList.toggle('hidden', form === 'home');
         }
 
         function showSection(section) {
@@ -190,16 +200,18 @@
             document.getElementById('about-content').classList.toggle('hidden');
         }
 
-        function uploadProfile() {
+        function logout() {
+            currentUser = null;
+            toggleForm('login');
+        }
+
+        async function uploadProfile() {
             const file = document.getElementById('profile-upload').files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = async (e) => {
                     document.getElementById('profile-img').src = e.target.result;
-                    fetch('/server', {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'updateProfileImg', phone: currentUser.phone, img: e.target.result })
-                    });
+                    await supabase.from('users').update({ profile_img: e.target.result }).eq('phone', currentUser.phone);
                 };
                 reader.readAsDataURL(file);
             }
@@ -207,16 +219,17 @@
 
         async function loadHistory() {
             const month = document.getElementById('month-filter').value;
-            const response = await fetch('/server', {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getHistory', phone: currentUser.phone, month })
-            });
-            const data = await response.json();
+            const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
+            const { data: transactions } = await supabase.from('transactions')
+                .select('*')
+                .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
+                .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
+            
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
             let totalIn = 0, totalOut = 0;
 
-            data.transactions.forEach(t => {
+            transactions.forEach(t => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 item.innerHTML = `${t.from_phone === currentUser.phone ? 'လွှဲသည်' : 'ဝင်သည်'}: ${t.amount} Ks<br>ဖုန်း: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>အမည်: ${t.name}<br>အချိန်: ${t.timestamp}`;
@@ -238,22 +251,23 @@
             const phone = document.getElementById('phone').value;
             const pin = document.getElementById('pin').value;
 
-            // NRC ပေါင်းစပ်မှု
             const nrc = `${nrcRegion}/${nrcTown}/${nrcType} ${nrcNumber}`;
 
-            // Validation
             if (!name || !nrcRegion || !nrcTown || !nrcType || !nrcNumber.match(/^\d{6}$/) || !phone.match(/^09\d{9}$/) || pin.length !== 6) {
                 alert('အချက်အလက်များကို ပြည့်စုံစွာ ဖြည့်ပါ။');
                 return;
             }
 
-            const response = await fetch('/server', {
-                method: 'POST',
-                body: JSON.stringify({ action: 'signup', name, nrc, phone, pin })
-            });
-            const data = await response.json();
-            if (data.success) {
+            const { data: existingUser } = await supabase.from('users').select('*').eq('phone', phone).single();
+            if (existingUser) {
+                alert('ဖုန်းနံပါတ်ရှိပြီးသားပါ။');
+                return;
+            }
+
+            const { error } = await supabase.from('users').insert({ name, nrc, phone, pin, balance: 0, daily_limit: 10000000 });
+            if (!error) {
                 currentUser = { name, nrc, phone, pin };
+                alert('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါပြီ။');
                 toggleForm('home');
                 document.getElementById('balance').textContent = '0 Ks';
                 document.getElementById('mi-name').textContent = name;
@@ -268,18 +282,14 @@
             const phone = document.getElementById('login-phone').value;
             const pin = document.getElementById('login-pin').value;
 
-            const response = await fetch('/server', {
-                method: 'POST',
-                body: JSON.stringify({ action: 'login', phone, pin })
-            });
-            const data = await response.json();
-            if (data.success) {
-                currentUser = data.user;
+            const { data: user } = await supabase.from('users').select('*').eq('phone', phone).eq('pin', pin).single();
+            if (user) {
+                currentUser = user;
                 toggleForm('home');
-                document.getElementById('balance').textContent = `${data.balance} Ks`;
-                document.getElementById('mi-name').textContent = data.user.name;
-                document.getElementById('mi-nrc').textContent = data.user.nrc;
-                document.getElementById('mi-phone').textContent = data.user.phone;
+                document.getElementById('balance').textContent = `${user.balance} Ks`;
+                document.getElementById('mi-name').textContent = user.name;
+                document.getElementById('mi-nrc').textContent = user.nrc;
+                document.getElementById('mi-phone').textContent = user.phone;
                 loadHistory();
             } else {
                 alert('အချက်အလက်မမှန်ပါ။');
@@ -296,19 +306,22 @@
                 return;
             }
 
-            const response = await fetch('/server', {
-                method: 'POST',
-                body: JSON.stringify({ action: 'transfer', fromPhone: currentUser.phone, toPhone: phone, amount, pin })
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(`${amount} Ks ကို ${phone} သို့ လွှဲပြီးပါပြီ။`);
-                document.getElementById('balance').textContent = `${data.newBalance} Ks`;
-                showSection('wallet');
-                loadHistory();
-            } else {
-                alert(data.message || 'ငွေလွှဲမှု မအောင်မြင်ပါ။');
+            const { data: sender } = await supabase.from('users').select('*').eq('phone', currentUser.phone).eq('pin', pin).single();
+            const { data: receiver } = await supabase.from('users').select('*').eq('phone', phone).single();
+            if (!sender || !receiver || sender.balance < amount || amount > 1000000) {
+                alert('လွှဲမှု မဖြစ်နိုင်ပါ။');
+                return;
             }
+
+            const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
+            await supabase.from('users').update({ balance: sender.balance - amount }).eq('phone', currentUser.phone);
+            await supabase.from('users').update({ balance: receiver.balance + amount }).eq('phone', phone);
+            await supabase.from('transactions').insert({ from_phone: currentUser.phone, to_phone: phone, amount, timestamp: now, name: receiver.name });
+
+            alert(`${amount} Ks ကို ${phone} သို့ လွှဲပြီးပါပြီ။`);
+            document.getElementById('balance').textContent = `${sender.balance - amount} Ks`;
+            showSection('wallet');
+            loadHistory();
         });
     </script>
 </body>
