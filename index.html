@@ -76,11 +76,11 @@
             <input type="text" id="nrc-number" maxlength="6" placeholder="NRC နံပါတ်ထည့်ရန်" required>
         </div>
         <div class="form-group">
-            <label>ဖုန်းနံပါတ် (ဥပမာ: 09xxxxxxxxx)</label>
+            <label>ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
             <input type="tel" id="phone" placeholder="09xxxxxxxxx" required>
         </div>
         <div class="form-group">
-            <label>ငွေပေးချေမှု PIN (အများဆုံး ၆ လုံး)</label>
+            <label>ငွေပေးချေမှု PIN (၆ လုံး)</label>
             <input type="password" id="pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
         </div>
         <button id="signup-btn">အကောင့်ဖွင့်ရန်</button>
@@ -220,11 +220,16 @@
         async function loadHistory() {
             const month = document.getElementById('month-filter').value;
             const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
-            const { data: transactions } = await supabase.from('transactions')
+            const { data: transactions, error } = await supabase.from('transactions')
                 .select('*')
                 .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
                 .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
             
+            if (error) {
+                console.error('History Load Error:', error);
+                return;
+            }
+
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
             let totalIn = 0, totalOut = 0;
@@ -258,42 +263,56 @@
                 return;
             }
 
-            const { data: existingUser } = await supabase.from('users').select('*').eq('phone', phone).single();
+            const { data: existingUser, error: checkError } = await supabase.from('users').select('*').eq('phone', phone).single();
             if (existingUser) {
                 alert('ဖုန်းနံပါတ်ရှိပြီးသားပါ။');
                 return;
             }
+            if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = No rows found
+                console.error('Check Error:', checkError);
+                alert('အကောင့်ဖွင့်မှု မအောင်မြင်ပါ။');
+                return;
+            }
 
             const { error } = await supabase.from('users').insert({ name, nrc, phone, pin, balance: 0, daily_limit: 10000000 });
-            if (!error) {
-                currentUser = { name, nrc, phone, pin };
-                alert('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါပြီ။');
-                toggleForm('home');
-                document.getElementById('balance').textContent = '0 Ks';
-                document.getElementById('mi-name').textContent = name;
-                document.getElementById('mi-nrc').textContent = nrc;
-                document.getElementById('mi-phone').textContent = phone;
-            } else {
+            if (error) {
+                console.error('Signup Error:', error);
                 alert('အကောင့်ဖွင့်မှု မအောင်မြင်ပါ။');
+                return;
             }
+
+            currentUser = { name, nrc, phone, pin, balance: 0 };
+            alert('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါပြီ။ သင့်အကောင့်ကို အသုံးပြုနိုင်ပါပြီ။');
+            toggleForm('home');
+            document.getElementById('balance').textContent = '0 Ks';
+            document.getElementById('mi-name').textContent = name;
+            document.getElementById('mi-nrc').textContent = nrc;
+            document.getElementById('mi-phone').textContent = phone;
         });
 
         document.getElementById('login-btn').addEventListener('click', async () => {
             const phone = document.getElementById('login-phone').value;
             const pin = document.getElementById('login-pin').value;
 
-            const { data: user } = await supabase.from('users').select('*').eq('phone', phone).eq('pin', pin).single();
-            if (user) {
-                currentUser = user;
-                toggleForm('home');
-                document.getElementById('balance').textContent = `${user.balance} Ks`;
-                document.getElementById('mi-name').textContent = user.name;
-                document.getElementById('mi-nrc').textContent = user.nrc;
-                document.getElementById('mi-phone').textContent = user.phone;
-                loadHistory();
-            } else {
-                alert('အချက်အလက်မမှန်ပါ။');
+            if (!phone.match(/^09\d{9}$/) || pin.length !== 6) {
+                alert('ဖုန်းနံပါတ် သို့မဟုတ် PIN မမှန်ပါ။');
+                return;
             }
+
+            const { data: user, error } = await supabase.from('users').select('*').eq('phone', phone).eq('pin', pin).single();
+            if (error || !user) {
+                console.error('Login Error:', error);
+                alert('ဖုန်းနံပါတ် သို့မဟုတ် PIN မမှန်ပါ။');
+                return;
+            }
+
+            currentUser = user;
+            toggleForm('home');
+            document.getElementById('balance').textContent = `${user.balance} Ks`;
+            document.getElementById('mi-name').textContent = user.name;
+            document.getElementById('mi-nrc').textContent = user.nrc;
+            document.getElementById('mi-phone').textContent = user.phone;
+            loadHistory();
         });
 
         document.getElementById('transfer-btn').addEventListener('click', async () => {
@@ -306,17 +325,24 @@
                 return;
             }
 
-            const { data: sender } = await supabase.from('users').select('*').eq('phone', currentUser.phone).eq('pin', pin).single();
-            const { data: receiver } = await supabase.from('users').select('*').eq('phone', phone).single();
-            if (!sender || !receiver || sender.balance < amount || amount > 1000000) {
+            const { data: sender, error: senderError } = await supabase.from('users').select('*').eq('phone', currentUser.phone).eq('pin', pin).single();
+            const { data: receiver, error: receiverError } = await supabase.from('users').select('*').eq('phone', phone).single();
+            if (senderError || receiverError || !sender || !receiver || sender.balance < amount) {
+                console.error('Transfer Error:', senderError || receiverError);
                 alert('လွှဲမှု မဖြစ်နိုင်ပါ။');
                 return;
             }
 
             const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
-            await supabase.from('users').update({ balance: sender.balance - amount }).eq('phone', currentUser.phone);
-            await supabase.from('users').update({ balance: receiver.balance + amount }).eq('phone', phone);
-            await supabase.from('transactions').insert({ from_phone: currentUser.phone, to_phone: phone, amount, timestamp: now, name: receiver.name });
+            const { error: updateSenderError } = await supabase.from('users').update({ balance: sender.balance - amount }).eq('phone', currentUser.phone);
+            const { error: updateReceiverError } = await supabase.from('users').update({ balance: receiver.balance + amount }).eq('phone', phone);
+            const { error: insertError } = await supabase.from('transactions').insert({ from_phone: currentUser.phone, to_phone: phone, amount, timestamp: now, name: receiver.name });
+
+            if (updateSenderError || updateReceiverError || insertError) {
+                console.error('Transfer Update Error:', updateSenderError || updateReceiverError || insertError);
+                alert('ငွေလွှဲမှု မအောင်မြင်ပါ။');
+                return;
+            }
 
             alert(`${amount} Ks ကို ${phone} သို့ လွှဲပြီးပါပြီ။`);
             document.getElementById('balance').textContent = `${sender.balance - amount} Ks`;
