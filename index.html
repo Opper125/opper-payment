@@ -34,9 +34,9 @@
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
             margin: 20px auto;
-            display: none; /* Default အနေနဲ့ ဖျောက်ထားမယ် */
+            display: none;
         }
-        .container.active { display: block; } /* Menu နှိပ်ရင် ပြမယ် */
+        .container.active { display: block; }
         h2 {
             text-align: center;
             color: #2e7d32;
@@ -202,8 +202,6 @@
             font-size: 0.9rem;
         }
         .hidden { display: none; }
-
-        /* Responsive Design */
         @media (max-width: 480px) {
             body { padding: 5px; font-size: 14px; }
             .id-badge { padding: 6px 10px; font-size: 0.9rem; }
@@ -221,7 +219,7 @@
     </style>
 </head>
 <body>
-    <div class="id-badge" id="device-id-badge">ID: Loading...</div>
+    <div class="id-badge" id="device-id-badge">ID: N/A</div>
 
     <!-- Wallet Section -->
     <div id="wallet" class="container active">
@@ -269,7 +267,7 @@
         <div class="form-group">
             <img id="profile-img" class="profile-img" src="https://via.placeholder.com/120" alt="Profile">
             <input type="file" id="profile-upload" accept="image/*" onchange="uploadProfile()">
-            <p>သင့် ID: <span id="mi-device-id"></span></p>
+            <p>သင့် ID: <span id="mi-device-id">N/A</span></p>
             <p id="mi-status" class="status pending">NRC အတည်ပြုရန် လိုအပ်ပါသည်</p>
             <div id="nrc-form" class="form-group">
                 <h3>NRC အချက်အလက် တင်ပြရန်</h3>
@@ -329,8 +327,11 @@
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-        
+        const serverUrl = 'http://localhost:3000'; // Server.js ကို Localhost မှာ Run မယ်
+
         let supabase;
+        let currentDevice = { device_id: 'N/A', balance: 0, nrc_status: 'pending' };
+
         try {
             supabase = Supabase.createClient(supabaseUrl, supabaseKey);
         } catch (error) {
@@ -338,8 +339,6 @@
             alert('Supabase ချိတ်ဆက်မှု မအောင်မြင်ပါ။ URL နှင့် Key ကို ပြန်စစ်ပါ။');
             return;
         }
-
-        let currentDevice = null;
 
         function generateDeviceId() {
             return Math.floor(100000 + Math.random() * 900000).toString();
@@ -350,15 +349,17 @@
                 let deviceId = localStorage.getItem('deviceId');
                 if (!deviceId) {
                     deviceId = generateDeviceId();
-                    const { data: existingDevice, error: checkError } = await supabase.from('users').select('*').eq('device_id', deviceId).single();
-                    if (existingDevice) deviceId = generateDeviceId();
-                    const { error: insertError } = await supabase.from('users').insert({ device_id: deviceId, balance: 0, nrc_status: 'pending' });
-                    if (insertError) throw new Error('Insert Error: ' + insertError.message);
                     localStorage.setItem('deviceId', deviceId);
+                    await fetch(`${serverUrl}/create-user`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ device_id: deviceId, balance: 0, nrc_status: 'pending' })
+                    });
                 }
 
-                const { data: user, error: fetchError } = await supabase.from('users').select('*').eq('device_id', deviceId).single();
-                if (fetchError) throw new Error('Fetch Error: ' + fetchError.message);
+                const response = await fetch(`${serverUrl}/get-user?device_id=${deviceId}`);
+                const user = await response.json();
+                if (!response.ok) throw new Error('User Fetch Error');
 
                 currentDevice = user;
                 document.getElementById('device-id-badge').textContent = `ID: ${deviceId}`;
@@ -369,7 +370,7 @@
                 loadHistory();
             } catch (error) {
                 console.error('Initialize Device Error:', error);
-                alert('အကောင့်စတင်မှု မအောင်မြင်ပါ။ Error: ' + error.message);
+                alert('အကောင့်စတင်မှု မအောင်မြင်ပါ။ Server သို့မဟုတ် Supabase ချိတ်ဆက်မှုကို စစ်ပါ။');
             }
         }
 
@@ -401,13 +402,16 @@
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         document.getElementById('profile-img').src = e.target.result;
-                        const { error } = await supabase.from('users').update({ profile_img: e.target.result }).eq('device_id', currentDevice.device_id);
-                        if (error) throw new Error('Profile Upload Error: ' + error.message);
+                        await fetch(`${serverUrl}/update-profile`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ device_id: currentDevice.device_id, profile_img: e.target.result })
+                        });
                     };
                     reader.readAsDataURL(file);
                 }
             } catch (error) {
-                console.error(error);
+                console.error('Profile Upload Error:', error);
                 alert('ပရိုဖိုင်ပုံ တင်မှု မအောင်မြင်ပါ။');
             }
         }
@@ -415,7 +419,8 @@
         async function checkPhone() {
             const phone = document.getElementById('transfer-phone').value;
             if (phone.match(/^09\d{9}$/)) {
-                const { data: receiver, error } = await supabase.from('users').select('phone, nrc_status').eq('phone', phone).single();
+                const response = await fetch(`${serverUrl}/check-phone?phone=${phone}`);
+                const receiver = await response.json();
                 if (receiver && receiver.nrc_status === 'approved') {
                     document.getElementById('receiver-name').textContent = `လက်ခံသူ: ${phone}`;
                 } else {
@@ -430,12 +435,8 @@
             try {
                 const month = document.getElementById('month-filter').value;
                 const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
-                const { data: transactions, error } = await supabase.from('transactions')
-                    .select('*')
-                    .or(`from_device_id.eq.${currentDevice.device_id},to_device_id.eq.${currentDevice.device_id}`)
-                    .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
-                
-                if (error) throw new Error('History Load Error: ' + error.message);
+                const response = await fetch(`${serverUrl}/get-history?device_id=${currentDevice.device_id}&month=${monthFilter}`);
+                const transactions = await response.json();
 
                 const historyList = document.getElementById('history-list');
                 historyList.innerHTML = '';
@@ -453,7 +454,7 @@
                 document.getElementById('total-in').textContent = `${totalIn} Ks`;
                 document.getElementById('total-out').textContent = `${totalOut} Ks`;
             } catch (error) {
-                console.error(error);
+                console.error('History Load Error:', error);
                 alert('မှတ်တမ်းရယူမှု မအောင်မြင်ပါ။');
             }
         }
@@ -472,8 +473,8 @@
                 document.getElementById('transfer-btn').disabled = false;
                 document.getElementById('nrc-form').classList.add('hidden');
                 document.getElementById('nrc-info').classList.remove('hidden');
-                document.getElementById('mi-phone').textContent = currentDevice.phone;
-                document.getElementById('mi-nrc').textContent = `${currentDevice.nrc_region}/${currentDevice.nrc_town}/${currentDevice.nrc_type} ${currentDevice.nrc_number}`;
+                document.getElementById('mi-phone').textContent = currentDevice.phone || 'N/A';
+                document.getElementById('mi-nrc').textContent = currentDevice.nrc_region ? `${currentDevice.nrc_region}/${currentDevice.nrc_town}/${currentDevice.nrc_type} ${currentDevice.nrc_number}` : 'N/A';
             } else if (status === 'rejected') {
                 walletStatus.textContent = 'NRC ငြင်းဆိုခံရသည်';
                 miStatus.textContent = 'NRC ငြင်းဆိုခံရသည်';
@@ -509,19 +510,23 @@
                     readFile(selfieFile)
                 ]);
 
-                const { error } = await supabase.from('users').update({
-                    phone, pin, nrc_status: 'pending', nrc_front: frontImg, nrc_back: backImg, nrc_selfie: selfieImg,
-                    nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber,
-                    submitted_at: new Date().toISOString()
-                }).eq('device_id', currentDevice.device_id);
-
-                if (error) throw new Error('NRC Submit Error: ' + error.message);
+                await fetch(`${serverUrl}/submit-nrc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        device_id: currentDevice.device_id,
+                        phone, pin, nrc_status: 'pending',
+                        nrc_front: frontImg, nrc_back: backImg, nrc_selfie: selfieImg,
+                        nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber,
+                        submitted_at: new Date().toISOString()
+                    })
+                });
 
                 currentDevice = { ...currentDevice, phone, pin, nrc_status: 'pending', nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber };
                 alert('NRC အချက်အလက် တင်ပြပြီးပါပြီ။ အတည်ပြုရန် စောင့်ဆိုင်းပါ။');
                 updateStatus('pending');
             } catch (error) {
-                console.error(error);
+                console.error('NRC Submit Error:', error);
                 alert('NRC တင်ပြမှု မအောင်မြင်ပါ။');
             }
         });
@@ -539,22 +544,19 @@
                     return;
                 }
 
-                const { data: sender, error: senderError } = await supabase.from('users').select('*').eq('device_id', currentDevice.device_id).eq('pin', pin).single();
-                const { data: receiver, error: receiverError } = await supabase.from('users').select('*').eq('phone', phone).single();
-                if (senderError || receiverError || !sender || !receiver || sender.balance < amount || receiver.nrc_status !== 'approved') {
-                    document.getElementById('transfer-error').textContent = senderError || receiverError ? 'လွှဲမှု မဖြစ်နိုင်ပါ။' : !sender ? 'PIN မမှန်ပါ။' : !receiver ? 'လက်ခံသူ အကောင့်မရှိပါ။' : sender.balance < amount ? 'လက်ကျန်မလုံလောက်ပါ။' : 'လက်ခံသူ NRC အတည်မပြုရသေးပါ။';
-                    document.getElementById('transfer-error').classList.remove('hidden');
-                    return;
-                }
+                const response = await fetch(`${serverUrl}/transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from_device_id: currentDevice.device_id,
+                        to_phone: phone,
+                        amount, note, pin,
+                        timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
+                    })
+                });
 
-                const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
-                const { error: updateSenderError } = await supabase.from('users').update({ balance: sender.balance - amount }).eq('device_id', currentDevice.device_id);
-                const { error: updateReceiverError } = await supabase.from('users').update({ balance: receiver.balance + amount }).eq('device_id', receiver.device_id);
-                const { error: insertError } = await supabase.from('transactions').insert({ from_device_id: currentDevice.device_id, to_device_id: receiver.device_id, amount, note, timestamp: now });
-
-                if (updateSenderError || updateReceiverError || insertError) {
-                    throw new Error('Transfer Update Error: ' + (updateSenderError || updateReceiverError || insertError).message);
-                }
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
 
                 const animation = document.createElement('div');
                 animation.className = 'transfer-animation';
@@ -562,13 +564,14 @@
                 document.body.appendChild(animation);
                 setTimeout(() => animation.remove(), 1500);
 
-                document.getElementById('balance').textContent = `${sender.balance - amount} Ks`;
+                currentDevice.balance = result.new_balance;
+                document.getElementById('balance').textContent = `${result.new_balance} Ks`;
                 document.getElementById('transfer-error').classList.add('hidden');
                 document.getElementById('transfer').classList.add('hidden');
                 loadHistory();
             } catch (error) {
-                console.error(error);
-                document.getElementById('transfer-error').textContent = 'ငွေလွှဲမှု မအောင်မြင်ပါ။';
+                console.error('Transfer Error:', error);
+                document.getElementById('transfer-error').textContent = error.message || 'ငွေလွှဲမှု မအောင်မြင်ပါ။';
                 document.getElementById('transfer-error').classList.remove('hidden');
             }
         });
