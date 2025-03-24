@@ -3,198 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPPER Server ထိန်းချုပ်မှု</title>
+    <title>OPPER Server Dashboard</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 20px;
-            background: url('https://i.imgur.com/ice-background.jpg') no-repeat center center fixed;
-            background-size: cover;
-            position: relative;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(180deg, rgba(173, 216, 230, 0.8), rgba(135, 206, 235, 0.6));
-            animation: waterFlow 10s infinite linear;
-            z-index: -1;
-        }
-        @keyframes waterFlow {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
-        }
-        h2 { color: #2e7d32; text-align: center; font-size: 24px; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); }
-        .control {
-            margin: 20px 0;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-        input {
-            padding: 12px;
-            margin-right: 10px;
-            border: 2px solid #8b4513;
-            border-radius: 8px;
-            background: rgba(173, 216, 230, 0.8);
-            color: #333;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        input:focus { border-color: #4682b4; }
-        button {
-            padding: 12px;
-            background: rgba(173, 216, 230, 0.9);
-            border: 2px solid #8b4513;
-            border-radius: 8px;
-            color: #333;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            background: rgba(135, 206, 235, 1);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .nrc-entry {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .nrc-entry img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            margin: 5px;
-            border: 1px solid #8b4513;
-            border-radius: 5px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: #f5f5f5; min-height: 100vh; padding: 20px; font-size: 16px; }
+        h1 { text-align: center; color: #2e7d32; margin-bottom: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .section { margin-bottom: 30px; }
+        h2 { color: #444; margin-bottom: 15px; }
+        .user-list, .history-list { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
+        .user-item, .history-item { padding: 10px; border-bottom: 1px solid #eee; }
+        .user-item img { width: 50px; height: 50px; border-radius: 5px; margin-right: 10px; vertical-align: middle; }
+        button { padding: 8px 15px; background: #80deea; border: 2px solid #5d4037; border-radius: 5px; color: #333; font-weight: bold; cursor: pointer; margin: 5px; }
+        button:hover { background: #4fc3f7; }
         .approve-btn { background: #4caf50; color: #fff; }
         .reject-btn { background: #f44336; color: #fff; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #444; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 2px solid #5d4037; border-radius: 5px; background: #e0f7fa; color: #333; }
+        @media (max-width: 480px) {
+            body { padding: 10px; font-size: 14px; }
+            .container { padding: 15px; }
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.2rem; }
+            button { padding: 6px 10px; font-size: 0.9rem; }
+            input, select { padding: 8px; font-size: 0.9rem; }
+            .user-item img { width: 40px; height: 40px; }
+        }
     </style>
 </head>
 <body>
-    <h2>Server ထိန်းချုပ်မှု</h2>
-    <div class="control">
-        <label>Device ID (6 လုံး):</label>
-        <input type="text" id="control-id" maxlength="6" placeholder="Device ID">
-        <label>ငွေပမာဏ (Ks):</label>
-        <input type="number" id="control-amount" placeholder="ငွေပမာဏ">
-        <button onclick="addFunds()">ငွေသွင်းရန်</button>
-        <button onclick="withdrawFunds()">ငွေထုတ်ရန်</button>
-    </div>
-    <div id="nrc-pending" class="control">
-        <h3>စစ်ဆေးရန် NRC များ</h3>
-        <div id="nrc-list"></div>
+    <div class="container">
+        <h1>OPPER Server Dashboard</h1>
+
+        <!-- NRC Approval Section -->
+        <div class="section">
+            <h2>NRC အတည်ပြုမှု</h2>
+            <div class="user-list" id="user-list"></div>
+        </div>
+
+        <!-- Deposit/Withdraw Section -->
+        <div class="section">
+            <h2>ငွေသွင်း/ငွေထုတ်</h2>
+            <div class="form-group">
+                <label>ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
+                <input type="tel" id="dw-phone" placeholder="09xxxxxxxxx" required>
+            </div>
+            <div class="form-group">
+                <label>ပမာဏ (Ks)</label>
+                <input type="number" id="dw-amount" placeholder="ပမာဏ ထည့်ပါ" required>
+            </div>
+            <div class="form-group">
+                <label>အမျိုးအစား</label>
+                <select id="dw-type" required>
+                    <option value="deposit">ငွေသွင်း</option>
+                    <option value="withdraw">ငွေထုတ်</option>
+                </select>
+            </div>
+            <button onclick="processDepositWithdraw()">အတည်ပြုရန်</button>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="section">
+            <h2>မှတ်တမ်း</h2>
+            <div class="history-list" id="history-list"></div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
+        const supabase = Supabase.createClient(supabaseUrl, supabaseServiceKey);
 
-        async function loadPendingNRC() {
-            const { data: pendingUsers, error } = await supabase.from('users').select('*').eq('nrc_status', 'pending').neq('nrc_front', null);
-            if (error) {
-                console.error('Load NRC Error:', error);
-                return;
-            }
+        async function loadUsers() {
+            const { data: users } = await supabase.from('users').select('*').eq('nrc_status', 'pending');
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
 
-            const nrcList = document.getElementById('nrc-list');
-            nrcList.innerHTML = '';
-            pendingUsers.forEach(user => {
-                const entry = document.createElement('div');
-                entry.className = 'nrc-entry';
-                entry.innerHTML = `
-                    <p>ID: ${user.device_id}</p>
-                    <p>ဖုန်း: ${user.phone}</p>
-                    <p>NRC: ${user.nrc_region}/${user.nrc_town}/${user.nrc_type} ${user.nrc_number}</p>
-                    <p>တင်ပြချိန်: ${user.submitted_at}</p>
-                    <img src="${user.nrc_front}" alt="NRC Front">
-                    <img src="${user.nrc_back}" alt="NRC Back">
-                    <img src="${user.nrc_selfie}" alt="NRC Selfie">
-                    <button class="approve-btn" onclick="approveNRC('${user.device_id}')">အတည်ပြုမည်</button>
-                    <button class="reject-btn" onclick="rejectNRC('${user.device_id}')">ငြင်းဆိုမည်</button>
+            (users || []).forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    ID: ${user.device_id} | ဖုန်း: ${user.phone || 'N/A'}<br>
+                    NRC: ${user.nrc_region}/${user.nrc_town}/${user.nrc_type} ${user.nrc_number}<br>
+                    <img src="${user.nrc_front}" alt="Front"> <img src="${user.nrc_back}" alt="Back"> <img src="${user.nrc_selfie}" alt="Selfie"><br>
+                    <button class="approve-btn" onclick="updateNrcStatus('${user.device_id}', 'approved')">အတည်ပြု</button>
+                    <button class="reject-btn" onclick="updateNrcStatus('${user.device_id}', 'rejected')">ငြင်းဆို</button>
                 `;
-                nrcList.appendChild(entry);
+                userList.appendChild(item);
             });
         }
 
-        async function approveNRC(deviceId) {
-            const { error } = await supabase.from('users').update({ nrc_status: 'approved' }).eq('device_id', deviceId);
-            if (error) {
-                console.error('Approve Error:', error);
-                alert('အတည်ပြုမှု မအောင်မြင်ပါ။');
-                return;
-            }
-            alert('အတည်ပြုပြီးပါပြီ။');
-            loadPendingNRC();
+        async function updateNrcStatus(deviceId, status) {
+            await supabase.from('users').update({ nrc_status: status }).eq('device_id', deviceId);
+            alert(`ID ${deviceId} ကို ${status === 'approved' ? 'အတည်ပြု' : 'ငြင်းဆို'} ပြီးပါပြီ။`);
+            loadUsers();
         }
 
-        async function rejectNRC(deviceId) {
-            const { error } = await supabase.from('users').update({ nrc_status: 'rejected' }).eq('device_id', deviceId);
-            if (error) {
-                console.error('Reject Error:', error);
-                alert('ငြင်းဆိုမှု မအောင်မြင်ပါ။');
+        async function processDepositWithdraw() {
+            const phone = document.getElementById('dw-phone').value;
+            const amount = parseInt(document.getElementById('dw-amount').value);
+            const type = document.getElementById('dw-type').value;
+
+            if (!phone.match(/^09\d{9}$/) || amount <= 0) {
+                alert('ဖုန်းနံပါတ် သို့မဟုတ် ပမာဏ မမှန်ပါ။');
                 return;
             }
-            alert('ငြင်းဆိုပြီးပါပြီ။');
-            loadPendingNRC();
+
+            const { data: user } = await supabase.from('users').select('*').eq('phone', phone).single();
+            if (!user || user.nrc_status !== 'approved') {
+                alert('အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။');
+                return;
+            }
+
+            const newBalance = type === 'deposit' ? user.balance + amount : user.balance - amount;
+            if (newBalance < 0) {
+                alert('လက်ကျန်မလုံလောက်ပါ။');
+                return;
+            }
+
+            await supabase.from('users').update({ balance: newBalance }).eq('device_id', user.device_id);
+            await supabase.from('transactions').insert({
+                from_device_id: type === 'withdraw' ? user.device_id : 'server',
+                to_device_id: type === 'deposit' ? user.device_id : 'server',
+                amount: amount,
+                note: `${type === 'deposit' ? 'ငွေသွင်း' : 'ငွေထုတ်'} by Server`,
+                timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
+            });
+
+            alert(`${type === 'deposit' ? 'ငွေသွင်း' : 'ငွေထုတ်'} ပြီးပါပြီ။ လက်ကျန်: ${newBalance} Ks`);
+            loadHistory();
         }
 
-        async function addFunds() {
-            const deviceId = document.getElementById('control-id').value;
-            const amount = parseInt(document.getElementById('control-amount').value);
-            if (!deviceId.match(/^\d{6}$/) || !amount) {
-                alert('Device ID သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
-                return;
-            }
-            const { data: user, error } = await supabase.from('users').select('balance, nrc_status').eq('device_id', deviceId).single();
-            if (error || !user || user.nrc_status !== 'approved') {
-                alert(user ? 'NRC အတည်မပြုရသေးပါ။' : 'Device ID မရှိပါ။');
-                return;
-            }
-            const { error: updateError } = await supabase.from('users').update({ balance: user.balance + amount }).eq('device_id', deviceId);
-            if (updateError) {
-                console.error('Add Funds Error:', updateError);
-                alert('ငွေသွင်းမှု မအောင်မြင်ပါ။');
-                return;
-            }
-            alert('ငွေသွင်းပြီးပါပြီ။');
+        async function loadHistory() {
+            const { data: transactions } = await supabase.from('transactions').select('*').order('timestamp', { ascending: false });
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+
+            (transactions || []).forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `${t.from_device_id === 'server' ? 'ငွေသွင်း' : t.to_device_id === 'server' ? 'ငွေထုတ်' : 'လွှဲသည်'}: ${t.amount} Ks<br>မှ: ${t.from_device_id} သို့: ${t.to_device_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                historyList.appendChild(item);
+            });
         }
 
-        async function withdrawFunds() {
-            const deviceId = document.getElementById('control-id').value;
-            const amount = parseInt(document.getElementById('control-amount').value);
-            if (!deviceId.match(/^\d{6}$/) || !amount) {
-                alert('Device ID သို့မဟုတ် ငွေပမာဏ မမှန်ပါ။');
-                return;
-            }
-            const { data: user, error } = await supabase.from('users').select('balance, nrc_status').eq('device_id', deviceId).single();
-            if (error || !user || user.balance < amount || user.nrc_status !== 'approved') {
-                alert(user ? user.balance < amount ? 'လက်ကျန်မလုံလောက်ပါ။' : 'NRC အတည်မပြုရသေးပါ။' : 'Device ID မရှိပါ။');
-                return;
-            }
-            const { error: updateError } = await supabase.from('users').update({ balance: user.balance - amount }).eq('device_id', deviceId);
-            if (updateError) {
-                console.error('Withdraw Funds Error:', updateError);
-                alert('ငွေထုတ်မှု မအောင်မြင်ပါ။');
-                return;
-            }
-            alert('ငွေထုတ်ပြီးပါပြီ။');
-        }
-
-        window.onload = loadPendingNRC;
+        window.onload = () => {
+            loadUsers();
+            loadHistory();
+        };
     </script>
 </body>
 </html>
