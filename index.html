@@ -6,216 +6,33 @@
     <title>OPPER Payment</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body {
-            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
-            min-height: 100vh;
-            padding: 10px;
-            overflow-x: hidden;
-            font-size: 16px;
-        }
-        .id-badge {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: #80deea;
-            border: 2px solid #5d4037;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-weight: bold;
-            color: #333;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            margin: 20px auto;
-            display: none;
-        }
+        body { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); min-height: 100vh; padding: 10px; overflow-x: hidden; font-size: 16px; }
+        .id-badge { position: fixed; top: 10px; right: 10px; background: #80deea; border: 2px solid #5d4037; border-radius: 8px; padding: 8px 12px; font-weight: bold; color: #333; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); z-index: 100; }
+        .container { width: 100%; max-width: 500px; padding: 20px; background: #ffffff; border-radius: 15px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); margin: 20px auto; display: none; }
         .container.active { display: block; }
-        h2 {
-            text-align: center;
-            color: #2e7d32;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
+        h2 { text-align: center; color: #2e7d32; margin-bottom: 20px; font-size: 1.5rem; }
         .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            color: #444;
-            margin-bottom: 8px;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #5d4037;
-            border-radius: 8px;
-            background: #e0f7fa;
-            color: #333;
-            outline: none;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
+        label { display: block; color: #444; margin-bottom: 8px; font-weight: bold; font-size: 1rem; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #5d4037; border-radius: 8px; background: #e0f7fa; color: #333; outline: none; font-size: 1rem; transition: border-color 0.3s ease; }
         input:focus, select:focus { border-color: #0288d1; }
-        .nrc-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .nrc-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .nrc-group select, .nrc-group input { width: 32%; min-width: 80px; }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #80deea;
-            border: 2px solid #5d4037;
-            border-radius: 8px;
-            color: #333;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            background: #4fc3f7;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .menu {
-            display: flex;
-            justify-content: space-around;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #ffffff;
-            padding: 10px;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-        }
-        .menu button {
-            flex: 1;
-            margin: 0 5px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.9rem;
-            padding: 5px;
-            background: #80deea;
-            border: none;
-        }
+        button { width: 100%; padding: 12px; background: #80deea; border: 2px solid #5d4037; border-radius: 8px; color: #333; font-weight: bold; cursor: pointer; font-size: 1rem; transition: all 0.3s ease; }
+        button:hover { background: #4fc3f7; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .menu { display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; padding: 10px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 100; }
+        .menu button { flex: 1; margin: 0 5px; display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; padding: 5px; background: #80deea; border: none; }
         .menu img { width: 24px; height: 24px; margin-bottom: 5px; }
-        .profile-img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 10px auto;
-            display: block;
-            border: 3px solid #5d4037;
-        }
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            background: #f5f5f5;
-            border-radius: 5px;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-        .history-header {
-            background: #80deea;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 2px solid #5d4037;
-            font-size: 0.9rem;
-        }
-        .status {
-            padding: 5px 10px;
-            border-radius: 5px;
-            display: inline-block;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 10px auto; display: block; border: 3px solid #5d4037; }
+        .history-item { padding: 10px; border-bottom: 1px solid #ddd; background: #f5f5f5; border-radius: 5px; margin-bottom: 5px; font-size: 0.9rem; }
+        .history-header { background: #80deea; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #5d4037; font-size: 0.9rem; }
+        .status { padding: 5px 10px; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 0.9rem; }
         .status.pending { background: #ffeb3b; color: #333; }
         .status.approved { background: #4caf50; color: #fff; }
         .status.rejected { background: #f44336; color: #fff; }
-        .transfer-animation {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.5rem;
-            color: #4caf50;
-            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
-            animation: transferPulse 1.5s ease-out;
-            z-index: 200;
-        }
-        @keyframes transferPulse {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
-        }
-        .error-message {
-            color: #f44336;
-            text-align: center;
-            margin-top: 10px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        .level-badge {
-            background: #4caf50;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-        .about-content {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-        .about-content p {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
-        }
-        .about-content img {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-        }
-        .about-btn {
-            cursor: pointer;
-            color: #0288d1;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
+        .transfer-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; color: #4caf50; text-shadow: 0 0 10px rgba(76, 175, 80, 0.8); animation: transferPulse 1.5s ease-out; z-index: 200; }
+        @keyframes transferPulse { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+        .error-message { color: #f44336; text-align: center; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
         .hidden { display: none; }
-        @media (max-width: 480px) {
-            body { padding: 5px; font-size: 14px; }
-            .id-badge { padding: 6px 10px; font-size: 0.9rem; }
-            .container { padding: 15px; margin: 10px auto; }
-            h2 { font-size: 1.2rem; }
-            input, select, button { padding: 10px; font-size: 0.9rem; }
-            .nrc-group select, .nrc-group input { width: 31%; min-width: 70px; }
-            .menu button { font-size: 0.8rem; padding: 3px; }
-            .menu img { width: 20px; height: 20px; }
-            .profile-img { width: 80px; height: 80px; }
-            .history-item, .history-header, .status, .level-badge { font-size: 0.8rem; }
-            .transfer-animation { font-size: 1.2rem; }
-            .about-content img { width: 16px; height: 16px; }
-        }
     </style>
 </head>
 <body>
@@ -265,8 +82,6 @@
     <div id="mi" class="container">
         <h2>ကျွန်ုပ်၏ပရိုဖိုင်</h2>
         <div class="form-group">
-            <img id="profile-img" class="profile-img" src="https://via.placeholder.com/120" alt="Profile">
-            <input type="file" id="profile-upload" accept="image/*" onchange="uploadProfile()">
             <p>သင့် ID: <span id="mi-device-id">N/A</span></p>
             <p id="mi-status" class="status pending">NRC အတည်ပြုရန် လိုအပ်ပါသည်</p>
             <div id="nrc-form" class="form-group">
@@ -304,14 +119,6 @@
             <div id="nrc-info" class="form-group hidden">
                 <p>ဖုန်းနံပါတ်: <span id="mi-phone"></span></p>
                 <p>မှတ်ပုံတင်: <span id="mi-nrc"></span></p>
-                <p class="level-badge">Level 2 - Approved</p>
-            </div>
-            <div class="about-btn" onclick="toggleAbout()">About</div>
-            <div id="about-content" class="about-content hidden">
-                <p><img src="https://cdn-icons-png.flaticon.com/512/561/561127.png" alt="Email"> Email: wecharopper@gmail.com</p>
-                <p><img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" alt="Phone"> Phone: 09983254678</p>
-                <p><img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Address"> Address: Mandalay Katao Line Street 4 No 290</p>
-                <p><img src="https://cdn-icons-png.flaticon.com/512/2111/2111728.png" alt="Telegram"> Telegram: <a href="https://t.me/OPPERN">https://t.me/OPPERN</a></p>
             </div>
         </div>
     </div>
@@ -327,58 +134,35 @@
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-        const serverUrl = 'http://localhost:3000'; // Server.js ကို Localhost မှာ Run မယ်
+        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-        let supabase;
-        let currentDevice = { device_id: 'N/A', balance: 0, nrc_status: 'pending' };
-
-        try {
-            supabase = Supabase.createClient(supabaseUrl, supabaseKey);
-        } catch (error) {
-            console.error('Supabase Client Error:', error);
-            alert('Supabase ချိတ်ဆက်မှု မအောင်မြင်ပါ။ URL နှင့် Key ကို ပြန်စစ်ပါ။');
-            return;
-        }
+        let currentDevice = { device_id: null, balance: 0, nrc_status: 'pending' };
 
         function generateDeviceId() {
             return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
         async function initializeDevice() {
-            try {
-                let deviceId = localStorage.getItem('deviceId');
-                if (!deviceId) {
-                    deviceId = generateDeviceId();
-                    localStorage.setItem('deviceId', deviceId);
-                    await fetch(`${serverUrl}/create-user`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ device_id: deviceId, balance: 0, nrc_status: 'pending' })
-                    });
-                }
-
-                const response = await fetch(`${serverUrl}/get-user?device_id=${deviceId}`);
-                const user = await response.json();
-                if (!response.ok) throw new Error('User Fetch Error');
-
-                currentDevice = user;
-                document.getElementById('device-id-badge').textContent = `ID: ${deviceId}`;
-                document.getElementById('mi-device-id').textContent = deviceId;
-                document.getElementById('balance').textContent = `${user.balance} Ks`;
-                if (user.profile_img) document.getElementById('profile-img').src = user.profile_img;
-                updateStatus(user.nrc_status);
-                loadHistory();
-            } catch (error) {
-                console.error('Initialize Device Error:', error);
-                alert('အကောင့်စတင်မှု မအောင်မြင်ပါ။ Server သို့မဟုတ် Supabase ချိတ်ဆက်မှုကို စစ်ပါ။');
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = generateDeviceId();
+                localStorage.setItem('deviceId', deviceId);
+                await supabase.from('users').insert({ device_id: deviceId, balance: 0, nrc_status: 'pending' });
             }
+
+            const { data: user } = await supabase.from('users').select('*').eq('device_id', deviceId).single();
+            currentDevice = user || { device_id: deviceId, balance: 0, nrc_status: 'pending' };
+
+            document.getElementById('device-id-badge').textContent = `ID: ${deviceId}`;
+            document.getElementById('mi-device-id').textContent = deviceId;
+            document.getElementById('balance').textContent = `${currentDevice.balance} Ks`;
+            updateStatus(currentDevice.nrc_status);
+            loadHistory();
         }
 
         function showSection(sectionId) {
-            const sections = ['wallet', 'host', 'mi'];
-            sections.forEach(id => {
-                const section = document.getElementById(id);
-                section.classList.toggle('active', id === sectionId);
+            ['wallet', 'host', 'mi'].forEach(id => {
+                document.getElementById(id).classList.toggle('active', id === sectionId);
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -391,72 +175,39 @@
             document.getElementById('transfer').classList.toggle('hidden');
         }
 
-        function toggleAbout() {
-            document.getElementById('about-content').classList.toggle('hidden');
-        }
-
-        async function uploadProfile() {
-            try {
-                const file = document.getElementById('profile-upload').files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        document.getElementById('profile-img').src = e.target.result;
-                        await fetch(`${serverUrl}/update-profile`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ device_id: currentDevice.device_id, profile_img: e.target.result })
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                }
-            } catch (error) {
-                console.error('Profile Upload Error:', error);
-                alert('ပရိုဖိုင်ပုံ တင်မှု မအောင်မြင်ပါ။');
-            }
-        }
-
         async function checkPhone() {
             const phone = document.getElementById('transfer-phone').value;
             if (phone.match(/^09\d{9}$/)) {
-                const response = await fetch(`${serverUrl}/check-phone?phone=${phone}`);
-                const receiver = await response.json();
-                if (receiver && receiver.nrc_status === 'approved') {
-                    document.getElementById('receiver-name').textContent = `လက်ခံသူ: ${phone}`;
-                } else {
-                    document.getElementById('receiver-name').textContent = 'အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။';
-                }
+                const { data: receiver } = await supabase.from('users').select('phone, nrc_status').eq('phone', phone).single();
+                document.getElementById('receiver-name').textContent = receiver && receiver.nrc_status === 'approved' ? `လက်ခံသူ: ${phone}` : 'အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။';
             } else {
                 document.getElementById('receiver-name').textContent = '';
             }
         }
 
         async function loadHistory() {
-            try {
-                const month = document.getElementById('month-filter').value;
-                const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
-                const response = await fetch(`${serverUrl}/get-history?device_id=${currentDevice.device_id}&month=${monthFilter}`);
-                const transactions = await response.json();
+            const month = document.getElementById('month-filter').value;
+            const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
+            const { data: transactions } = await supabase.from('transactions')
+                .select('*')
+                .or(`from_device_id.eq.${currentDevice.device_id},to_device_id.eq.${currentDevice.device_id}`)
+                .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
 
-                const historyList = document.getElementById('history-list');
-                historyList.innerHTML = '';
-                let totalIn = 0, totalOut = 0;
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            let totalIn = 0, totalOut = 0;
 
-                transactions.forEach(t => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    item.innerHTML = `${t.from_device_id === currentDevice.device_id ? 'လွှဲသည်' : 'ဝင်သည်'}: ${t.amount} Ks<br>ID: ${t.from_device_id === currentDevice.device_id ? t.to_device_id : t.from_device_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
-                    historyList.appendChild(item);
-                    if (t.from_device_id === currentDevice.device_id) totalOut += t.amount;
-                    else totalIn += t.amount;
-                });
+            (transactions || []).forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `${t.from_device_id === currentDevice.device_id ? 'လွှဲသည်' : 'ဝင်သည်'}: ${t.amount} Ks<br>ID: ${t.from_device_id === currentDevice.device_id ? t.to_device_id : t.from_device_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                historyList.appendChild(item);
+                if (t.from_device_id === currentDevice.device_id) totalOut += t.amount;
+                else totalIn += t.amount;
+            });
 
-                document.getElementById('total-in').textContent = `${totalIn} Ks`;
-                document.getElementById('total-out').textContent = `${totalOut} Ks`;
-            } catch (error) {
-                console.error('History Load Error:', error);
-                alert('မှတ်တမ်းရယူမှု မအောင်မြင်ပါ။');
-            }
+            document.getElementById('total-in').textContent = `${totalIn} Ks`;
+            document.getElementById('total-out').textContent = `${totalOut} Ks`;
         }
 
         function updateStatus(status) {
@@ -464,116 +215,89 @@
             const miStatus = document.getElementById('mi-status');
             walletStatus.className = `status ${status}`;
             miStatus.className = `status ${status}`;
-            if (status === 'pending') {
-                walletStatus.textContent = 'NRC အတည်ပြုရန် လိုအပ်ပါသည်';
-                miStatus.textContent = 'NRC အတည်ပြုရန် လိုအပ်ပါသည်';
-            } else if (status === 'approved') {
-                walletStatus.textContent = 'အတည်ပြုပြီး';
-                miStatus.textContent = 'အတည်ပြုပြီး';
+            walletStatus.textContent = status === 'pending' ? 'NRC အတည်ပြုရန် လိုအပ်ပါသည်' : status === 'approved' ? 'အတည်ပြုပြီး' : 'NRC ငြင်းဆိုခံရသည်';
+            miStatus.textContent = walletStatus.textContent;
+
+            if (status === 'approved') {
                 document.getElementById('transfer-btn').disabled = false;
                 document.getElementById('nrc-form').classList.add('hidden');
                 document.getElementById('nrc-info').classList.remove('hidden');
                 document.getElementById('mi-phone').textContent = currentDevice.phone || 'N/A';
                 document.getElementById('mi-nrc').textContent = currentDevice.nrc_region ? `${currentDevice.nrc_region}/${currentDevice.nrc_town}/${currentDevice.nrc_type} ${currentDevice.nrc_number}` : 'N/A';
-            } else if (status === 'rejected') {
-                walletStatus.textContent = 'NRC ငြင်းဆိုခံရသည်';
-                miStatus.textContent = 'NRC ငြင်းဆိုခံရသည်';
             }
         }
 
         document.getElementById('submit-nrc-btn').addEventListener('click', async () => {
-            try {
-                const nrcRegion = document.getElementById('nrc-region').value;
-                const nrcTown = document.getElementById('nrc-town').value;
-                const nrcType = document.getElementById('nrc-type').value;
-                const nrcNumber = document.getElementById('nrc-number').value;
-                const phone = document.getElementById('nrc-phone').value;
-                const pin = document.getElementById('nrc-pin').value;
-                const frontFile = document.getElementById('nrc-front').files[0];
-                const backFile = document.getElementById('nrc-back').files[0];
-                const selfieFile = document.getElementById('nrc-selfie').files[0];
+            const nrcRegion = document.getElementById('nrc-region').value;
+            const nrcTown = document.getElementById('nrc-town').value;
+            const nrcType = document.getElementById('nrc-type').value;
+            const nrcNumber = document.getElementById('nrc-number').value;
+            const phone = document.getElementById('nrc-phone').value;
+            const pin = document.getElementById('nrc-pin').value;
+            const frontFile = document.getElementById('nrc-front').files[0];
+            const backFile = document.getElementById('nrc-back').files[0];
+            const selfieFile = document.getElementById('nrc-selfie').files[0];
 
-                if (!nrcRegion || !nrcTown || !nrcType || !nrcNumber.match(/^\d{6}$/) || !phone.match(/^09\d{9}$/) || pin.length !== 6 || !frontFile || !backFile || !selfieFile) {
-                    alert('အချက်အလက်များကို ပြည့်စုံစွာ ဖြည့်ပါ။');
-                    return;
-                }
-
-                const readFile = (file) => new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-
-                const [frontImg, backImg, selfieImg] = await Promise.all([
-                    readFile(frontFile),
-                    readFile(backFile),
-                    readFile(selfieFile)
-                ]);
-
-                await fetch(`${serverUrl}/submit-nrc`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        device_id: currentDevice.device_id,
-                        phone, pin, nrc_status: 'pending',
-                        nrc_front: frontImg, nrc_back: backImg, nrc_selfie: selfieImg,
-                        nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber,
-                        submitted_at: new Date().toISOString()
-                    })
-                });
-
-                currentDevice = { ...currentDevice, phone, pin, nrc_status: 'pending', nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber };
-                alert('NRC အချက်အလက် တင်ပြပြီးပါပြီ။ အတည်ပြုရန် စောင့်ဆိုင်းပါ။');
-                updateStatus('pending');
-            } catch (error) {
-                console.error('NRC Submit Error:', error);
-                alert('NRC တင်ပြမှု မအောင်မြင်ပါ။');
+            if (!nrcRegion || !nrcTown || !nrcType || !nrcNumber.match(/^\d{6}$/) || !phone.match(/^09\d{9}$/) || pin.length !== 6 || !frontFile || !backFile || !selfieFile) {
+                alert('အချက်အလက်များကို ပြည့်စုံစွာ ဖြည့်ပါ။');
+                return;
             }
+
+            const readFile = (file) => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+
+            const [frontImg, backImg, selfieImg] = await Promise.all([readFile(frontFile), readFile(backFile), readFile(selfieFile)]);
+            await supabase.from('users').update({
+                phone, pin, nrc_status: 'pending', nrc_front: frontImg, nrc_back: backImg, nrc_selfie: selfieImg,
+                nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber,
+                submitted_at: new Date().toISOString()
+            }).eq('device_id', currentDevice.device_id);
+
+            currentDevice = { ...currentDevice, phone, pin, nrc_status: 'pending', nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber };
+            alert('NRC အချက်အလက် တင်ပြပြီးပါပြီ။ အတည်ပြုရန် စောင့်ဆိုင်းပါ။');
+            updateStatus('pending');
         });
 
         document.getElementById('confirm-transfer-btn').addEventListener('click', async () => {
-            try {
-                const phone = document.getElementById('transfer-phone').value;
-                const amount = parseInt(document.getElementById('transfer-amount').value);
-                const note = document.getElementById('transfer-note').value;
-                const pin = document.getElementById('transfer-pin').value;
+            const phone = document.getElementById('transfer-phone').value;
+            const amount = parseInt(document.getElementById('transfer-amount').value);
+            const note = document.getElementById('transfer-note').value;
+            const pin = document.getElementById('transfer-pin').value;
 
-                if (!phone.match(/^09\d{9}$/) || amount > 1000000 || amount <= 0 || pin.length !== 6) {
-                    document.getElementById('transfer-error').textContent = 'ထည့်သွင်းမှု မမှန်ပါ။ အများဆုံး 1,000,000 Ks';
-                    document.getElementById('transfer-error').classList.remove('hidden');
-                    return;
-                }
-
-                const response = await fetch(`${serverUrl}/transfer`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        from_device_id: currentDevice.device_id,
-                        to_phone: phone,
-                        amount, note, pin,
-                        timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
-                    })
-                });
-
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-
-                const animation = document.createElement('div');
-                animation.className = 'transfer-animation';
-                animation.innerHTML = `${amount} Ks လွှဲပြီးပါပြီ<br><span style="font-size: 2rem;">✔</span>`;
-                document.body.appendChild(animation);
-                setTimeout(() => animation.remove(), 1500);
-
-                currentDevice.balance = result.new_balance;
-                document.getElementById('balance').textContent = `${result.new_balance} Ks`;
-                document.getElementById('transfer-error').classList.add('hidden');
-                document.getElementById('transfer').classList.add('hidden');
-                loadHistory();
-            } catch (error) {
-                console.error('Transfer Error:', error);
-                document.getElementById('transfer-error').textContent = error.message || 'ငွေလွှဲမှု မအောင်မြင်ပါ။';
+            if (!phone.match(/^09\d{9}$/) || amount > 1000000 || amount <= 0 || pin.length !== 6) {
+                document.getElementById('transfer-error').textContent = 'ထည့်သွင်းမှု မမှန်ပါ။ အများဆုံး 1,000,000 Ks';
                 document.getElementById('transfer-error').classList.remove('hidden');
+                return;
             }
+
+            const { data: sender } = await supabase.from('users').select('*').eq('device_id', currentDevice.device_id).eq('pin', pin).single();
+            const { data: receiver } = await supabase.from('users').select('*').eq('phone', phone).single();
+
+            if (!sender || !receiver || sender.balance < amount || receiver.nrc_status !== 'approved') {
+                document.getElementById('transfer-error').textContent = !sender ? 'PIN မမှန်ပါ။' : !receiver ? 'လက်ခံသူ အကောင့်မရှိပါ။' : sender.balance < amount ? 'လက်ကျန်မလုံလောက်ပါ။' : 'လက်ခံသူ NRC အတည်မပြုရသေးပါ။';
+                document.getElementById('transfer-error').classList.remove('hidden');
+                return;
+            }
+
+            const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
+            await supabase.from('users').update({ balance: sender.balance - amount }).eq('device_id', currentDevice.device_id);
+            await supabase.from('users').update({ balance: receiver.balance + amount }).eq('device_id', receiver.device_id);
+            await supabase.from('transactions').insert({ from_device_id: currentDevice.device_id, to_device_id: receiver.device_id, amount, note, timestamp: now });
+
+            currentDevice.balance = sender.balance - amount;
+            document.getElementById('balance').textContent = `${currentDevice.balance} Ks`;
+            document.getElementById('transfer-error').classList.add('hidden');
+            document.getElementById('transfer').classList.add('hidden');
+            loadHistory();
+
+            const animation = document.createElement('div');
+            animation.className = 'transfer-animation';
+            animation.innerHTML = `${amount} Ks လွှဲပြီးပါပြီ<br><span style="font-size: 2rem;">✔</span>`;
+            document.body.appendChild(animation);
+            setTimeout(() => animation.remove(), 1500);
         });
 
         window.onload = initializeDevice;
