@@ -85,19 +85,19 @@
                 const item = document.createElement('div');
                 item.className = 'user-item';
                 item.innerHTML = `
-                    ID: ${user.device_id} | ဖုန်း: ${user.phone || 'N/A'}<br>
+                    ID: ${user.id} | ဖုန်း: ${user.phone || 'N/A'}<br>
                     NRC: ${user.nrc_region}/${user.nrc_town}/${user.nrc_type} ${user.nrc_number}<br>
                     <img src="${user.nrc_front}" alt="Front"> <img src="${user.nrc_back}" alt="Back"> <img src="${user.nrc_selfie}" alt="Selfie"><br>
-                    <button class="approve-btn" onclick="updateNrcStatus('${user.device_id}', 'approved')">အတည်ပြု</button>
-                    <button class="reject-btn" onclick="updateNrcStatus('${user.device_id}', 'rejected')">ငြင်းဆို</button>
+                    <button class="approve-btn" onclick="updateNrcStatus(${user.id}, 'approved')">အတည်ပြု</button>
+                    <button class="reject-btn" onclick="updateNrcStatus(${user.id}, 'rejected')">ငြင်းဆို</button>
                 `;
                 userList.appendChild(item);
             });
         }
 
-        async function updateNrcStatus(deviceId, status) {
-            await supabase.from('users').update({ nrc_status: status }).eq('device_id', deviceId);
-            alert(`ID ${deviceId} ကို ${status === 'approved' ? 'အတည်ပြု' : 'ငြင်းဆို'} ပြီးပါပြီ။`);
+        async function updateNrcStatus(id, status) {
+            await supabase.from('users').update({ nrc_status: status }).eq('id', id);
+            alert(`ID ${id} ကို ${status === 'approved' ? 'အတည်ပြု' : 'ငြင်းဆို'} ပြီးပါပြီ။`);
             loadUsers();
         }
 
@@ -123,10 +123,10 @@
                 return;
             }
 
-            await supabase.from('users').update({ balance: newBalance }).eq('device_id', user.device_id);
+            await supabase.from('users').update({ balance: newBalance }).eq('id', user.id);
             await supabase.from('transactions').insert({
-                from_device_id: type === 'withdraw' ? user.device_id : 'server',
-                to_device_id: type === 'deposit' ? user.device_id : 'server',
+                from_id: type === 'withdraw' ? user.id : 'server',
+                to_id: type === 'deposit' ? user.id : 'server',
                 amount: amount,
                 note: `${type === 'deposit' ? 'ငွေသွင်း' : 'ငွေထုတ်'} by Server`,
                 timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
@@ -144,7 +144,7 @@
             (transactions || []).forEach(t => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
-                item.innerHTML = `${t.from_device_id === 'server' ? 'ငွေသွင်း' : t.to_device_id === 'server' ? 'ငွေထုတ်' : 'လွှဲသည်'}: ${t.amount} Ks<br>မှ: ${t.from_device_id} သို့: ${t.to_device_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                item.innerHTML = `${t.from_id === 'server' ? 'ငွေသွင်း' : t.to_id === 'server' ? 'ငွေထုတ်' : 'လွှဲသည်'}: ${t.amount} Ks<br>မှ: ${t.from_id} သို့: ${t.to_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
                 historyList.appendChild(item);
             });
         }
