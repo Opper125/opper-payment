@@ -22,14 +22,18 @@
         .menu { display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; padding: 10px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 100; }
         .menu button { flex: 1; margin: 0 5px; display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; padding: 5px; background: #80deea; border: none; }
         .menu img { width: 24px; height: 24px; margin-bottom: 5px; }
-        .history-item { padding: 10px; border-bottom: 1px solid #ddd; background: #f5f5f5; border-radius: 5px; margin-bottom: 5px; font-size: 0.9rem; }
+        .history-item { padding: 10px; border-radius: 5px; margin-bottom: 5px; font-size: 0.9rem; transition: all 0.3s ease; }
+        .history-item.out { background: #ffebee; color: #d32f2f; border: 1px solid #d32f2f; }
+        .history-item.in { background: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
         .history-header { background: #80deea; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #5d4037; font-size: 0.9rem; }
         .status { padding: 5px 10px; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 0.9rem; }
         .status.pending { background: #ffeb3b; color: #333; }
         .status.approved { background: #4caf50; color: #fff; }
         .status.rejected { background: #f44336; color: #fff; }
-        .transfer-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; color: #4caf50; text-shadow: 0 0 10px rgba(76, 175, 80, 0.8); animation: transferPulse 1.5s ease-out; z-index: 200; }
-        @keyframes transferPulse { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+        .transfer-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; color: #fff; background: rgba(76, 175, 80, 0.9); padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: transferPulse 1.5s ease-out; z-index: 200; }
+        @keyframes transferPulse { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+        .receiver-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #0288d1, #4fc3f7); color: #fff; padding: 15px 25px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); animation: fadeInOut 2s ease-out; z-index: 200; text-align: center; }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } }
         .error-message { color: #f44336; text-align: center; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
         .hidden { display: none; }
     </style>
@@ -183,13 +187,25 @@
         }
 
         async function checkPhone() {
-            const phone = document.getElementById('transfer-phone').value;
-            if (phone.match(/^09\d{9}$/)) {
-                const { data: receiver, error } = await supabase.from('users').select('phone, nrc_status').eq('phone', phone).single();
-                if (error) console.error('Check Phone Error:', error.message);
-                document.getElementById('receiver-name').textContent = receiver && receiver.nrc_status === 'approved' ? `လက်ခံသူ: ${phone}` : 'အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။';
-            } else {
+            try {
+                const phone = document.getElementById('transfer-phone').value;
                 document.getElementById('receiver-name').textContent = '';
+                if (phone.match(/^09\d{9}$/)) {
+                    const { data: receiver, error } = await supabase.from('users').select('id, phone, nrc_status').eq('phone', phone).single();
+                    if (error) throw error;
+                    if (receiver && receiver.nrc_status === 'approved') {
+                        const message = document.createElement('div');
+                        message.className = 'receiver-message';
+                        message.innerHTML = `လက်ခံသူ: ${receiver.phone}<br>ID: ${receiver.id}`;
+                        document.body.appendChild(message);
+                        setTimeout(() => message.remove(), 2000);
+                    } else {
+                        document.getElementById('receiver-name').textContent = 'အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။';
+                    }
+                }
+            } catch (error) {
+                console.error('Check Phone Error:', error.message);
+                document.getElementById('receiver-name').textContent = 'အမှားဖြစ်ပွားခဲ့သည်။';
             }
         }
 
@@ -209,8 +225,8 @@
 
                 (transactions || []).forEach(t => {
                     const item = document.createElement('div');
-                    item.className = 'history-item';
-                    item.innerHTML = `${t.from_id === currentUser.id ? 'လွှဲသည်' : 'ဝင်သည်'}: ${t.amount} Ks<br>ID: ${t.from_id === currentUser.id ? t.to_id : t.from_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                    item.className = `history-item ${t.from_id === currentUser.id ? 'out' : 'in'}`;
+                    item.innerHTML = `${t.from_id === currentUser.id ? '-' : '+'}${t.amount} Ks<br>ID: ${t.from_id === currentUser.id ? t.to_id : t.from_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
                     historyList.appendChild(item);
                     if (t.from_id === currentUser.id) totalOut += t.amount;
                     else totalIn += t.amount;
@@ -337,7 +353,7 @@
 
                 const animation = document.createElement('div');
                 animation.className = 'transfer-animation';
-                animation.innerHTML = `${amount} Ks လွှဲပြီးပါပြီ<br><span style="font-size: 2rem;">✔</span>`;
+                animation.innerHTML = `အောင်မြင်စွာ လွှဲပြီးပါပြီ<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>`;
                 document.body.appendChild(animation);
                 setTimeout(() => animation.remove(), 1500);
             } catch (error) {
