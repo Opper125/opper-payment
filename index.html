@@ -140,28 +140,34 @@
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         const imgurClientId = '5befa9dd970c7d0';
 
-        let currentUser = { id: null, balance: 0, nrc_status: 'pending' };
-
-        function generateId() {
-            return Math.floor(100000 + Math.random() * 900000); // 6-digit ID
-        }
+        let currentUser = { id: null, balance: 0, nrc_status: 'pending', phone: null };
 
         async function initializeUser() {
             try {
-                let userId = localStorage.getItem('userId');
-                if (!userId) {
-                    userId = generateId();
-                    localStorage.setItem('userId', userId);
-                    const { error } = await supabase.from('users').insert({ id: userId, balance: 0, nrc_status: 'pending' });
-                    if (error) throw error;
+                let userPhone = localStorage.getItem('userPhone');
+                if (!userPhone) {
+                    userPhone = prompt('သင်၏ ဖုန်းနံပါတ် (09xxxxxxxxx) ထည့်ပါ:');
+                    if (!userPhone || !userPhone.match(/^09\d{9}$/)) {
+                        alert('ဖုန်းနံပါတ် မမှန်ပါ။ ထပ်မံကြိုးစားပါ။');
+                        return initializeUser();
+                    }
+                    localStorage.setItem('userPhone', userPhone);
                 }
 
-                const { data: user, error } = await supabase.from('users').select('*').eq('id', userId).single();
-                if (error) throw error;
-                currentUser = user || { id: userId, balance: 0, nrc_status: 'pending' };
+                const { data: user, error } = await supabase.from('users').select('*').eq('phone', userPhone).single();
+                if (error && error.code !== 'PGRST116') throw error;
 
-                document.getElementById('id-badge').textContent = `ID: ${userId}`;
-                document.getElementById('mi-id').textContent = userId;
+                if (!user) {
+                    const newId = Math.floor(100000 + Math.random() * 900000); // 6 လုံး ID ဖန်တီးခြင်း
+                    const { error: insertError } = await supabase.from('users').insert({ id: newId, phone: userPhone, balance: 0, nrc_status: 'pending' });
+                    if (insertError) throw insertError;
+                    currentUser = { id: newId, phone: userPhone, balance: 0, nrc_status: 'pending' };
+                } else {
+                    currentUser = user;
+                }
+
+                document.getElementById('id-badge').textContent = `ID: ${currentUser.id}`;
+                document.getElementById('mi-id').textContent = currentUser.id;
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                 updateStatus(currentUser.nrc_status);
                 loadHistory();
@@ -192,7 +198,7 @@
                 document.getElementById('receiver-name').textContent = '';
                 if (phone.match(/^09\d{9}$/)) {
                     const { data: receiver, error } = await supabase.from('users').select('id, phone, nrc_status').eq('phone', phone).single();
-                    if (error) throw error;
+                    if (error && error.code !== 'PGRST116') throw error;
                     if (receiver && receiver.nrc_status === 'approved') {
                         const message = document.createElement('div');
                         message.className = 'receiver-message';
@@ -215,7 +221,7 @@
                 const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
                 const { data: transactions, error } = await supabase.from('transactions')
                     .select('*')
-                    .or(`from_id.eq.${currentUser.id},to_id.eq.${currentUser.id}`)
+                    .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
                     .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
                 if (error) throw error;
 
@@ -225,10 +231,10 @@
 
                 (transactions || []).forEach(t => {
                     const item = document.createElement('div');
-                    item.className = `history-item ${t.from_id === currentUser.id ? 'out' : 'in'}`;
-                    item.innerHTML = `${t.from_id === currentUser.id ? '-' : '+'}${t.amount} Ks<br>ID: ${t.from_id === currentUser.id ? t.to_id : t.from_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                    item.className = `history-item ${t.from_phone === currentUser.phone ? 'out' : 'in'}`;
+                    item.innerHTML = `${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>ဖုန်း: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
                     historyList.appendChild(item);
-                    if (t.from_id === currentUser.id) totalOut += t.amount;
+                    if (t.from_phone === currentUser.phone) totalOut += t.amount;
                     else totalIn += t.amount;
                 });
 
@@ -326,7 +332,7 @@
                     return;
                 }
 
-                const { data: sender, error: senderError } = await supabase.from('users').select('*').eq('id', currentUser.id).eq('pin', pin).single();
+                const { data: sender, error: senderError } = await supabase.from('users').select('*').eq('phone', currentUser.phone).eq('pin', pin).single();
                 if (senderError) throw senderError;
                 const { data: receiver, error: receiverError } = await supabase.from('users').select('*').eq('phone', phone).single();
                 if (receiverError) throw receiverError;
@@ -338,11 +344,17 @@
                 }
 
                 const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
-                const { error: updateSenderError } = await supabase.from('users').update({ balance: sender.balance - amount }).eq('id', currentUser.id);
+                const { error: updateSenderError } = await supabase.from('users').update({ balance: sender.balance - amount }).eq('id', sender.id);
                 if (updateSenderError) throw updateSenderError;
                 const { error: updateReceiverError } = await supabase.from('users').update({ balance: receiver.balance + amount }).eq('id', receiver.id);
                 if (updateReceiverError) throw updateReceiverError;
-                const { error: insertError } = await supabase.from('transactions').insert({ from_id: currentUser.id, to_id: receiver.id, amount, note, timestamp: now });
+                const { error: insertError } = await supabase.from('transactions').insert({ 
+                    from_phone: sender.phone, 
+                    to_phone: receiver.phone, 
+                    amount, 
+                    note, 
+                    timestamp: now 
+                });
                 if (insertError) throw insertError;
 
                 currentUser.balance = sender.balance - amount;
