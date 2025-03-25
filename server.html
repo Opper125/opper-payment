@@ -139,8 +139,8 @@
                 const { error: updateError } = await supabase.from('users').update({ balance: newBalance }).eq('id', user.id);
                 if (updateError) throw updateError;
                 const { error: insertError } = await supabase.from('transactions').insert({
-                    from_id: type === 'withdraw' ? user.id : 'server',
-                    to_id: type === 'deposit' ? user.id : 'server',
+                    from_phone: type === 'withdraw' ? user.phone : 'server',
+                    to_phone: type === 'deposit' ? user.phone : 'server',
                     amount: amount,
                     note: `${type === 'deposit' ? 'ငွေသွင်း' : 'ငွေထုတ်'} by Server`,
                     timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
@@ -165,7 +165,7 @@
                 (transactions || []).forEach(t => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
-                    item.innerHTML = `${t.from_id === 'server' ? 'ငွေသွင်း' : t.to_id === 'server' ? 'ငွေထုတ်' : 'လွှဲသည်'}: ${t.amount} Ks<br>မှ: ${t.from_id} သို့: ${t.to_id}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                    item.innerHTML = `${t.from_phone === 'server' ? 'ငွေသွင်း' : t.to_phone === 'server' ? 'ငွေထုတ်' : 'လွှဲသည်'}: ${t.amount} Ks<br>မှ: ${t.from_phone} သို့: ${t.to_phone}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
                     historyList.appendChild(item);
                 });
             } catch (error) {
