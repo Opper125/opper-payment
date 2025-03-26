@@ -72,13 +72,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const supabaseUrl = process.env.SUPABASE_URL || 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
+        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseServiceKey);
 
         async function loadUsers() {
             try {
-                const { data: users, error } = await supabase.from('users')
+                const { data: users, error } = await supabase
+                    .from('users')
                     .select('*')
                     .eq('passport_status', 'pending')
                     .order('submitted_at', { ascending: true });
@@ -107,7 +108,8 @@
 
         async function updatePassportStatus(userId, status) {
             try {
-                const { error } = await supabase.from('users')
+                const { error } = await supabase
+                    .from('users')
                     .update({ passport_status: status })
                     .eq('user_id', userId);
                 if (error) throw error;
@@ -130,7 +132,8 @@
                     return;
                 }
 
-                const { data: user, error: userError } = await supabase.from('users')
+                const { data: user, error: userError } = await supabase
+                    .from('users')
                     .select('*')
                     .eq('phone', phone)
                     .single();
@@ -146,11 +149,13 @@
                     return;
                 }
 
-                const { error: updateError } = await supabase.from('users')
+                const { error: updateError } = await supabase
+                    .from('users')
                     .update({ balance: newBalance })
                     .eq('user_id', user.user_id);
                 if (updateError) throw updateError;
-                const { error: insertError } = await supabase.from('transactions')
+                const { error: insertError } = await supabase
+                    .from('transactions')
                     .insert({
                         from_phone: type === 'withdraw' ? user.phone : 'server',
                         to_phone: type === 'deposit' ? user.phone : 'server',
@@ -169,7 +174,8 @@
 
         async function loadHistory() {
             try {
-                const { data: transactions, error } = await supabase.from('transactions')
+                const { data: transactions, error } = await supabase
+                    .from('transactions')
                     .select('*')
                     .order('timestamp', { ascending: false });
                 if (error) throw error;
