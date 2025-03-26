@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,36 +36,36 @@
     <div class="container">
         <h1>OPPER Server Dashboard</h1>
 
-        <!-- NRC Approval Section -->
+        <!-- Passport Approval Section -->
         <div class="section">
-            <h2>NRC အတည်ပြုမှု</h2>
+            <h2>Passport Verification</h2>
             <div class="user-list" id="user-list"></div>
         </div>
 
         <!-- Deposit/Withdraw Section -->
         <div class="section">
-            <h2>ငွေသွင်း/ငွေထုတ်</h2>
+            <h2>Deposit/Withdraw</h2>
             <div class="form-group">
-                <label>ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
+                <label>Phone Number (09xxxxxxxxx)</label>
                 <input type="tel" id="dw-phone" placeholder="09xxxxxxxxx" required>
             </div>
             <div class="form-group">
-                <label>ပမာဏ (Ks)</label>
-                <input type="number" id="dw-amount" placeholder="ပမာဏ ထည့်ပါ" required>
+                <label>Amount (Ks)</label>
+                <input type="number" id="dw-amount" placeholder="Enter Amount" required>
             </div>
             <div class="form-group">
-                <label>အမျိုးအစား</label>
+                <label>Type</label>
                 <select id="dw-type" required>
-                    <option value="deposit">ငွေသွင်း</option>
-                    <option value="withdraw">ငွေထုတ်</option>
+                    <option value="deposit">Deposit</option>
+                    <option value="withdraw">Withdraw</option>
                 </select>
             </div>
-            <button onclick="processDepositWithdraw()">အတည်ပြုရန်</button>
+            <button onclick="processDepositWithdraw()">Confirm</button>
         </div>
 
         <!-- Transaction History -->
         <div class="section">
-            <h2>မှတ်တမ်း</h2>
+            <h2>Transaction History</h2>
             <div class="history-list" id="history-list"></div>
         </div>
     </div>
@@ -80,7 +80,7 @@
             try {
                 const { data: users, error } = await supabase.from('users')
                     .select('*')
-                    .eq('nrc_status', 'pending')
+                    .eq('passport_status', 'pending')
                     .order('submitted_at', { ascending: true });
                 if (error) throw error;
                 const userList = document.getElementById('user-list');
@@ -90,12 +90,13 @@
                     const item = document.createElement('div');
                     item.className = 'user-item';
                     item.innerHTML = `
-                        ID: ${user.id} | ဖုန်း: ${user.phone || 'N/A'}<br>
-                        NRC: ${user.nrc_region ? `${user.nrc_region}/${user.nrc_town}/${user.nrc_type} ${user.nrc_number}` : 'N/A'}<br>
-                        <img src="${user.nrc_front || ''}" alt="Front"> <img src="${user.nrc_back || ''}" alt="Back"> <img src="${user.nrc_selfie || ''}" alt="Selfie"><br>
-                        တင်သည့်အချိန်: ${user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A'}<br>
-                        <button class="approve-btn" onclick="updateNrcStatus('${user.id}', 'approved')">အတည်ပြု</button>
-                        <button class="reject-btn" onclick="updateNrcStatus('${user.id}', 'rejected')">ငြင်းဆို</button>
+                        ID: ${user.user_id} | Phone: ${user.phone || 'N/A'}<br>
+                        Passport: ${user.passport_number || 'N/A'}<br>
+                        Address: ${user.address || 'N/A'}<br>
+                        <img src="${user.passport_image || ''}" alt="Passport"> <img src="${user.selfie_image || ''}" alt="Selfie"><br>
+                        Submitted At: ${user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A'}<br>
+                        <button class="approve-btn" onclick="updatePassportStatus('${user.user_id}', 'approved')">Approve</button>
+                        <button class="reject-btn" onclick="updatePassportStatus('${user.user_id}', 'rejected')">Reject</button>
                     `;
                     userList.appendChild(item);
                 });
@@ -104,17 +105,17 @@
             }
         }
 
-        async function updateNrcStatus(id, status) {
+        async function updatePassportStatus(userId, status) {
             try {
                 const { error } = await supabase.from('users')
-                    .update({ nrc_status: status })
-                    .eq('id', id);
+                    .update({ passport_status: status })
+                    .eq('user_id', userId);
                 if (error) throw error;
-                alert(`ID ${id} ကို ${status === 'approved' ? 'အတည်ပြု' : 'ငြင်းဆို'} ပြီးပါပြီ။`);
+                alert(`ID ${userId} has been ${status === 'approved' ? 'approved' : 'rejected'}.`);
                 loadUsers();
             } catch (error) {
-                console.error('Update NRC Status Error:', error.message);
-                alert('NRC အတည်ပြုမှု အမှားဖြစ်ပွားခဲ့သည်။');
+                console.error('Update Passport Status Error:', error.message);
+                alert('An error occurred during passport verification.');
             }
         }
 
@@ -125,7 +126,7 @@
                 const type = document.getElementById('dw-type').value;
 
                 if (!phone.match(/^09\d{9}$/) || amount <= 0) {
-                    alert('ဖုန်းနံပါတ် သို့မဟုတ် ပမာဏ မမှန်ပါ။');
+                    alert('Invalid phone number or amount.');
                     return;
                 }
 
@@ -134,35 +135,35 @@
                     .eq('phone', phone)
                     .single();
                 if (userError) throw userError;
-                if (!user || user.nrc_status !== 'approved') {
-                    alert('အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။');
+                if (!user || user.passport_status !== 'approved') {
+                    alert('Account not found or passport not approved.');
                     return;
                 }
 
                 const newBalance = type === 'deposit' ? user.balance + amount : user.balance - amount;
                 if (newBalance < 0) {
-                    alert('လက်ကျန်မလုံလောက်ပါ။');
+                    alert('Insufficient balance.');
                     return;
                 }
 
                 const { error: updateError } = await supabase.from('users')
                     .update({ balance: newBalance })
-                    .eq('id', user.id);
+                    .eq('user_id', user.user_id);
                 if (updateError) throw updateError;
                 const { error: insertError } = await supabase.from('transactions')
                     .insert({
                         from_phone: type === 'withdraw' ? user.phone : 'server',
                         to_phone: type === 'deposit' ? user.phone : 'server',
                         amount: amount,
-                        note: `${type === 'deposit' ? 'ငွေသွင်း' : 'ငွေထုတ်'} by Server`,
+                        note: `${type === 'deposit' ? 'Deposit' : 'Withdraw'} by Server`,
                         timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
                     });
                 if (insertError) throw insertError;
 
-                alert(`${type === 'deposit' ? 'ငွေသွင်း' : 'ငွေထုတ်'} ပြီးပါပြီ။ လက်ကျန်: ${newBalance} Ks`);
+                alert(`${type === 'deposit' ? 'Deposit' : 'Withdraw'} successful. New balance: ${newBalance} Ks`);
             } catch (error) {
                 console.error('Deposit/Withdraw Error:', error.message);
-                alert('ငွေသွင်း/ထုတ် အမှားဖြစ်ပွားခဲ့သည်။');
+                alert('An error occurred during deposit/withdraw.');
             }
         }
 
@@ -178,7 +179,7 @@
                 (transactions || []).forEach(t => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
-                    item.innerHTML = `${t.from_phone === 'server' ? 'ငွေသွင်း' : t.to_phone === 'server' ? 'ငွေထုတ်' : 'လွှဲသည်'}: ${t.amount} Ks<br>မှ: ${t.from_phone} သို့: ${t.to_phone}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                    item.innerHTML = `${t.from_phone === 'server' ? 'Deposit' : t.to_phone === 'server' ? 'Withdraw' : 'Transfer'}: ${t.amount} Ks<br>From: ${t.from_phone} To: ${t.to_phone}<br>Note: ${t.note || 'None'}<br>Time: ${t.timestamp}`;
                     historyList.appendChild(item);
                 });
             } catch (error) {
