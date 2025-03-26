@@ -80,7 +80,8 @@
             try {
                 const { data: users, error } = await supabase.from('users')
                     .select('*')
-                    .eq('nrc_status', 'pending');
+                    .eq('nrc_status', 'pending')
+                    .order('submitted_at', { ascending: true });
                 if (error) throw error;
                 const userList = document.getElementById('user-list');
                 userList.innerHTML = '';
