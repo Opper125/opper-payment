@@ -135,10 +135,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
+        const supabaseUrl = process.env.SUPABASE_URL || 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        const imgurClientId = '5befa9dd970c7d0';
+        const imgurClientId = process.env.IMGUR_CLIENT_ID || '5befa9dd970c7d0';
 
         let currentUser = { id: null, balance: 0, nrc_status: 'pending', phone: null };
 
@@ -149,6 +149,12 @@
                 const { id, serverUrl } = await response.json();
                 currentUser.id = id;
 
+                // LocalStorage မှာ ID သိမ်းမယ်
+                localStorage.setItem('userId', id);
+                document.getElementById('id-badge').textContent = `ID: ${id}`;
+                document.getElementById('mi-id').textContent = id;
+
+                // Supabase မှာ User ရှိမရှိ စစ်ပြီး မရှိရင် ထည့်မယ်
                 let userPhone = localStorage.getItem('userPhone');
                 if (!userPhone) {
                     userPhone = prompt('သင်၏ ဖုန်းနံပါတ် (09xxxxxxxxx) ထည့်ပါ:');
@@ -161,14 +167,14 @@
 
                 const { data: user, error } = await supabase.from('users')
                     .select('*')
-                    .eq('phone', userPhone)
+                    .eq('id', id)
                     .single();
 
                 if (error && error.code !== 'PGRST116') throw error;
 
                 if (!user) {
                     const { data: newUser, error: insertError } = await supabase.from('users')
-                        .insert({ id: currentUser.id, phone: userPhone, balance: 0, nrc_status: 'pending' })
+                        .insert({ id: id, phone: userPhone, balance: 0, nrc_status: 'pending' })
                         .select()
                         .single();
                     if (insertError) throw insertError;
@@ -177,14 +183,12 @@
                     currentUser = user;
                 }
 
-                document.getElementById('id-badge').textContent = `ID: ${currentUser.id}`;
-                document.getElementById('mi-id').textContent = currentUser.id;
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                 updateStatus(currentUser.nrc_status);
 
                 // Real-Time Subscription
                 supabase.channel('users-channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `phone=eq.${currentUser.phone}` }, payload => {
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${currentUser.id}` }, payload => {
                         currentUser = { ...currentUser, ...payload.new };
                         document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                         updateStatus(currentUser.nrc_status);
@@ -362,7 +366,7 @@
 
                 const { data: sender, error: senderError } = await supabase.from('users')
                     .select('*')
-                    .eq('phone', currentUser.phone)
+                    .eq('id', currentUser.id)
                     .eq('pin', pin)
                     .single();
                 if (senderError) throw senderError;
