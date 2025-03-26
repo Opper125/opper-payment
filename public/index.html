@@ -36,6 +36,7 @@
         @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } }
         .error-message { color: #f44336; text-align: center; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
         .hidden { display: none; }
+        .nrc-submitted { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #2e7d32; }
     </style>
 </head>
 <body>
@@ -119,9 +120,11 @@
                 <input type="file" id="nrc-selfie" accept="image/*" required>
                 <button id="submit-nrc-btn">တင်ပြမည်</button>
             </div>
-            <div id="nrc-info" class="form-group hidden">
-                <p>ဖုန်းနံပါတ်: <span id="mi-phone"></span></p>
-                <p>မှတ်ပုံတင်: <span id="mi-nrc"></span></p>
+            <div id="nrc-submitted" class="nrc-submitted hidden">
+                <h3>တင်ပြပြီးပါပြီ</h3>
+                <p>ဖုန်းနံပါတ်: <span id="submitted-phone"></span></p>
+                <p>မှတ်ပုံတင်: <span id="submitted-nrc"></span></p>
+                <p>တင်သည့်အချိန်: <span id="submitted-time"></span></p>
             </div>
         </div>
     </div>
@@ -134,6 +137,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <script>
         const supabaseUrl = process.env.SUPABASE_URL || 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
@@ -144,37 +148,28 @@
 
         async function initializeUser() {
             try {
-                // Netlify Functions ကနေ ID ယူမယ်
-                const response = await fetch('/.netlify/functions/generate-id');
-                const { id, serverUrl } = await response.json();
-                currentUser.id = id;
+                // Client-Side UUID ထုတ်မယ်
+                let userId = localStorage.getItem('userId');
+                if (!userId) {
+                    userId = uuid.v4().replace(/-/g, '').slice(0, 6); // 6 လုံး ID
+                    localStorage.setItem('userId', userId);
+                }
+                currentUser.id = userId;
 
-                // LocalStorage မှာ ID သိမ်းမယ်
-                localStorage.setItem('userId', id);
-                document.getElementById('id-badge').textContent = `ID: ${id}`;
-                document.getElementById('mi-id').textContent = id;
+                document.getElementById('id-badge').textContent = `ID: ${userId}`;
+                document.getElementById('mi-id').textContent = userId;
 
                 // Supabase မှာ User ရှိမရှိ စစ်ပြီး မရှိရင် ထည့်မယ်
-                let userPhone = localStorage.getItem('userPhone');
-                if (!userPhone) {
-                    userPhone = prompt('သင်၏ ဖုန်းနံပါတ် (09xxxxxxxxx) ထည့်ပါ:');
-                    if (!userPhone || !userPhone.match(/^09\d{9}$/)) {
-                        alert('ဖုန်းနံပါတ် မမှန်ပါ။ ထပ်မံကြိုးစားပါ။');
-                        return initializeUser();
-                    }
-                    localStorage.setItem('userPhone', userPhone);
-                }
-
                 const { data: user, error } = await supabase.from('users')
                     .select('*')
-                    .eq('id', id)
+                    .eq('id', userId)
                     .single();
 
                 if (error && error.code !== 'PGRST116') throw error;
 
                 if (!user) {
                     const { data: newUser, error: insertError } = await supabase.from('users')
-                        .insert({ id: id, phone: userPhone, balance: 0, nrc_status: 'pending' })
+                        .insert({ id: userId, balance: 0, nrc_status: 'pending' })
                         .select()
                         .single();
                     if (insertError) throw insertError;
@@ -285,12 +280,25 @@
             walletStatus.textContent = status === 'pending' ? 'NRC အတည်ပြုရန် လိုအပ်ပါသည်' : status === 'approved' ? 'အတည်ပြုပြီး' : 'NRC ငြင်းဆိုခံရသည်';
             miStatus.textContent = walletStatus.textContent;
 
+            const nrcForm = document.getElementById('nrc-form');
+            const nrcSubmitted = document.getElementById('nrc-submitted');
+
             if (status === 'approved') {
                 document.getElementById('transfer-btn').disabled = false;
-                document.getElementById('nrc-form').classList.add('hidden');
-                document.getElementById('nrc-info').classList.remove('hidden');
-                document.getElementById('mi-phone').textContent = currentUser.phone || 'N/A';
-                document.getElementById('mi-nrc').textContent = currentUser.nrc_region ? `${currentUser.nrc_region}/${currentUser.nrc_town}/${currentUser.nrc_type} ${currentUser.nrc_number}` : 'N/A';
+                nrcForm.classList.add('hidden');
+                nrcSubmitted.classList.remove('hidden');
+                document.getElementById('submitted-phone').textContent = currentUser.phone || 'N/A';
+                document.getElementById('submitted-nrc').textContent = currentUser.nrc_region ? `${currentUser.nrc_region}/${currentUser.nrc_town}/${currentUser.nrc_type} ${currentUser.nrc_number}` : 'N/A';
+                document.getElementById('submitted-time').textContent = currentUser.submitted_at ? new Date(currentUser.submitted_at).toLocaleString() : 'N/A';
+            } else if (status === 'pending' && currentUser.submitted_at) {
+                nrcForm.classList.add('hidden');
+                nrcSubmitted.classList.remove('hidden');
+                document.getElementById('submitted-phone').textContent = currentUser.phone || 'N/A';
+                document.getElementById('submitted-nrc').textContent = currentUser.nrc_region ? `${currentUser.nrc_region}/${currentUser.nrc_town}/${currentUser.nrc_type} ${currentUser.nrc_number}` : 'N/A';
+                document.getElementById('submitted-time').textContent = currentUser.submitted_at ? new Date(currentUser.submitted_at).toLocaleString() : 'N/A';
+            } else {
+                nrcForm.classList.remove('hidden');
+                nrcSubmitted.classList.add('hidden');
             }
         }
 
@@ -342,7 +350,7 @@
                 }).eq('id', currentUser.id);
                 if (error) throw error;
 
-                currentUser = { ...currentUser, phone, pin, nrc_status: 'pending', nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber };
+                currentUser = { ...currentUser, phone, pin, nrc_status: 'pending', nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber, submitted_at: new Date().toISOString() };
                 alert('NRC အချက်အလက် တင်ပြပြီးပါပြီ။ အတည်ပြုရန် စောင့်ဆိုင်းပါ။');
                 updateStatus('pending');
             } catch (error) {
