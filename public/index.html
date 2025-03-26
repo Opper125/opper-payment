@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,8 +15,6 @@
         label { display: block; color: #444; margin-bottom: 8px; font-weight: bold; font-size: 1rem; }
         input, select { width: 100%; padding: 12px; border: 2px solid #5d4037; border-radius: 8px; background: #e0f7fa; color: #333; outline: none; font-size: 1rem; transition: border-color 0.3s ease; }
         input:focus, select:focus { border-color: #0288d1; }
-        .nrc-group { display: flex; gap: 10px; flex-wrap: wrap; }
-        .nrc-group select, .nrc-group input { width: 32%; min-width: 80px; }
         button { width: 100%; padding: 12px; background: #80deea; border: 2px solid #5d4037; border-radius: 8px; color: #333; font-weight: bold; cursor: pointer; font-size: 1rem; transition: all 0.3s ease; }
         button:hover { background: #4fc3f7; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
         .menu { display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; padding: 10px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 100; }
@@ -36,7 +34,9 @@
         @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } }
         .error-message { color: #f44336; text-align: center; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
         .hidden { display: none; }
-        .nrc-submitted { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #2e7d32; }
+        .passport-submitted { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #2e7d32; }
+        .warning { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #f44336; color: #fff; padding: 10px 20px; border-radius: 5px; font-weight: bold; animation: slideDown 2s ease-out; z-index: 200; }
+        @keyframes slideDown { 0% { opacity: 0; transform: translate(-50%, -100%); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
     </style>
 </head>
 <body>
@@ -44,39 +44,39 @@
 
     <!-- Wallet Section -->
     <div id="wallet" class="container active">
-        <h2>ကျွန်ုပ်၏ပိုက်ဆံအိတ်</h2>
+        <h2>My Wallet</h2>
         <div class="form-group">
-            <label>လက်ကျန်ငွေ</label>
+            <label>Balance</label>
             <p><span id="balance">0 Ks</span></p>
-            <button id="transfer-btn" onclick="toggleTransfer()" disabled>ငွေလွှဲရန်</button>
-            <p id="wallet-status" class="status pending">NRC အတည်ပြုရန် လိုအပ်ပါသည်</p>
+            <button id="transfer-btn" onclick="toggleTransfer()" disabled>Transfer Money</button>
+            <p id="wallet-status" class="status pending">Passport Verification Required</p>
         </div>
         <div id="transfer" class="form-group hidden">
-            <label>လွှဲမည့် ဖုန်းနံပါတ်</label>
+            <label>Recipient Phone Number</label>
             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
             <p id="receiver-name"></p>
-            <label>ငွေပမာဏ (Ks)</label>
-            <input type="number" id="transfer-amount" placeholder="အများဆုံး 1,000,000 Ks" required>
-            <label>မှတ်ချက်</label>
-            <input type="text" id="transfer-note" placeholder="မှတ်ချက် (ချန်လှပ်ထားနိုင်)">
-            <label>PIN (၆ လုံး)</label>
-            <input type="password" id="transfer-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
-            <button id="confirm-transfer-btn">ငွေလွှဲအတည်ပြုရန်</button>
+            <label>Amount (Ks)</label>
+            <input type="number" id="transfer-amount" placeholder="Max 1,000,000 Ks" required>
+            <label>Note</label>
+            <input type="text" id="transfer-note" placeholder="Note (optional)">
+            <label>Payment PIN (6 digits)</label>
+            <input type="password" id="transfer-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
+            <button id="confirm-transfer-btn">Confirm Transfer</button>
             <p id="transfer-error" class="error-message hidden"></p>
         </div>
     </div>
 
     <!-- Host Section (Transaction History) -->
     <div id="host" class="container">
-        <h2>ငွေလွှဲ/ငွေဝင် မှတ်တမ်း</h2>
+        <h2>Transaction History</h2>
         <div class="form-group">
             <div class="history-header">
                 <select id="month-filter" onchange="loadHistory()">
-                    <option value="current">လက်ရှိလ</option>
-                    <option value="previous">ယခင်လ</option>
+                    <option value="current">Current Month</option>
+                    <option value="previous">Previous Month</option>
                 </select>
-                <p>စုစုပေါင်း ငွေဝင်: <span id="total-in">0 Ks</span></p>
-                <p>စုစုပေါင်း ငွေလွှဲ: <span id="total-out">0 Ks</span></p>
+                <p>Total Received: <span id="total-in">0 Ks</span></p>
+                <p>Total Sent: <span id="total-out">0 Ks</span></p>
             </div>
             <div id="history-list"></div>
         </div>
@@ -84,109 +84,85 @@
 
     <!-- MI Section (Profile) -->
     <div id="mi" class="container">
-        <h2>ကျွန်ုပ်၏ပရိုဖိုင်</h2>
+        <h2>My Profile</h2>
         <div class="form-group">
-            <p>သင့် ID: <span id="mi-id"></span></p>
-            <p id="mi-status" class="status pending">NRC အတည်ပြုရန် လိုအပ်ပါသည်</p>
-            <div id="nrc-form" class="form-group">
-                <h3>NRC အချက်အလက် တင်ပြရန်</h3>
-                <label>မှတ်ပုံတင်</label>
-                <div class="nrc-group">
-                    <select id="nrc-region" required>
-                        <option value="">ဒေသ ရွေးပါ</option>
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                        <option value="13">13</option><option value="14">14</option>
-                    </select>
-                    <input type="text" id="nrc-town" placeholder="မြို့" required>
-                    <select id="nrc-type" required>
-                        <option value="">အမျိုးအစား</option>
-                        <option value="ဧည့်">ဧည့်</option>
-                        <option value="နိုင်">နိုင်</option>
-                    </select>
-                </div>
-                <input type="text" id="nrc-number" maxlength="6" placeholder="NRC နံပါတ်" required>
-                <label>ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
-                <input type="tel" id="nrc-phone" placeholder="09xxxxxxxxx" required>
-                <label>PIN (၆ လုံး)</label>
-                <input type="password" id="nrc-pin" maxlength="6" placeholder="၆ လုံး PIN ထည့်ပါ" required>
-                <label>NRC အရှေ့ပုံ</label>
-                <input type="file" id="nrc-front" accept="image/*" required>
-                <label>NRC နောက်ပုံ</label>
-                <input type="file" id="nrc-back" accept="image/*" required>
-                <label>NRC ကိုင်ထားသော Selfie</label>
-                <input type="file" id="nrc-selfie" accept="image/*" required>
-                <button id="submit-nrc-btn">တင်ပြမည်</button>
+            <p>Your ID: <span id="mi-id"></span></p>
+            <p id="mi-status" class="status pending">Passport Verification Required</p>
+            <div id="passport-form" class="form-group">
+                <h3>Submit Passport Details</h3>
+                <label>숫자Passport Number</label>
+                <input type="text" id="passport-number" placeholder="Enter Passport Number" required>
+                <label>Address</label>
+                <input type="text" id="address" placeholder="Enter Address" required>
+                <label>Phone Number (09xxxxxxxxx)</label>
+                <input type="tel" id="phone" placeholder="09xxxxxxxxx" required>
+                <label>Payment PIN (6 digits)</label>
+                <input type="password" id="payment-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
+                <label>Passport Image</label>
+                <input type="file" id="passport-image" accept="image/*" required>
+                <label>Selfie with Passport</label>
+                <input type="file" id="selfie-image" accept="image/*" required>
+                <button id="submit-passport-btn">Submit</button>
             </div>
-            <div id="nrc-submitted" class="nrc-submitted hidden">
-                <h3>တင်ပြပြီးပါပြီ</h3>
-                <p>ဖုန်းနံပါတ်: <span id="submitted-phone"></span></p>
-                <p>မှတ်ပုံတင်: <span id="submitted-nrc"></span></p>
-                <p>တင်သည့်အချိန်: <span id="submitted-time"></span></p>
+            <div id="passport-submitted" class="passport-submitted hidden">
+                <h3>Submitted</h3>
+                <p>Phone Number: <span id="submitted-phone"></span></p>
+                <p>Passport Number: <span id="submitted-passport"></span></p>
+                <p>Address: <span id="submitted-address"></span></p>
+                <p>Submitted At: <span id="submitted-time"></span></p>
             </div>
         </div>
     </div>
 
     <!-- Menu Bar -->
     <div class="menu">
-        <button onclick="showSection('wallet')"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">ပိုက်ဆံအိတ်</button>
-        <button onclick="showSection('host')"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">မှတ်တမ်း</button>
-        <button onclick="showSection('mi')"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">ကျွန်ုပ်</button>
+        <button onclick="showSection('wallet')"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
+        <button onclick="showSection('host')"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
+        <button onclick="showSection('mi')"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <script>
         const supabaseUrl = process.env.SUPABASE_URL || 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         const imgurClientId = process.env.IMGUR_CLIENT_ID || '5befa9dd970c7d0';
 
-        let currentUser = { id: null, balance: 0, nrc_status: 'pending', phone: null };
+        let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
 
         async function initializeUser() {
             try {
-                // Client-Side UUID ထုတ်မယ်
                 let userId = localStorage.getItem('userId');
                 if (!userId) {
-                    userId = uuid.v4().replace(/-/g, '').slice(0, 6); // 6 လုံး ID
+                    const response = await fetch('/.netlify/functions/data');
+                    const { user_id } = await response.json();
+                    userId = user_id;
                     localStorage.setItem('userId', userId);
                 }
-                currentUser.id = userId;
+                currentUser.user_id = userId;
 
                 document.getElementById('id-badge').textContent = `ID: ${userId}`;
                 document.getElementById('mi-id').textContent = userId;
 
-                // Supabase မှာ User ရှိမရှိ စစ်ပြီး မရှိရင် ထည့်မယ်
                 const { data: user, error } = await supabase.from('users')
                     .select('*')
-                    .eq('id', userId)
+                    .eq('user_id', userId)
                     .single();
 
                 if (error && error.code !== 'PGRST116') throw error;
 
-                if (!user) {
-                    const { data: newUser, error: insertError } = await supabase.from('users')
-                        .insert({ id: userId, balance: 0, nrc_status: 'pending' })
-                        .select()
-                        .single();
-                    if (insertError) throw insertError;
-                    currentUser = newUser;
-                } else {
+                if (user) {
                     currentUser = user;
                 }
 
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
-                updateStatus(currentUser.nrc_status);
+                updateStatus(currentUser.passport_status);
 
-                // Real-Time Subscription
                 supabase.channel('users-channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${currentUser.id}` }, payload => {
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `user_id=eq.${currentUser.user_id}` }, payload => {
                         currentUser = { ...currentUser, ...payload.new };
                         document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
-                        updateStatus(currentUser.nrc_status);
+                        updateStatus(currentUser.passport_status);
                     })
                     .subscribe();
 
@@ -197,7 +173,7 @@
                 loadHistory();
             } catch (error) {
                 console.error('Initialization Error:', error.message);
-                alert('အမှားတစ်ခု ဖြစ်ပွားခဲ့သည်။ ထပ်ကြိုးစားပါ။');
+                alert('An error occurred. Please try again.');
             }
         }
 
@@ -209,8 +185,8 @@
         }
 
         function toggleTransfer() {
-            if (currentUser.nrc_status !== 'approved') {
-                alert('NRC အတည်ပြုမှသာ ငွေလွှဲနိုင်ပါသည်။');
+            if (currentUser.passport_status !== 'approved') {
+                alert('Passport must be approved to transfer money.');
                 return;
             }
             document.getElementById('transfer').classList.toggle('hidden');
@@ -222,23 +198,23 @@
                 document.getElementById('receiver-name').textContent = '';
                 if (phone.match(/^09\d{9}$/)) {
                     const { data: receiver, error } = await supabase.from('users')
-                        .select('id, phone, nrc_status')
+                        .select('user_id, phone, passport_status')
                         .eq('phone', phone)
                         .single();
                     if (error && error.code !== 'PGRST116') throw error;
-                    if (receiver && receiver.nrc_status === 'approved') {
+                    if (receiver && receiver.passport_status === 'approved') {
                         const message = document.createElement('div');
                         message.className = 'receiver-message';
-                        message.innerHTML = `လက်ခံသူ: ${receiver.phone}<br>ID: ${receiver.id}`;
+                        message.innerHTML = `Recipient: ${receiver.phone}<br>ID: ${receiver.user_id}`;
                         document.body.appendChild(message);
                         setTimeout(() => message.remove(), 2000);
                     } else {
-                        document.getElementById('receiver-name').textContent = 'အကောင့်မရှိပါ သို့မဟုတ် NRC အတည်မပြုရသေးပါ။';
+                        document.getElementById('receiver-name').textContent = 'Account not found or passport not approved.';
                     }
                 }
             } catch (error) {
                 console.error('Check Phone Error:', error.message);
-                document.getElementById('receiver-name').textContent = 'အမှားဖြစ်ပွားခဲ့သည်။';
+                document.getElementById('receiver-name').textContent = 'An error occurred.';
             }
         }
 
@@ -259,7 +235,7 @@
                 (transactions || []).forEach(t => {
                     const item = document.createElement('div');
                     item.className = `history-item ${t.from_phone === currentUser.phone ? 'out' : 'in'}`;
-                    item.innerHTML = `${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>ဖုန်း: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>မှတ်ချက်: ${t.note || 'မရှိ'}<br>အချိန်: ${t.timestamp}`;
+                    item.innerHTML = `${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>Note: ${t.note || 'None'}<br>Time: ${t.timestamp}`;
                     historyList.appendChild(item);
                     if (t.from_phone === currentUser.phone) totalOut += t.amount;
                     else totalIn += t.amount;
@@ -277,28 +253,30 @@
             const miStatus = document.getElementById('mi-status');
             walletStatus.className = `status ${status}`;
             miStatus.className = `status ${status}`;
-            walletStatus.textContent = status === 'pending' ? 'NRC အတည်ပြုရန် လိုအပ်ပါသည်' : status === 'approved' ? 'အတည်ပြုပြီး' : 'NRC ငြင်းဆိုခံရသည်';
+            walletStatus.textContent = status === 'pending' ? 'Passport Verification Required' : status === 'approved' ? 'Approved' : 'Passport Rejected';
             miStatus.textContent = walletStatus.textContent;
 
-            const nrcForm = document.getElementById('nrc-form');
-            const nrcSubmitted = document.getElementById('nrc-submitted');
+            const passportForm = document.getElementById('passport-form');
+            const passportSubmitted = document.getElementById('passport-submitted');
 
             if (status === 'approved') {
                 document.getElementById('transfer-btn').disabled = false;
-                nrcForm.classList.add('hidden');
-                nrcSubmitted.classList.remove('hidden');
+                passportForm.classList.add('hidden');
+                passportSubmitted.classList.remove('hidden');
                 document.getElementById('submitted-phone').textContent = currentUser.phone || 'N/A';
-                document.getElementById('submitted-nrc').textContent = currentUser.nrc_region ? `${currentUser.nrc_region}/${currentUser.nrc_town}/${currentUser.nrc_type} ${currentUser.nrc_number}` : 'N/A';
+                document.getElementById('submitted-passport').textContent = currentUser.passport_number || 'N/A';
+                document.getElementById('submitted-address').textContent = currentUser.address || 'N/A';
                 document.getElementById('submitted-time').textContent = currentUser.submitted_at ? new Date(currentUser.submitted_at).toLocaleString() : 'N/A';
             } else if (status === 'pending' && currentUser.submitted_at) {
-                nrcForm.classList.add('hidden');
-                nrcSubmitted.classList.remove('hidden');
+                passportForm.classList.add('hidden');
+                passportSubmitted.classList.remove('hidden');
                 document.getElementById('submitted-phone').textContent = currentUser.phone || 'N/A';
-                document.getElementById('submitted-nrc').textContent = currentUser.nrc_region ? `${currentUser.nrc_region}/${currentUser.nrc_town}/${currentUser.nrc_type} ${currentUser.nrc_number}` : 'N/A';
+                document.getElementById('submitted-passport').textContent = currentUser.passport_number || 'N/A';
+                document.getElementById('submitted-address').textContent = currentUser.address || 'N/A';
                 document.getElementById('submitted-time').textContent = currentUser.submitted_at ? new Date(currentUser.submitted_at).toLocaleString() : 'N/A';
             } else {
-                nrcForm.classList.remove('hidden');
-                nrcSubmitted.classList.add('hidden');
+                passportForm.classList.remove('hidden');
+                passportSubmitted.classList.add('hidden');
             }
         }
 
@@ -320,42 +298,41 @@
             }
         }
 
-        document.getElementById('submit-nrc-btn').addEventListener('click', async () => {
+        document.getElementById('submit-passport-btn').addEventListener('click', async () => {
             try {
-                const nrcRegion = document.getElementById('nrc-region').value;
-                const nrcTown = document.getElementById('nrc-town').value;
-                const nrcType = document.getElementById('nrc-type').value;
-                const nrcNumber = document.getElementById('nrc-number').value;
-                const phone = document.getElementById('nrc-phone').value;
-                const pin = document.getElementById('nrc-pin').value;
-                const frontFile = document.getElementById('nrc-front').files[0];
-                const backFile = document.getElementById('nrc-back').files[0];
-                const selfieFile = document.getElementById('nrc-selfie').files[0];
+                const passportNumber = document.getElementById('passport-number').value;
+                const address = document.getElementById('address').value;
+                const phone = document.getElementById('phone').value;
+                const paymentPin = document.getElementById('payment-pin').value;
+                const passportImage = document.getElementById('passport-image').files[0];
+                const selfieImage = document.getElementById('selfie-image').files[0];
 
-                if (!nrcRegion || !nrcTown || !nrcType || !nrcNumber.match(/^\d{6}$/) || !phone.match(/^09\d{9}$/) || pin.length !== 6 || !frontFile || !backFile || !selfieFile) {
-                    alert('အချက်အလက်များကို ပြည့်စုံစွာ ဖြည့်ပါ။');
+                if (!passportNumber || !address || !phone.match(/^09\d{9}$/) || paymentPin.length !== 6 || !passportImage || !selfieImage) {
+                    const warning = document.createElement('div');
+                    warning.className = 'warning';
+                    warning.textContent = 'Please fill all fields correctly. PIN must be 6 digits.';
+                    document.body.appendChild(warning);
+                    setTimeout(() => warning.remove(), 2000);
                     return;
                 }
 
-                const [frontUrl, backUrl, selfieUrl] = await Promise.all([
-                    uploadToImgur(frontFile),
-                    uploadToImgur(backFile),
-                    uploadToImgur(selfieFile)
+                const [passportUrl, selfieUrl] = await Promise.all([
+                    uploadToImgur(passportImage),
+                    uploadToImgur(selfieImage)
                 ]);
 
                 const { error } = await supabase.from('users').update({
-                    phone, pin, nrc_status: 'pending', nrc_front: frontUrl, nrc_back: backUrl, nrc_selfie: selfieUrl,
-                    nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber,
-                    submitted_at: new Date().toISOString()
-                }).eq('id', currentUser.id);
+                    phone, payment_pin: paymentPin, passport_status: 'pending', passport_number: passportNumber,
+                    address, passport_image: passportUrl, selfie_image: selfieUrl, submitted_at: new Date().toISOString()
+                }).eq('user_id', currentUser.user_id);
                 if (error) throw error;
 
-                currentUser = { ...currentUser, phone, pin, nrc_status: 'pending', nrc_region: nrcRegion, nrc_town: nrcTown, nrc_type: nrcType, nrc_number: nrcNumber, submitted_at: new Date().toISOString() };
-                alert('NRC အချက်အလက် တင်ပြပြီးပါပြီ။ အတည်ပြုရန် စောင့်ဆိုင်းပါ။');
+                currentUser = { ...currentUser, phone, payment_pin: paymentPin, passport_status: 'pending', passport_number: passportNumber, address, submitted_at: new Date().toISOString() };
+                alert('Passport details submitted successfully. Awaiting approval.');
                 updateStatus('pending');
             } catch (error) {
-                console.error('Submit NRC Error:', error.message);
-                alert('NRC တင်ရာတွင် အမှားဖြစ်ပွားခဲ့သည်။');
+                console.error('Submit Passport Error:', error.message);
+                alert('An error occurred while submitting passport details.');
             }
         });
 
@@ -367,15 +344,15 @@
                 const pin = document.getElementById('transfer-pin').value;
 
                 if (!phone.match(/^09\d{9}$/) || amount > 1000000 || amount <= 0 || pin.length !== 6) {
-                    document.getElementById('transfer-error').textContent = 'ထည့်သွင်းမှု မမှန်ပါ။ အများဆုံး 1,000,000 Ks';
+                    document.getElementById('transfer-error').textContent = 'Invalid input. Max 1,000,000 Ks, PIN must be 6 digits.';
                     document.getElementById('transfer-error').classList.remove('hidden');
                     return;
                 }
 
                 const { data: sender, error: senderError } = await supabase.from('users')
                     .select('*')
-                    .eq('id', currentUser.id)
-                    .eq('pin', pin)
+                    .eq('user_id', currentUser.user_id)
+                    .eq('payment_pin', pin)
                     .single();
                 if (senderError) throw senderError;
                 const { data: receiver, error: receiverError } = await supabase.from('users')
@@ -384,8 +361,8 @@
                     .single();
                 if (receiverError) throw receiverError;
 
-                if (!sender || !receiver || sender.balance < amount || receiver.nrc_status !== 'approved') {
-                    document.getElementById('transfer-error').textContent = !sender ? 'PIN မမှန်ပါ။' : !receiver ? 'လက်ခံသူ အကောင့်မရှိပါ။' : sender.balance < amount ? 'လက်ကျန်မလုံလောက်ပါ။' : 'လက်ခံသူ NRC အတည်မပြုရသေးပါ။';
+                if (!sender || !receiver || sender.balance < amount || receiver.passport_status !== 'approved') {
+                    document.getElementById('transfer-error').textContent = !sender ? 'Incorrect PIN.' : !receiver ? 'Recipient account not found.' : sender.balance < amount ? 'Insufficient balance.' : 'Recipient passport not approved.';
                     document.getElementById('transfer-error').classList.remove('hidden');
                     return;
                 }
@@ -393,11 +370,11 @@
                 const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
                 const { error: updateSenderError } = await supabase.from('users')
                     .update({ balance: sender.balance - amount })
-                    .eq('id', sender.id);
+                    .eq('user_id', sender.user_id);
                 if (updateSenderError) throw updateSenderError;
                 const { error: updateReceiverError } = await supabase.from('users')
                     .update({ balance: receiver.balance + amount })
-                    .eq('id', receiver.id);
+                    .eq('user_id', receiver.user_id);
                 if (updateReceiverError) throw updateReceiverError;
                 const { error: insertError } = await supabase.from('transactions')
                     .insert({ from_phone: sender.phone, to_phone: receiver.phone, amount, note, timestamp: now });
@@ -410,12 +387,12 @@
 
                 const animation = document.createElement('div');
                 animation.className = 'transfer-animation';
-                animation.innerHTML = `အောင်မြင်စွာ လွှဲပြီးပါပြီ<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>`;
+                animation.innerHTML = `Transfer Successful<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>`;
                 document.body.appendChild(animation);
                 setTimeout(() => animation.remove(), 1500);
             } catch (error) {
                 console.error('Transfer Error:', error.message);
-                document.getElementById('transfer-error').textContent = 'ငွေလွှဲရာတွင် အမှားဖြစ်ပွားခဲ့သည်။';
+                document.getElementById('transfer-error').textContent = 'An error occurred during transfer.';
                 document.getElementById('transfer-error').classList.remove('hidden');
             }
         });
