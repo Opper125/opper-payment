@@ -81,7 +81,8 @@
             <div id="history-list"></div>
         </div>
     </div>
-    
+
+    <!-- MI Section (Profile) -->
     <div id="mi" class="container">
         <h2>My Profile</h2>
         <div class="form-group">
@@ -113,6 +114,7 @@
         </div>
     </div>
 
+    <!-- Menu Bar -->
     <div class="menu">
         <button onclick="showSection('wallet')"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
         <button onclick="showSection('host')"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
@@ -149,6 +151,12 @@
                         .from('users')
                         .insert({ user_id: userId, balance: 0, passport_status: 'pending' });
                     if (insertError) throw insertError;
+
+                    await fetch('/.netlify/functions/data', {
+                        method: 'POST',
+                        body: JSON.stringify({ user_id: userId }),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                 }
                 currentUser.user_id = userId;
 
@@ -420,6 +428,9 @@
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                 document.getElementById('transfer-error').classList.add('hidden');
                 document.getElementById('transfer').classList.add('hidden');
+
+                await updateUserData({ user_id: sender.user_id, balance: sender.balance - amount });
+                await updateUserData({ user_id: receiver.user_id, balance: receiver.balance + amount });
 
                 const animation = document.createElement('div');
                 animation.className = 'transfer-animation';
