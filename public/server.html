@@ -81,8 +81,7 @@
                 const { data: users, error } = await supabase
                     .from('users')
                     .select('*')
-                    .eq('passport_status', 'pending')
-                    .order('submitted_at', { ascending: true });
+                    .order('created_at', { ascending: true });
                 if (error) throw error;
                 const userList = document.getElementById('user-list');
                 userList.innerHTML = '';
@@ -94,10 +93,15 @@
                         ID: ${user.user_id} | Phone: ${user.phone || 'N/A'}<br>
                         Passport: ${user.passport_number || 'N/A'}<br>
                         Address: ${user.address || 'N/A'}<br>
-                        <img src="${user.passport_image || ''}" alt="Passport"> <img src="${user.selfie_image || ''}" alt="Selfie"><br>
+                        Balance: ${user.balance} Ks<br>
+                        Status: ${user.passport_status}<br>
+                        ${user.passport_image ? `<img src="${user.passport_image}" alt="Passport">` : ''}
+                        ${user.selfie_image ? `<img src="${user.selfie_image}" alt="Selfie">` : ''}<br>
                         Submitted At: ${user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A'}<br>
-                        <button class="approve-btn" onclick="updatePassportStatus('${user.user_id}', 'approved')">Approve</button>
-                        <button class="reject-btn" onclick="updatePassportStatus('${user.user_id}', 'rejected')">Reject</button>
+                        ${user.passport_status === 'pending' && user.submitted_at ? `
+                            <button class="approve-btn" onclick="updatePassportStatus('${user.user_id}', 'approved')">Approve</button>
+                            <button class="reject-btn" onclick="updatePassportStatus('${user.user_id}', 'rejected')">Reject</button>
+                        ` : ''}
                     `;
                     userList.appendChild(item);
                 });
@@ -113,6 +117,13 @@
                     .update({ passport_status: status })
                     .eq('user_id', userId);
                 if (error) throw error;
+
+                await fetch('/.netlify/functions/data', {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, passport_status: status }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
                 alert(`ID ${userId} has been ${status === 'approved' ? 'approved' : 'rejected'}.`);
                 loadUsers();
             } catch (error) {
@@ -154,6 +165,7 @@
                     .update({ balance: newBalance })
                     .eq('user_id', user.user_id);
                 if (updateError) throw updateError;
+
                 const { error: insertError } = await supabase
                     .from('transactions')
                     .insert({
@@ -165,7 +177,15 @@
                     });
                 if (insertError) throw insertError;
 
+                await fetch('/.netlify/functions/data', {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: user.user_id, balance: newBalance }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
                 alert(`${type === 'deposit' ? 'Deposit' : 'Withdraw'} successful. New balance: ${newBalance} Ks`);
+                loadUsers();
+                loadHistory();
             } catch (error) {
                 console.error('Deposit/Withdraw Error:', error.message);
                 alert('An error occurred during deposit/withdraw.');
