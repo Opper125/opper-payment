@@ -5,41 +5,381 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPPER Payment</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); min-height: 100vh; padding: 10px; overflow-x: hidden; font-size: 16px; }
-        .id-badge { position: fixed; top: 10px; right: 10px; background: #80deea; border: 2px solid #5d4037; border-radius: 8px; padding: 8px 12px; font-weight: bold; color: #333; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); z-index: 100; }
-        .container { width: 100%; max-width: 500px; padding: 20px; background: #ffffff; border-radius: 15px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); margin: 20px auto; display: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body {
+            background: #000;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+            font-size: 16px;
+            position: relative;
+        }
+        video#bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.8;
+        }
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: -1;
+        }
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 5s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; } 50% { opacity: 1; }
+        }
+        .meteor {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+            animation: meteor 3s linear infinite;
+        }
+        @keyframes meteor {
+            0% { transform: translate(0, 0); opacity: 1; }
+            100% { transform: translate(300px, 300px); opacity: 0; }
+        }
+        .moon {
+            position: fixed;
+            top: 10%;
+            right: 10%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #fff 60%, #ccc 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px #fff;
+            animation: moonGlow 10s infinite;
+            z-index: -1;
+        }
+        @keyframes moonGlow {
+            0%, 100% { box-shadow: 0 0 20px #fff; }
+            50% { box-shadow: 0 0 40px #ff0; }
+        }
+        .logo {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 60px;
+            height: 60px;
+            z-index: 100;
+        }
+        .id-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #00c4ff, #007bff);
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            margin: 20px auto;
+            display: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
         .container.active { display: block; }
-        h2 { text-align: center; color: #2e7d32; margin-bottom: 20px; font-size: 1.5rem; }
+        h2 {
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
         .form-group { margin-bottom: 20px; }
-        label { display: block; color: #444; margin-bottom: 8px; font-weight: bold; font-size: 1rem; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #5d4037; border-radius: 8px; background: #e0f7fa; color: #333; outline: none; font-size: 1rem; transition: border-color 0.3s ease; }
-        input:focus, select:focus { border-color: #0288d1; }
-        button { width: 100%; padding: 12px; background: #80deea; border: 2px solid #5d4037; border-radius: 8px; color: #333; font-weight: bold; cursor: pointer; font-size: 1rem; transition: all 0.3s ease; }
-        button:hover { background: #4fc3f7; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
-        .menu { display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; padding: 10px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 100; }
-        .menu button { flex: 1; margin: 0 5px; display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; padding: 5px; background: #80deea; border: none; }
-        .menu img { width: 24px; height: 24px; margin-bottom: 5px; }
-        .history-item { padding: 10px; border-radius: 5px; margin-bottom: 5px; font-size: 0.9rem; transition: all 0.3s ease; }
-        .history-item.out { background: #ffebee; color: #d32f2f; border: 1px solid #d32f2f; }
-        .history-item.in { background: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
-        .history-header { background: #80deea; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 2px solid #5d4037; font-size: 0.9rem; }
-        .status { padding: 5px 10px; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 0.9rem; }
+        label {
+            display: block;
+            color: #fff;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+        input:focus, select:focus {
+            border-color: #00c4ff;
+            transform: scale(1.02);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #00c4ff, #007bff);
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #007bff, #00c4ff);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .menu button {
+            flex: 1;
+            margin: 0 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.9rem;
+            padding: 5px;
+            background: linear-gradient(135deg, #00c4ff, #007bff);
+            border: none;
+            color: #fff;
+        }
+        .menu img {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 0 5px #ffd700);
+        }
+        .history-item {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        .history-item.out {
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+        }
+        .history-item.in {
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+        .history-item .logo {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 20px;
+            height: 20px;
+        }
+        .history-item .print-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 30px;
+            height: 30px;
+            background: url('https://cdn-icons-png.flaticon.com/512/32/32178.png') no-repeat center;
+            background-size: cover;
+            border: none;
+            cursor: pointer;
+        }
+        .history-header {
+            background: linear-gradient(135deg, #00c4ff, #007bff);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #ffd700;
+            font-size: 0.9rem;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
         .status.pending { background: #ffeb3b; color: #333; }
         .status.approved { background: #4caf50; color: #fff; }
         .status.rejected { background: #f44336; color: #fff; }
-        .transfer-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; color: #fff; background: rgba(76, 175, 80, 0.9); padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: transferPulse 1.5s ease-out; z-index: 200; }
-        @keyframes transferPulse { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
-        .receiver-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #0288d1, # discord4fc3f7); color: #fff; padding: 15px 25px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); animation: fadeInOut 2s ease-out; z-index: 200; text-align: center; }
-        @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } }
-        .error-message { color: #f44336; text-align: center; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
+        .transfer-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #fff;
+            background: linear-gradient(135deg, #ff4d4d, #d32f2f);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            animation: transferPulse 1.5s ease-out;
+            z-index: 200;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        @keyframes transferPulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+        .receiver-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            animation: fadeInOut 5s ease-out;
+            z-index: 200;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+        .error-message {
+            color: #ff4d4d;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
         .hidden { display: none; }
-        .passport-submitted { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #2e7d32; }
-        .warning { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #f44336; color: #fff; padding: 10px 20px; border-radius: 5px; font-weight: bold; animation: slideDown 2s ease-out; z-index: 200; }
-        @keyframes slideDown { 0% { opacity: 0; transform: translate(-50%, -100%); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
+        .passport-submitted {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 2px solid #4caf50;
+            color: #fff;
+        }
+        .warning {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f44336;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            animation: slideDown 2s ease-out;
+            z-index: 200;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        @keyframes slideDown {
+            0% { opacity: 0; transform: translate(-50%, -100%); }
+            20% { opacity: 1; transform: translate(-50%, 0); }
+            80% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, 0); }
+        }
+        .account-status {
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .account-status.not-found { color: #ff4d4d; }
+        .account-status.found { color: #4caf50; }
+        @media print {
+            body { background: #fff; }
+            video#bg-video, .stars, .moon, .menu { display: none; }
+            .container { background: #fff; border: none; box-shadow: none; }
+            .history-item {
+                border: 2px solid #ffd700;
+                padding: 20px;
+                margin: 10px 0;
+                background: #fff;
+                font-family: 'Times New Roman', serif;
+                color: #333;
+                position: relative;
+            }
+            .history-item .logo {
+                position: absolute;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 80px;
+                height: 80px;
+            }
+            .history-item .print-btn { display: none; }
+            .history-item::before {
+                content: "OPPER Payment Transaction Receipt";
+                display: block;
+                text-align: center;
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #ffd700;
+                margin-bottom: 20px;
+                text-shadow: none;
+            }
+            .history-item p {
+                font-size: 1rem;
+                margin: 5px 0;
+                color: #333;
+                text-shadow: none;
+            }
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <video id="bg-video" autoplay muted loop>
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-space-background-with-planets-and-stars-1515-large.mp4" type="video/mp4">
+    </video>
+    <div class="stars" id="stars"></div>
+    <div class="moon"></div>
+    <img class="logo" src="https://github.com/your-username/your-repo/raw/main/logo.png" alt="OPPER Logo">
+
     <div class="id-badge" id="id-badge">ID: </div>
 
     <!-- Wallet Section -->
@@ -54,7 +394,7 @@
         <div id="transfer" class="form-group hidden">
             <label>Recipient Phone Number</label>
             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
-            <p id="receiver-name"></p>
+            <p id="receiver-name" class="account-status"></p>
             <label>Amount (Ks)</label>
             <input type="number" id="transfer-amount" placeholder="Max 1,000,000 Ks" required>
             <label>Note</label>
@@ -122,6 +462,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
@@ -129,6 +470,27 @@
         const imgurClientId = '5befa9dd970c7d0';
 
         let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
+
+        // Add Stars and Meteors
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = `${Math.random() * 3}px`;
+            star.style.height = star.style.width;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 5}s`;
+            starsContainer.appendChild(star);
+        }
+        for (let i = 0; i < 10; i++) {
+            const meteor = document.createElement('div');
+            meteor.className = 'meteor';
+            meteor.style.left = `${Math.random() * 100}%`;
+            meteor.style.top = `${Math.random() * 100}%`;
+            meteor.style.animationDelay = `${Math.random() * 3}s`;
+            starsContainer.appendChild(meteor);
+        }
 
         async function retryOperation(operation, maxRetries = 3, delay = 1000) {
             for (let i = 0; i < maxRetries; i++) {
@@ -202,7 +564,17 @@
                     .subscribe();
 
                 supabase.channel('transactions-channel')
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, () => loadHistory())
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, async payload => {
+                        const transaction = payload.new;
+                        if (transaction.to_phone === currentUser.phone) {
+                            const message = document.createElement('div');
+                            message.className = 'receiver-message';
+                            message.innerHTML = `Received ${transaction.amount} Ks<br>From: ${transaction.from_phone}`;
+                            document.body.appendChild(message);
+                            setTimeout(() => message.remove(), 5000);
+                        }
+                        loadHistory();
+                    })
                     .subscribe();
 
                 loadHistory();
@@ -230,7 +602,8 @@
         async function checkPhone() {
             try {
                 const phone = document.getElementById('transfer-phone').value;
-                document.getElementById('receiver-name').textContent = '';
+                const receiverName = document.getElementById('receiver-name');
+                receiverName.textContent = '';
                 if (phone.match(/^09\d{9}$/)) {
                     const { data: receiver, error } = await supabase
                         .from('users')
@@ -239,13 +612,11 @@
                         .single();
                     if (error && error.code !== 'PGRST116') throw error;
                     if (receiver && receiver.passport_status === 'approved') {
-                        const message = document.createElement('div');
-                        message.className = 'receiver-message';
-                        message.innerHTML = `Recipient: ${receiver.phone}<br>ID: ${receiver.user_id}`;
-                        document.body.appendChild(message);
-                        setTimeout(() => message.remove(), 2000);
+                        receiverName.className = 'account-status found';
+                        receiverName.textContent = `Account Found: ${receiver.phone} (ID: ${receiver.user_id})`;
                     } else {
-                        document.getElementById('receiver-name').textContent = 'Account not found or passport not approved.';
+                        receiverName.className = 'account-status not-found';
+                        receiverName.textContent = 'Account not found or passport not approved.';
                     }
                 }
             } catch (error) {
@@ -272,7 +643,16 @@
                 (transactions || []).forEach(t => {
                     const item = document.createElement('div');
                     item.className = `history-item ${t.from_phone === currentUser.phone ? 'out' : 'in'}`;
-                    item.innerHTML = `${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>Note: ${t.note || 'None'}<br>Time: ${t.timestamp}`;
+                    item.innerHTML = `
+                        <img class="logo" src="https://github.com/your-username/your-repo/raw/main/logo.png" alt="OPPER Logo">
+                        ${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>
+                        Transaction ID: ${t.transaction_id || 'N/A'}<br>
+                        Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
+                        Note: ${t.note || 'None'}<br>
+                        Time: ${t.timestamp}<br>
+                        Status: ${t.from_phone === currentUser.phone ? 'Sent' : 'Received'}
+                        <button class="print-btn" onclick="printTransaction('${t.id}')"></button>
+                    `;
                     historyList.appendChild(item);
                     if (t.from_phone === currentUser.phone) totalOut += t.amount;
                     else totalIn += t.amount;
@@ -283,6 +663,52 @@
             } catch (error) {
                 console.error('Load History Error:', error.message);
             }
+        }
+
+        async function printTransaction(transactionId) {
+            const { data: transaction, error } = await supabase
+                .from('transactions')
+                .select('*')
+                .eq('id', transactionId)
+                .single();
+            if (error) throw error;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Transaction Receipt</title>
+                    <style>
+                        body { font-family: 'Times New Roman', serif; margin: 20px; background: #fff; }
+                        .receipt { border: 5px solid #ffd700; padding: 20px; max-width: 600px; margin: 0 auto; background: #fff; }
+                        .logo { display: block; margin: 0 auto; width: 80px; height: 80px; }
+                        h1 { text-align: center; color: #ffd700; font-size: 1.5rem; margin-bottom: 20px; }
+                        p { font-size: 1rem; margin: 5px 0; color: #333; }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt">
+                        <img class="logo" src="https://github.com/your-username/your-repo/raw/main/logo.png" alt="OPPER Logo">
+                        <h1>OPPER Payment Transaction Receipt</h1>
+                        <p><strong>Transaction ID:</strong> ${transaction.transaction_id || 'N/A'}</p>
+                        <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
+                        <p><strong>From:</strong> ${transaction.from_phone}</p>
+                        <p><strong>To:</strong> ${transaction.to_phone}</p>
+                        <p><strong>Note:</strong> ${transaction.note || 'None'}</p>
+                        <p><strong>Time:</strong> ${transaction.timestamp}</p>
+                        <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+
+            // Print and Download as PDF
+            setTimeout(() => {
+                printWindow.print();
+                html2pdf().from(printWindow.document.body).save(`Transaction_${transaction.transaction_id || 'N/A'}.pdf`);
+                printWindow.close();
+            }, 500);
         }
 
         function updateStatus(status) {
@@ -325,7 +751,7 @@
                     method: 'POST',
                     headers: { Authorization: `Client-ID ${imgurClientId}` },
                     body: formData,
-                    timeout: 10000 // 10 seconds timeout
+                    timeout: 10000
                 });
                 const data = await response.json();
                 if (!data.success) throw new Error('Imgur Upload Failed');
@@ -435,6 +861,7 @@
                     return;
                 }
 
+                const transactionId = Math.floor(100000000000 + Math.random() * 900000000000).toString();
                 const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
                 await retryOperation(async () => {
                     const { error: updateSenderError } = await supabase
@@ -453,7 +880,7 @@
                 await retryOperation(async () => {
                     const { error: insertError } = await supabase
                         .from('transactions')
-                        .insert({ from_phone: sender.phone, to_phone: receiver.phone, amount, note, timestamp: now });
+                        .insert({ from_phone: sender.phone, to_phone: receiver.phone, amount, note, timestamp: now, transaction_id: transactionId });
                     if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`);
                 });
 
