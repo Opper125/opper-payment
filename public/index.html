@@ -482,6 +482,7 @@
         const imgurClientId = '5befa9dd970c7d0';
 
         let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
+        let localTransactions = JSON.parse(localStorage.getItem('localTransactions')) || [];
 
         // Add Stars and Meteors
         const starsContainer = document.getElementById('stars');
@@ -652,18 +653,24 @@
                 historyList.innerHTML = '';
                 let totalIn = 0, totalOut = 0;
 
-                (transactions || []).forEach(t => {
+                // Merge Supabase transactions with local transactions
+                const allTransactions = [...transactions, ...localTransactions].filter(t => {
+                    const transactionDate = new Date(t.timestamp);
+                    return transactionDate.getMonth() === monthFilter;
+                });
+
+                allTransactions.forEach(t => {
                     const item = document.createElement('div');
                     item.className = `history-item ${t.from_phone === currentUser.phone ? 'out' : 'in'}`;
                     item.innerHTML = `
                         <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
                         ${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>
-                        Transaction ID: ${t.transaction_id || 'N/A'}<br>
+                        Transaction ID: ${t.localTransactionId || 'N/A'}<br>
                         Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
                         Note: ${t.note || 'None'}<br>
                         Time: ${t.timestamp}<br>
                         Status: ${t.from_phone === currentUser.phone ? 'Sent' : 'Received'}
-                        <button class="print-btn" onclick="printTransaction('${t.id}')"></button>
+                        <button class="print-btn" onclick="printTransaction('${t.id || t.localTransactionId}')"></button>
                     `;
                     historyList.appendChild(item);
                     if (t.from_phone === currentUser.phone) totalOut += t.amount;
@@ -678,12 +685,19 @@
         }
 
         async function printTransaction(transactionId) {
-            const { data: transaction, error } = await supabase
+            let transaction;
+            const supabaseTransaction = await supabase
                 .from('transactions')
                 .select('*')
                 .eq('id', transactionId)
                 .single();
-            if (error) throw error;
+            if (supabaseTransaction.data) {
+                transaction = supabaseTransaction.data;
+            } else {
+                transaction = localTransactions.find(t => t.localTransactionId === transactionId);
+            }
+
+            if (!transaction) return;
 
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
@@ -702,7 +716,7 @@
                     <div class="receipt">
                         <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
                         <h1>OPPER Payment Transaction Receipt</h1>
-                        <p><strong>Transaction ID:</strong> ${transaction.transaction_id || 'N/A'}</p>
+                        <p><strong>Transaction ID:</strong> ${transaction.localTransactionId || 'N/A'}</p>
                         <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
                         <p><strong>From:</strong> ${transaction.from_phone}</p>
                         <p><strong>To:</strong> ${transaction.to_phone}</p>
@@ -715,10 +729,9 @@
             `);
             printWindow.document.close();
 
-            // Print and Download as PDF
             setTimeout(() => {
                 printWindow.print();
-                html2pdf().from(printWindow.document.body).save(`Transaction_${transaction.transaction_id || 'N/A'}.pdf`);
+                html2pdf().from(printWindow.document.body).save(`Transaction_${transaction.localTransactionId || 'N/A'}.pdf`);
                 printWindow.close();
             }, 500);
         }
@@ -873,7 +886,7 @@
                     return;
                 }
 
-                const transactionId = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+                const localTransactionId = Math.floor(100000000000 + Math.random() * 900000000000).toString();
                 const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
 
                 // Update Sender Balance
@@ -894,7 +907,7 @@
                     if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`);
                 });
 
-                // Insert Transaction
+                // Insert Transaction into Supabase
                 await retryOperation(async () => {
                     const { error: insertError } = await supabase
                         .from('transactions')
@@ -903,14 +916,22 @@
                             to_phone: receiver.phone,
                             amount: amount,
                             note: note || null,
-                            timestamp: now,
-                            transaction_id: transactionId
+                            timestamp: now
                         });
-                    if (insertError) {
-                        console.error('Insert Transaction Error Details:', insertError);
-                        throw new Error(`Insert Transaction Error: ${insertError.message || 'Unknown error'}`);
-                    }
+                    if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`);
                 });
+
+                // Store Transaction Locally with localTransactionId
+                const localTransaction = {
+                    localTransactionId: localTransactionId,
+                    from_phone: sender.phone,
+                    to_phone: receiver.phone,
+                    amount: amount,
+                    note: note || null,
+                    timestamp: now
+                };
+                localTransactions.push(localTransaction);
+                localStorage.setItem('localTransactions', JSON.stringify(localTransactions));
 
                 currentUser.balance = sender.balance - amount;
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
@@ -925,6 +946,8 @@
                 animation.innerHTML = `Transfer Successful<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>`;
                 document.body.appendChild(animation);
                 setTimeout(() => animation.remove(), 1500);
+
+                loadHistory();
             } catch (error) {
                 console.error('Transfer Error:', error.message);
                 document.getElementById('transfer-error').textContent = `An error occurred during transfer: ${error.message}`;
