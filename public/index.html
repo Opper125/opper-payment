@@ -81,8 +81,7 @@
             <div id="history-list"></div>
         </div>
     </div>
-
-    <!-- MI Section (Profile) -->
+    
     <div id="mi" class="container">
         <h2>My Profile</h2>
         <div class="form-group">
@@ -90,7 +89,7 @@
             <p id="mi-status" class="status pending">Passport Verification Required</p>
             <div id="passport-form" class="form-group">
                 <h3>Submit Passport Details</h3>
-                <label>숫자Passport Number</label>
+                <label>Passport Number</label>
                 <input type="text" id="passport-number" placeholder="Enter Passport Number" required>
                 <label>Address</label>
                 <input type="text" id="address" placeholder="Enter Address" required>
@@ -114,7 +113,6 @@
         </div>
     </div>
 
-    <!-- Menu Bar -->
     <div class="menu">
         <button onclick="showSection('wallet')"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
         <button onclick="showSection('host')"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
@@ -123,10 +121,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const supabaseUrl = process.env.SUPABASE_URL || 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
+        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        const imgurClientId = process.env.IMGUR_CLIENT_ID || '5befa9dd970c7d0';
+        const imgurClientId = '5befa9dd970c7d0';
 
         let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
 
@@ -134,32 +132,42 @@
             try {
                 let userId = localStorage.getItem('userId');
                 if (!userId) {
-                    const response = await fetch('/.netlify/functions/data');
-                    const { user_id } = await response.json();
-                    userId = user_id;
+                    userId = Math.floor(100000 + Math.random() * 900000).toString();
+                    while (true) {
+                        const { data: existingUser, error } = await supabase
+                            .from('users')
+                            .select('user_id')
+                            .eq('user_id', userId)
+                            .single();
+                        if (error && error.code !== 'PGRST116') throw error;
+                        if (!existingUser) break;
+                        userId = Math.floor(100000 + Math.random() * 900000).toString();
+                    }
                     localStorage.setItem('userId', userId);
+
+                    const { error: insertError } = await supabase
+                        .from('users')
+                        .insert({ user_id: userId, balance: 0, passport_status: 'pending' });
+                    if (insertError) throw insertError;
                 }
                 currentUser.user_id = userId;
 
                 document.getElementById('id-badge').textContent = `ID: ${userId}`;
                 document.getElementById('mi-id').textContent = userId;
 
-                const { data: user, error } = await supabase.from('users')
+                const { data: user, error } = await supabase
+                    .from('users')
                     .select('*')
                     .eq('user_id', userId)
                     .single();
-
                 if (error && error.code !== 'PGRST116') throw error;
-
-                if (user) {
-                    currentUser = user;
-                }
+                if (user) currentUser = user;
 
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                 updateStatus(currentUser.passport_status);
 
                 supabase.channel('users-channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `user_id=eq.${currentUser.user_id}` }, payload => {
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `user_id=eq.${userId}` }, payload => {
                         currentUser = { ...currentUser, ...payload.new };
                         document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                         updateStatus(currentUser.passport_status);
@@ -197,7 +205,8 @@
                 const phone = document.getElementById('transfer-phone').value;
                 document.getElementById('receiver-name').textContent = '';
                 if (phone.match(/^09\d{9}$/)) {
-                    const { data: receiver, error } = await supabase.from('users')
+                    const { data: receiver, error } = await supabase
+                        .from('users')
                         .select('user_id, phone, passport_status')
                         .eq('phone', phone)
                         .single();
@@ -222,7 +231,8 @@
             try {
                 const month = document.getElementById('month-filter').value;
                 const monthFilter = month === 'current' ? new Date().getMonth() : new Date().getMonth() - 1;
-                const { data: transactions, error } = await supabase.from('transactions')
+                const { data: transactions, error } = await supabase
+                    .from('transactions')
                     .select('*')
                     .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
                     .gte('timestamp', new Date(new Date().setMonth(monthFilter)).toISOString().split('T')[0]);
@@ -298,6 +308,19 @@
             }
         }
 
+        async function updateUserData(data) {
+            try {
+                const response = await fetch('/.netlify/functions/data', {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) throw new Error('Failed to update data');
+            } catch (error) {
+                console.error('Update Data Error:', error.message);
+            }
+        }
+
         document.getElementById('submit-passport-btn').addEventListener('click', async () => {
             try {
                 const passportNumber = document.getElementById('passport-number').value;
@@ -321,13 +344,21 @@
                     uploadToImgur(selfieImage)
                 ]);
 
-                const { error } = await supabase.from('users').update({
-                    phone, payment_pin: paymentPin, passport_status: 'pending', passport_number: passportNumber,
-                    address, passport_image: passportUrl, selfie_image: selfieUrl, submitted_at: new Date().toISOString()
-                }).eq('user_id', currentUser.user_id);
-                if (error) throw error;
+                const updatedData = {
+                    user_id: currentUser.user_id,
+                    phone,
+                    payment_pin: paymentPin,
+                    passport_number: passportNumber,
+                    address,
+                    passport_image: passportUrl,
+                    selfie_image: selfieUrl,
+                    submitted_at: new Date().toISOString()
+                };
 
-                currentUser = { ...currentUser, phone, payment_pin: paymentPin, passport_status: 'pending', passport_number: passportNumber, address, submitted_at: new Date().toISOString() };
+                await supabase.from('users').update(updatedData).eq('user_id', currentUser.user_id);
+                await updateUserData(updatedData);
+
+                currentUser = { ...currentUser, ...updatedData, passport_status: 'pending' };
                 alert('Passport details submitted successfully. Awaiting approval.');
                 updateStatus('pending');
             } catch (error) {
@@ -349,13 +380,15 @@
                     return;
                 }
 
-                const { data: sender, error: senderError } = await supabase.from('users')
+                const { data: sender, error: senderError } = await supabase
+                    .from('users')
                     .select('*')
                     .eq('user_id', currentUser.user_id)
                     .eq('payment_pin', pin)
                     .single();
                 if (senderError) throw senderError;
-                const { data: receiver, error: receiverError } = await supabase.from('users')
+                const { data: receiver, error: receiverError } = await supabase
+                    .from('users')
                     .select('*')
                     .eq('phone', phone)
                     .single();
@@ -368,15 +401,18 @@
                 }
 
                 const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
-                const { error: updateSenderError } = await supabase.from('users')
+                const { error: updateSenderError } = await supabase
+                    .from('users')
                     .update({ balance: sender.balance - amount })
                     .eq('user_id', sender.user_id);
                 if (updateSenderError) throw updateSenderError;
-                const { error: updateReceiverError } = await supabase.from('users')
+                const { error: updateReceiverError } = await supabase
+                    .from('users')
                     .update({ balance: receiver.balance + amount })
                     .eq('user_id', receiver.user_id);
                 if (updateReceiverError) throw updateReceiverError;
-                const { error: insertError } = await supabase.from('transactions')
+                const { error: insertError } = await supabase
+                    .from('transactions')
                     .insert({ from_phone: sender.phone, to_phone: receiver.phone, amount, note, timestamp: now });
                 if (insertError) throw insertError;
 
