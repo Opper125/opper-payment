@@ -5,154 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPPER Payment</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body {
-            background: #000;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             min-height: 100vh;
-            padding: 10px;
+            padding: 15px;
             overflow-x: hidden;
             font-size: 16px;
             position: relative;
+            color: #fff;
         }
-        video#bg-video {
+        .background-particles {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
             z-index: -1;
-            opacity: 0.8;
-        }
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             background: transparent;
-            z-index: -1;
         }
-        .star {
+        .particle {
             position: absolute;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            animation: twinkle 5s infinite;
+            animation: float 15s infinite;
         }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; } 50% { opacity: 1; }
+        @keyframes float {
+            0% { transform: translateY(0); opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; }
         }
-        .meteor {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: #fff;
-            box-shadow: 0 0 10px #fff;
-            animation: meteor 3s linear infinite;
-        }
-        @keyframes meteor {
-            0% { transform: translate(0, 0); opacity: 1; }
-            100% { transform: translate(300px, 300px); opacity: 0; }
-        }
-        .moon {
+        .download-bar {
             position: fixed;
-            top: 10%;
-            right: 10%;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, #fff 60%, #ccc 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 20px #fff;
-            animation: moonGlow 10s infinite;
-            z-index: -1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #ff6f61, #ff9f43);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        @keyframes moonGlow {
-            0%, 100% { box-shadow: 0 0 20px #fff; }
-            50% { box-shadow: 0 0 40px #ff0; }
+        .download-bar p {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .download-bar button {
+            padding: 8px 15px;
+            background: #fff;
+            border: none;
+            border-radius: 20px;
+            color: #ff6f61;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .download-bar button:hover {
+            transform: scale(1.05);
+        }
+        .download-bar .close-btn {
+            background: transparent;
+            color: #fff;
+            font-size: 1.2rem;
+            padding: 5px 10px;
         }
         .logo {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            width: 60px;
-            height: 60px;
+            top: 60px;
+            left: 15px;
+            width: 50px;
+            height: 50px;
             z-index: 100;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
         }
         .id-badge {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            background: linear-gradient(135deg, #00c4ff, #007bff);
-            border: 2px solid #ffd700;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-weight: bold;
-            color: #fff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            top: 60px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffd700;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: 600;
+            color: #ffd700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             z-index: 100;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
         }
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 450px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-            margin: 20px auto;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            margin: 80px auto 20px;
             display: none;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
         }
-        .container.active { display: block; }
+        .container.active { display: block; transform: scale(1.02); }
         h2 {
             text-align: center;
             color: #ffd700;
             margin-bottom: 20px;
-            font-size: 1.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
         .form-group { margin-bottom: 20px; }
         label {
             display: block;
             color: #fff;
             margin-bottom: 8px;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 1rem;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         input, select {
             width: 100%;
             padding: 12px;
-            border: 2px solid #ffd700;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #ffd700;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
             color: #fff;
             outline: none;
             font-size: 1rem;
-            transition: border-color 0.3s ease, transform 0.3s ease;
+            transition: all 0.3s ease;
         }
         input:focus, select:focus {
             border-color: #00c4ff;
-            transform: scale(1.02);
+            box-shadow: 0 0 8px rgba(0, 196, 255, 0.3);
+            transform: scale(1.01);
         }
         button {
             width: 100%;
             padding: 12px;
             background: linear-gradient(135deg, #00c4ff, #007bff);
-            border: 2px solid #ffd700;
-            border-radius: 8px;
+            border: none;
+            border-radius: 10px;
             color: #fff;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             font-size: 1rem;
             transition: all 0.3s ease;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
         button:hover {
             background: linear-gradient(135deg, #007bff, #00c4ff);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
         }
         .menu {
             display: flex;
@@ -161,12 +167,12 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             padding: 10px;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
             z-index: 100;
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
         .menu button {
             flex: 1;
@@ -175,10 +181,15 @@
             flex-direction: column;
             align-items: center;
             font-size: 0.9rem;
-            padding: 5px;
-            background: linear-gradient(135deg, #00c4ff, #007bff);
+            padding: 8px;
+            background: transparent;
             border: none;
             color: #fff;
+            transition: all 0.3s ease;
+        }
+        .menu button.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
         }
         .menu img {
             width: 24px;
@@ -187,18 +198,19 @@
             filter: drop-shadow(0 0 5px #ffd700);
         }
         .history-item {
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 5px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             position: relative;
+            transition: transform 0.3s ease;
         }
+        .history-item:hover { transform: scale(1.02); }
         .history-item.out {
-            color: #ff4d4d;
-            border: 1px solid #ff4d4d;
+            color: #ff6f61;
+            border: 1px solid #ff6f61;
         }
         .history-item.in {
             color: #4caf50;
@@ -206,15 +218,15 @@
         }
         .history-item .logo {
             position: absolute;
-            top: 5px;
-            left: 5px;
+            top: 10px;
+            left: 10px;
             width: 20px;
             height: 20px;
         }
         .history-item .print-btn {
             position: absolute;
-            bottom: 5px;
-            right: 5px;
+            bottom: 10px;
+            right: 10px;
             width: 30px;
             height: 30px;
             background: url('https://cdn-icons-png.flaticon.com/512/32/32178.png') no-repeat center;
@@ -224,174 +236,67 @@
         }
         .history-header {
             background: linear-gradient(135deg, #00c4ff, #007bff);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 2px solid #ffd700;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ffd700;
             font-size: 0.9rem;
             color: #fff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         .status {
             padding: 5px 10px;
-            border-radius: 5px;
+            border-radius: 20px;
             display: inline-block;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 0.9rem;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         .status.pending { background: #ffeb3b; color: #333; }
         .status.approved { background: #4caf50; color: #fff; }
         .status.rejected { background: #f44336; color: #fff; }
-        .transfer-animation {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .balance-display {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            padding: 15px;
+            border-radius: 10px;
+            color: #1e3c72;
             font-size: 1.5rem;
-            color: #fff;
-            background: linear-gradient(135deg, #ff4d4d, #d32f2f);
-            padding: 20px;
-            border-radius: 10px;
+            font-weight: 700;
             text-align: center;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            animation: transferPulse 1.5s ease-out;
-            z-index: 200;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        @keyframes transferPulse {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
-        }
-        .receiver-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #4caf50, #2e7d32);
-            color: #fff;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            animation: fadeInOut 5s ease-out;
-            z-index: 200;
-            text-align: center;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
         }
         .error-message {
-            color: #ff4d4d;
+            color: #ff6f61;
             text-align: center;
             margin-top: 10px;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 0.9rem;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         .hidden { display: none; }
-        .passport-submitted {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            border: 2px solid #4caf50;
-            color: #fff;
-        }
-        .warning {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #f44336;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            animation: slideDown 2s ease-out;
-            z-index: 200;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        @keyframes slideDown {
-            0% { opacity: 0; transform: translate(-50%, -100%); }
-            20% { opacity: 1; transform: translate(-50%, 0); }
-            80% { opacity: 1; transform: translate(-50%, 0); }
-            100% { opacity: 0; transform: translate(-50%, 0); }
-        }
-        .account-status {
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        .account-status.not-found { color: #ff4d4d; }
-        .account-status.found { color: #4caf50; }
-        .balance-display {
-            background: linear-gradient(135deg, #00c4ff, #007bff);
-            padding: 10px;
-            border-radius: 8px;
-            border: 2px solid #ffd700;
-            color: #fff;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        @media print {
-            body { background: #fff; }
-            video#bg-video, .stars, .moon, .menu { display: none; }
-            .container { background: #fff; border: none; box-shadow: none; }
-            .history-item {
-                border: 2px solid #ffd700;
-                padding: 20px;
-                margin: 10px 0;
-                background: #fff;
-                font-family: 'Times New Roman', serif;
-                color: #333;
-                position: relative;
-            }
-            .history-item .logo {
-                position: absolute;
-                top: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 80px;
-                height: 80px;
-            }
-            .history-item .print-btn { display: none; }
-            .history-item::before {
-                content: "OPPER Payment Transaction Receipt";
-                display: block;
-                text-align: center;
-                font-size: 1.5rem;
-                font-weight: bold;
-                color: #ffd700;
-                margin-bottom: 20px;
-                text-shadow: none;
-            }
-            .history-item p {
-                font-size: 1rem;
-                margin: 5px 0;
-                color: #333;
-                text-shadow: none;
-            }
+        @media (max-width: 480px) {
+            body { padding: 10px; font-size: 14px; }
+            .container { padding: 15px; margin-top: 100px; }
+            h2 { font-size: 1.5rem; }
+            .menu button { font-size: 0.8rem; }
+            .download-bar p { font-size: 0.9rem; }
+            .download-bar button { padding: 6px 12px; font-size: 0.9rem; }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <video id="bg-video" autoplay muted loop>
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-space-background-with-planets-and-stars-1515-large.mp4" type="video/mp4">
-    </video>
-    <div class="stars" id="stars"></div>
-    <div class="moon"></div>
-    <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+    <!-- Download APK Bar -->
+    <div class="download-bar" id="download-bar">
+        <p>Download the OPPER Payment App for a better experience!</p>
+        <div>
+            <button onclick="downloadApk()">Download</button>
+            <button class="close-btn" onclick="hideDownloadBar()">✖</button>
+        </div>
+    </div>
 
+    <!-- Background Particles -->
+    <div class="background-particles" id="particles"></div>
+
+    <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
     <div class="id-badge" id="id-badge">ID: </div>
 
     <!-- Wallet Section -->
@@ -468,9 +373,9 @@
 
     <!-- Menu Bar -->
     <div class="menu">
-        <button onclick="showSection('wallet')"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
-        <button onclick="showSection('host')"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
-        <button onclick="showSection('mi')"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
+        <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
+        <button onclick="showSection('host')" id="host-btn"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
+        <button onclick="showSection('mi')" id="mi-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -483,25 +388,52 @@
 
         let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
 
-        // Add Stars and Meteors
-        const starsContainer = document.getElementById('stars');
-        for (let i = 0; i < 100; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.width = `${Math.random() * 3}px`;
-            star.style.height = star.style.width;
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 100}%`;
-            star.style.animationDelay = `${Math.random() * 5}s`;
-            starsContainer.appendChild(star);
+        // Add Particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.width = `${Math.random() * 5}px`;
+            particle.style.height = particle.style.width;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            particle.style.animationDelay = `${Math.random() * 10}s`;
+            particlesContainer.appendChild(particle);
         }
-        for (let i = 0; i < 10; i++) {
-            const meteor = document.createElement('div');
-            meteor.className = 'meteor';
-            meteor.style.left = `${Math.random() * 100}%`;
-            meteor.style.top = `${Math.random() * 100}%`;
-            meteor.style.animationDelay = `${Math.random() * 3}s`;
-            starsContainer.appendChild(meteor);
+
+        // Download Bar Logic
+        const downloadBar = document.getElementById('download-bar');
+        const isHidden = localStorage.getItem('downloadBarHidden');
+        const hiddenTime = localStorage.getItem('downloadBarHiddenTime');
+        const oneHour = 60 * 60 * 1000;
+
+        if (isHidden && hiddenTime && (Date.now() - hiddenTime < oneHour)) {
+            downloadBar.style.display = 'none';
+        } else {
+            localStorage.removeItem('downloadBarHidden');
+            localStorage.removeItem('downloadBarHiddenTime');
+            downloadBar.style.display = 'flex';
+        }
+
+        function hideDownloadBar() {
+            downloadBar.style.display = 'none';
+            localStorage.setItem('downloadBarHidden', 'true');
+            localStorage.setItem('downloadBarHiddenTime', Date.now());
+            setTimeout(() => {
+                localStorage.removeItem('downloadBarHidden');
+                localStorage.removeItem('downloadBarHiddenTime');
+                downloadBar.style.display = 'flex';
+            }, oneHour);
+        }
+
+        function downloadApk() {
+            const apkUrl = 'https://drive.google.com/uc?export=download&id=1a2b3c4d5e6f7g8h9i0j'; // APK Download Link
+            const a = document.createElement('a');
+            a.href = apkUrl;
+            a.download = 'opper-payment.apk';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         async function retryOperation(operation, maxRetries = 3, delay = 1000) {
@@ -599,6 +531,7 @@
         function showSection(sectionId) {
             ['wallet', 'host', 'mi'].forEach(id => {
                 document.getElementById(id).classList.toggle('active', id === sectionId);
+                document.getElementById(`${id}-btn`).classList.toggle('active', id === sectionId);
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -690,7 +623,7 @@
                 <head>
                     <title>Transaction Receipt</title>
                     <style>
-                        body { font-family: 'Times New Roman', serif; margin: 20px; background: #fff; }
+                        body { font-family: 'Inter', sans-serif; margin: 20px; background: #fff; }
                         .receipt { border: 5px solid #ffd700; padding: 20px; max-width: 600px; margin: 0 auto; background: #fff; }
                         .logo { display: block; margin: 0 auto; width: 80px; height: 80px; }
                         h1 { text-align: center; color: #ffd700; font-size: 1.5rem; margin-bottom: 20px; }
@@ -797,11 +730,7 @@
                 const selfieImage = document.getElementById('selfie-image').files[0];
 
                 if (!passportNumber || !address || !phone.match(/^09\d{9}$/) || paymentPin.length !== 6 || !passportImage || !selfieImage) {
-                    const warning = document.createElement('div');
-                    warning.className = 'warning';
-                    warning.textContent = 'Please fill all fields correctly. PIN must be 6 digits.';
-                    document.body.appendChild(warning);
-                    setTimeout(() => warning.remove(), 2000);
+                    alert('Please fill all fields correctly. PIN must be 6 digits.');
                     return;
                 }
 
@@ -872,7 +801,6 @@
 
                 const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
 
-                // Update Sender Balance
                 await retryOperation(async () => {
                     const { error: updateSenderError } = await supabase
                         .from('users')
@@ -881,7 +809,6 @@
                     if (updateSenderError) throw new Error(`Update Sender Error: ${updateSenderError.message}`);
                 });
 
-                // Update Receiver Balance
                 await retryOperation(async () => {
                     const { error: updateReceiverError } = await supabase
                         .from('users')
@@ -890,7 +817,6 @@
                     if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`);
                 });
 
-                // Insert Transaction into Supabase
                 await retryOperation(async () => {
                     const { error: insertError } = await supabase
                         .from('transactions')
