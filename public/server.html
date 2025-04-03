@@ -5,32 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPPER Server Dashboard</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background: #f5f5f5; min-height: 100vh; padding: 20px; font-size: 16px; }
-        h1 { text-align: center; color: #2e7d32; margin-bottom: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 16px;
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
         .section { margin-bottom: 30px; }
-        h2 { color: #444; margin-bottom: 15px; }
-        .user-list, .history-list { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
-        .user-item, .history-item { padding: 10px; border-bottom: 1px solid #eee; }
-        .user-item img { width: 50px; height: 50px; border-radius: 5px; margin-right: 10px; vertical-align: middle; }
-        button { padding: 8px 15px; background: #80deea; border: 2px solid #5d4037; border-radius: 5px; color: #333; font-weight: bold; cursor: pointer; margin: 5px; }
-        button:hover { background: #4fc3f7; }
-        .approve-btn { background: #4caf50; color: #fff; }
-        .reject-btn { background: #f44336; color: #fff; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #444; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border: 2px solid #5d4037; border-radius: 5px; background: #e0f7fa; color: #333; }
+        h2 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .user-list, .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .user-item, .history-item {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .user-item:hover, .history-item:hover { transform: scale(1.02); }
+        .user-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00c4ff, #007bff);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #007bff, #00c4ff);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .approve-btn { background: linear-gradient(135deg, #4caf50, #2e7d32); }
+        .reject-btn { background: linear-gradient(135deg, #f44336, #d32f2f); }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ffd700;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            border-color: #00c4ff;
+            box-shadow: 0 0 8px rgba(0, 196, 255, 0.3);
+        }
+        .error-message {
+            color: #ff6f61;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+        }
         @media (max-width: 480px) {
             body { padding: 10px; font-size: 14px; }
             .container { padding: 15px; }
             h1 { font-size: 1.5rem; }
             h2 { font-size: 1.2rem; }
-            button { padding: 6px 10px; font-size: 0.9rem; }
-            input, select { padding: 8px; font-size: 0.9rem; }
-            .user-item img { width: 40px; height: 40px; }
+            button { padding: 8px 15px; font-size: 0.9rem; }
+            input, select { padding: 10px; font-size: 0.9rem; }
+            .user-item img { width: 50px; height: 50px; }
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -60,7 +145,12 @@
                     <option value="withdraw">Withdraw</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label>Server PIN (6 digits)</label>
+                <input type="password" id="dw-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
+            </div>
             <button onclick="processDepositWithdraw()">Confirm</button>
+            <p id="dw-error" class="error-message hidden"></p>
         </div>
 
         <!-- Transaction History -->
@@ -75,6 +165,7 @@
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseServiceKey);
+        const SERVER_PIN = '155872';
 
         async function loadUsers() {
             try {
@@ -137,9 +228,18 @@
                 const phone = document.getElementById('dw-phone').value;
                 const amount = parseInt(document.getElementById('dw-amount').value);
                 const type = document.getElementById('dw-type').value;
+                const pin = document.getElementById('dw-pin').value;
+                const errorMessage = document.getElementById('dw-error');
+
+                if (pin !== SERVER_PIN) {
+                    errorMessage.textContent = 'Incorrect PIN.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
 
                 if (!phone.match(/^09\d{9}$/) || amount <= 0) {
-                    alert('Invalid phone number or amount.');
+                    errorMessage.textContent = 'Invalid phone number or amount.';
+                    errorMessage.classList.remove('hidden');
                     return;
                 }
 
@@ -150,13 +250,15 @@
                     .single();
                 if (userError) throw userError;
                 if (!user || user.passport_status !== 'approved') {
-                    alert('Account not found or passport not approved.');
+                    errorMessage.textContent = 'Account not found or passport not approved.';
+                    errorMessage.classList.remove('hidden');
                     return;
                 }
 
                 const newBalance = type === 'deposit' ? user.balance + amount : user.balance - amount;
                 if (newBalance < 0) {
-                    alert('Insufficient balance.');
+                    errorMessage.textContent = 'Insufficient balance.';
+                    errorMessage.classList.remove('hidden');
                     return;
                 }
 
@@ -184,11 +286,13 @@
                 });
 
                 alert(`${type === 'deposit' ? 'Deposit' : 'Withdraw'} successful. New balance: ${newBalance} Ks`);
+                errorMessage.classList.add('hidden');
                 loadUsers();
                 loadHistory();
             } catch (error) {
                 console.error('Deposit/Withdraw Error:', error.message);
-                alert('An error occurred during deposit/withdraw.');
+                document.getElementById('dw-error').textContent = 'An error occurred during deposit/withdraw.';
+                document.getElementById('dw-error').classList.remove('hidden');
             }
         }
 
