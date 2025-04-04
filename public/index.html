@@ -272,6 +272,29 @@
             font-size: 0.9rem;
         }
         .hidden { display: none; }
+        .game-container {
+            width: 100%;
+            height: 80vh;
+            margin: 20px auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        .game-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .back-btn {
+            width: auto;
+            padding: 10px 20px;
+            margin: 10px auto;
+            display: block;
+            background: linear-gradient(135deg, #ff6f61, #ff9f43);
+        }
+        .back-btn:hover {
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+        }
         @media (max-width: 480px) {
             body { padding: 10px; font-size: 14px; }
             .container { padding: 15px; margin-top: 100px; }
@@ -279,6 +302,7 @@
             .menu button { font-size: 0.8rem; }
             .download-bar p { font-size: 0.9rem; }
             .download-bar button { padding: 6px 12px; font-size: 0.9rem; }
+            .game-container { height: 70vh; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -371,10 +395,21 @@
         </div>
     </div>
 
+    <!-- Game Section -->
+    <div id="game" class="container">
+        <h2>Play Game</h2>
+        <div class="game-container">
+            <iframe id="game-iframe" src="https://thai-fish-prawn-crab.netlify.app/" title="Thai Fish Prawn Crab"></iframe>
+        </div>
+        <button class="back-btn" onclick="showSection('wallet')">Back to Payment</button>
+    </div>
+
     <!-- Menu Bar -->
     <div class="menu">
         <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
         <button onclick="showSection('host')" id="host-btn"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
+        <button onclick="showSection('game')" id="game-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/game-icon.png" alt="Game">Game</button>
+        <button onclick="openTelegram()" id="telegram-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/telegram-icon.png" alt="Telegram">Telegram</button>
         <button onclick="showSection('mi')" id="mi-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
@@ -427,13 +462,25 @@
         }
 
         function downloadApk() {
-            const apkUrl = 'https://drive.google.com/uc?export=download&id=1a2b3c4d5e6f7g8h9i0j'; // APK Download Link
+            const apkUrl = 'https://drive.google.com/uc?export=download&id=1a2b3c4d5e6f7g8h9i0j';
             const a = document.createElement('a');
             a.href = apkUrl;
             a.download = 'opper-payment.apk';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+        }
+
+        function showSection(sectionId) {
+            ['wallet', 'host', 'mi', 'game'].forEach(id => {
+                document.getElementById(id).classList.toggle('active', id === sectionId);
+                document.getElementById(`${id}-btn`).classList.toggle('active', id === sectionId);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openTelegram() {
+            window.open('https://t.me/OPPERN', '_blank');
         }
 
         async function retryOperation(operation, maxRetries = 3, delay = 1000) {
@@ -526,14 +573,6 @@
                 console.error('Initialization Error:', error.message);
                 alert(`An error occurred: ${error.message}. Please try again.`);
             }
-        }
-
-        function showSection(sectionId) {
-            ['wallet', 'host', 'mi'].forEach(id => {
-                document.getElementById(id).classList.toggle('active', id === sectionId);
-                document.getElementById(`${id}-btn`).classList.toggle('active', id === sectionId);
-            });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function toggleTransfer() {
