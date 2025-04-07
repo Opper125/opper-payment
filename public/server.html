@@ -91,6 +91,7 @@
             margin-top: 10px;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .action-buttons button {
             padding: 8px 15px;
@@ -108,15 +109,39 @@
             background: #f44336;
             color: #fff;
         }
+        .action-buttons .deposit-btn {
+            background: #00c4ff;
+            color: #fff;
+        }
+        .action-buttons .withdraw-btn {
+            background: #ffaa00;
+            color: #fff;
+        }
         .action-buttons button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        .action-buttons input {
+            padding: 8px;
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            outline: none;
+            font-size: 0.9rem;
+            width: 120px;
+        }
+        .error-message {
+            color: #ff6f61;
+            font-size: 0.9rem;
+            margin-top: 5px;
         }
         @media (max-width: 480px) {
             body { padding: 10px; font-size: 14px; }
             h1 { font-size: 1.5rem; }
             .user-item img { width: 80px; height: 80px; }
             .user-item img.enlarged { max-width: 100%; max-height: 300px; }
+            .action-buttons input { width: 100px; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -145,11 +170,10 @@
                 const { data: settings, error: fetchError } = await supabase
                     .from('settings')
                     .select('*')
-                    .maybeSingle(); // Use maybeSingle to avoid errors if no row exists
+                    .maybeSingle();
                 if (fetchError) throw new Error(`Fetch Settings Error: ${fetchError.message}`);
 
                 if (!settings) {
-                    // If no settings row exists, insert a default one
                     const { error: insertError } = await supabase
                         .from('settings')
                         .insert({ allow_transfers: true, updated_at: new Date().toISOString() });
@@ -188,12 +212,22 @@
                         <p>Phone Number: ${user.phone || 'N/A'}</p>
                         <p>Passport Number: ${user.passport_number || 'N/A'}</p>
                         <p>Address: ${user.address || 'N/A'}</p>
+                        <p>Balance: ${user.balance || 0} Ks</p>
                         <p>Submitted At: ${user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A'}</p>
-                        <img src="${user.passport_image}" alt="Passport Image" onclick="toggleImageSize(this)">
-                        <img src="${user.selfie_image}" alt="Selfie Image" onclick="toggleImageSize(this)">
+                        <div>
+                            <p>Passport Image:</p>
+                            ${user.passport_image ? `<img src="${user.passport_image}" alt="Passport Image" onclick="toggleImageSize(this)">` : '<p class="error-message">Passport Image not available.</p>'}
+                        </div>
+                        <div>
+                            <p>Selfie Image:</p>
+                            ${user.selfie_image ? `<img src="${user.selfie_image}" alt="Selfie Image" onclick="toggleImageSize(this)">` : '<p class="error-message">Selfie Image not available.</p>'}
+                        </div>
                         <div class="action-buttons">
                             <button class="approve-btn" onclick="approveUser('${user.user_id}')">Approve</button>
                             <button class="reject-btn" onclick="rejectUser('${user.user_id}')">Reject</button>
+                            <input type="number" id="amount-${user.user_id}" placeholder="Amount (Ks)" min="0">
+                            <button class="deposit-btn" onclick="deposit('${user.user_id}')">Deposit</button>
+                            <button class="withdraw-btn" onclick="withdraw('${user.user_id}')">Withdraw</button>
                         </div>
                     `;
                     userList.appendChild(userItem);
@@ -238,9 +272,80 @@
             }
         }
 
+        async function deposit(userId) {
+            try {
+                const amountInput = document.getElementById(`amount-${userId}`);
+                const amount = parseInt(amountInput.value);
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid amount to deposit.');
+                    return;
+                }
+
+                const { data: user, error: fetchError } = await supabase
+                    .from('users')
+                    .select('balance')
+                    .eq('user_id', userId)
+                    .single();
+                if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
+
+                const newBalance = (user.balance || 0) + amount;
+
+                const { error: updateError } = await supabase
+                    .from('users')
+                    .update({ balance: newBalance })
+                    .eq('user_id', userId);
+                if (updateError) throw new Error(`Deposit Error: ${updateError.message}`);
+
+                alert(`Successfully deposited ${amount} Ks to User ID: ${userId}. New balance: ${newBalance} Ks`);
+                amountInput.value = ''; // Clear the input field
+                loadUsers();
+            } catch (error) {
+                console.error('Deposit Error:', error.message);
+                alert(`An error occurred while depositing: ${error.message}`);
+            }
+        }
+
+        async function withdraw(userId) {
+            try {
+                const amountInput = document.getElementById(`amount-${userId}`);
+                const amount = parseInt(amountInput.value);
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid amount to withdraw.');
+                    return;
+                }
+
+                const { data: user, error: fetchError } = await supabase
+                    .from('users')
+                    .select('balance')
+                    .eq('user_id', userId)
+                    .single();
+                if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
+
+                const currentBalance = user.balance || 0;
+                if (currentBalance < amount) {
+                    alert('Insufficient balance for withdrawal.');
+                    return;
+                }
+
+                const newBalance = currentBalance - amount;
+
+                const { error: updateError } = await supabase
+                    .from('users')
+                    .update({ balance: newBalance })
+                    .eq('user_id', userId);
+                if (updateError) throw new Error(`Withdraw Error: ${updateError.message}`);
+
+                alert(`Successfully withdrew ${amount} Ks from User ID: ${userId}. New balance: ${newBalance} Ks`);
+                amountInput.value = ''; // Clear the input field
+                loadUsers();
+            } catch (error) {
+                console.error('Withdraw Error:', error.message);
+                alert(`An error occurred while withdrawing: ${error.message}`);
+            }
+        }
+
         async function enableTransfers() {
             try {
-                // Ensure settings table has a row
                 const settings = await ensureSettings();
 
                 const { error } = await supabase
@@ -257,7 +362,6 @@
 
         async function disableTransfers() {
             try {
-                // Ensure settings table has a row
                 const settings = await ensureSettings();
 
                 const { error } = await supabase
@@ -274,7 +378,6 @@
 
         window.onload = async () => {
             try {
-                // Ensure settings table is initialized before loading users
                 await ensureSettings();
                 loadUsers();
             } catch (error) {
