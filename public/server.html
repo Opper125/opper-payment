@@ -136,8 +136,33 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ.1Xq2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2';
+        const supabaseServiceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
+
+        // Function to ensure settings table has at least one row
+        async function ensureSettings() {
+            try {
+                const { data: settings, error: fetchError } = await supabase
+                    .from('settings')
+                    .select('*')
+                    .maybeSingle(); // Use maybeSingle to avoid errors if no row exists
+                if (fetchError) throw new Error(`Fetch Settings Error: ${fetchError.message}`);
+
+                if (!settings) {
+                    // If no settings row exists, insert a default one
+                    const { error: insertError } = await supabase
+                        .from('settings')
+                        .insert({ allow_transfers: true, updated_at: new Date().toISOString() });
+                    if (insertError) throw new Error(`Insert Default Settings Error: ${insertError.message}`);
+                    console.log('Default settings inserted.');
+                    return (await supabase.from('settings').select('*').single()).data;
+                }
+                return settings;
+            } catch (error) {
+                console.error('Ensure Settings Error:', error.message);
+                throw error;
+            }
+        }
 
         async function loadUsers() {
             try {
@@ -210,33 +235,48 @@
 
         async function enableTransfers() {
             try {
+                // Ensure settings table has a row
+                const settings = await ensureSettings();
+
                 const { error } = await supabase
                     .from('settings')
                     .update({ allow_transfers: true, updated_at: new Date().toISOString() })
-                    .eq('id', (await supabase.from('settings').select('id').single()).data.id);
+                    .eq('id', settings.id);
                 if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
                 alert('Transfers enabled successfully.');
             } catch (error) {
                 console.error('Enable Transfers Error:', error.message);
-                alert(`An error occurred while enabling transfers: ${error.message}`);
+                alert(`An error occurred while enabling transfers: ${error.message}. Please ensure the settings table exists and is accessible.`);
             }
         }
 
         async function disableTransfers() {
             try {
+                // Ensure settings table has a row
+                const settings = await ensureSettings();
+
                 const { error } = await supabase
                     .from('settings')
                     .update({ allow_transfers: false, updated_at: new Date().toISOString() })
-                    .eq('id', (await supabase.from('settings').select('id').single()).data.id);
+                    .eq('id', settings.id);
                 if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
                 alert('Transfers disabled successfully.');
             } catch (error) {
                 console.error('Disable Transfers Error:', error.message);
-                alert(`An error occurred while disabling transfers: ${error.message}`);
+                alert(`An error occurred while disabling transfers: ${error.message}. Please ensure the settings table exists and is accessible.`);
             }
         }
 
-        window.onload = loadUsers;
+        window.onload = async () => {
+            try {
+                // Ensure settings table is initialized before loading users
+                await ensureSettings();
+                loadUsers();
+            } catch (error) {
+                console.error('Initialization Error:', error.message);
+                alert(`An error occurred during initialization: ${error.message}. Please ensure the settings table exists.`);
+            }
+        };
     </script>
 </body>
 </html>
