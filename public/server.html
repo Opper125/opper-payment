@@ -3,332 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPPER Server Dashboard</title>
+    <title>OPPER Payment Server</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body {
-            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             min-height: 100vh;
             padding: 20px;
-            font-size: 16px;
             color: #fff;
+            font-size: 16px;
         }
         h1 {
             text-align: center;
             color: #ffd700;
             margin-bottom: 20px;
             font-size: 2rem;
-            font-weight: 700;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .section { margin-bottom: 30px; }
-        h2 {
-            color: #ffd700;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        .user-list, .history-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .control-panel {
+            background: rgba(255, 255, 255, 0.1);
             padding: 15px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
         }
-        .user-item, .history-item {
-            padding: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .user-item:hover, .history-item:hover { transform: scale(1.02); }
-        .user-item img {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
-            margin-right: 15px;
-            vertical-align: middle;
-        }
-        button {
+        .control-panel button {
             padding: 10px 20px;
-            background: linear-gradient(135deg, #00c4ff, #007bff);
             border: none;
-            border-radius: 10px;
-            color: #fff;
+            border-radius: 5px;
             font-weight: 600;
             cursor: pointer;
-            margin: 5px;
             transition: all 0.3s ease;
         }
-        button:hover {
-            background: linear-gradient(135deg, #007bff, #00c4ff);
+        .control-panel .enable-btn {
+            background: #4caf50;
+            color: #fff;
+        }
+        .control-panel .disable-btn {
+            background: #f44336;
+            color: #fff;
+        }
+        .control-panel button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
         }
-        .approve-btn { background: linear-gradient(135deg, #4caf50, #2e7d32); }
-        .reject-btn { background: linear-gradient(135deg, #f44336, #d32f2f); }
-        .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #fff;
-            font-weight: 600;
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ffd700;
+        .user-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            outline: none;
-            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        .user-item h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        .user-item p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        .user-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
-        input:focus, select:focus {
-            border-color: #00c4ff;
-            box-shadow: 0 0 8px rgba(0, 196, 255, 0.3);
+        .user-item img.enlarged {
+            width: 100%;
+            height: auto;
+            max-width: 500px;
+            max-height: 500px;
         }
-        .error-message {
-            color: #ff6f61;
-            text-align: center;
+        .action-buttons {
             margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .action-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .action-buttons .approve-btn {
+            background: #4caf50;
+            color: #fff;
+        }
+        .action-buttons .reject-btn {
+            background: #f44336;
+            color: #fff;
+        }
+        .action-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
         }
         @media (max-width: 480px) {
             body { padding: 10px; font-size: 14px; }
-            .container { padding: 15px; }
             h1 { font-size: 1.5rem; }
-            h2 { font-size: 1.2rem; }
-            button { padding: 8px 15px; font-size: 0.9rem; }
-            input, select { padding: 10px; font-size: 0.9rem; }
-            .user-item img { width: 50px; height: 50px; }
+            .user-item img { width: 80px; height: 80px; }
+            .user-item img.enlarged { max-width: 100%; max-height: 300px; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>OPPER Server Dashboard</h1>
+    <h1>OPPER Payment Server</h1>
 
-        <!-- Passport Approval Section -->
-        <div class="section">
-            <h2>Passport Verification</h2>
-            <div class="user-list" id="user-list"></div>
-        </div>
-
-        <!-- Deposit/Withdraw Section -->
-        <div class="section">
-            <h2>Deposit/Withdraw</h2>
-            <div class="form-group">
-                <label>Phone Number (09xxxxxxxxx)</label>
-                <input type="tel" id="dw-phone" placeholder="09xxxxxxxxx" required>
-            </div>
-            <div class="form-group">
-                <label>Amount (Ks)</label>
-                <input type="number" id="dw-amount" placeholder="Enter Amount" required>
-            </div>
-            <div class="form-group">
-                <label>Type</label>
-                <select id="dw-type" required>
-                    <option value="deposit">Deposit</option>
-                    <option value="withdraw">Withdraw</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Server PIN (6 digits)</label>
-                <input type="password" id="dw-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
-            </div>
-            <button onclick="processDepositWithdraw()">Confirm</button>
-            <p id="dw-error" class="error-message hidden"></p>
-        </div>
-
-        <!-- Transaction History -->
-        <div class="section">
-            <h2>Transaction History</h2>
-            <div class="history-list" id="history-list"></div>
-        </div>
+    <!-- Control Panel for Transfer Settings -->
+    <div class="control-panel">
+        <button class="enable-btn" onclick="enableTransfers()">Enable Transfers</button>
+        <button class="disable-btn" onclick="disableTransfers()">Disable Transfers</button>
     </div>
+
+    <!-- User List -->
+    <div class="user-list" id="user-list"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseServiceKey);
-        const SERVER_PIN = '155872';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ.1Xq2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2X2';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
 
         async function loadUsers() {
             try {
                 const { data: users, error } = await supabase
                     .from('users')
                     .select('*')
-                    .order('created_at', { ascending: true });
-                if (error) throw error;
+                    .eq('passport_status', 'pending');
+                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
+
                 const userList = document.getElementById('user-list');
                 userList.innerHTML = '';
 
-                (users || []).forEach(user => {
-                    const item = document.createElement('div');
-                    item.className = 'user-item';
-                    item.innerHTML = `
-                        ID: ${user.user_id} | Phone: ${user.phone || 'N/A'}<br>
-                        Passport: ${user.passport_number || 'N/A'}<br>
-                        Address: ${user.address || 'N/A'}<br>
-                        Balance: ${user.balance} Ks<br>
-                        Status: ${user.passport_status}<br>
-                        ${user.passport_image ? `<img src="${user.passport_image}" alt="Passport">` : ''}
-                        ${user.selfie_image ? `<img src="${user.selfie_image}" alt="Selfie">` : ''}<br>
-                        Submitted At: ${user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A'}<br>
-                        ${user.passport_status === 'pending' && user.submitted_at ? `
-                            <button class="approve-btn" onclick="updatePassportStatus('${user.user_id}', 'approved')">Approve</button>
-                            <button class="reject-btn" onclick="updatePassportStatus('${user.user_id}', 'rejected')">Reject</button>
-                        ` : ''}
+                users.forEach(user => {
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.innerHTML = `
+                        <h3>User ID: ${user.user_id}</h3>
+                        <p>Phone Number: ${user.phone || 'N/A'}</p>
+                        <p>Passport Number: ${user.passport_number || 'N/A'}</p>
+                        <p>Address: ${user.address || 'N/A'}</p>
+                        <p>Submitted At: ${user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A'}</p>
+                        <img src="${user.passport_image}" alt="Passport Image" onclick="toggleImageSize(this)">
+                        <img src="${user.selfie_image}" alt="Selfie Image" onclick="toggleImageSize(this)">
+                        <div class="action-buttons">
+                            <button class="approve-btn" onclick="approveUser('${user.user_id}')">Approve</button>
+                            <button class="reject-btn" onclick="rejectUser('${user.user_id}')">Reject</button>
+                        </div>
                     `;
-                    userList.appendChild(item);
+                    userList.appendChild(userItem);
                 });
             } catch (error) {
                 console.error('Load Users Error:', error.message);
+                alert(`An error occurred while loading users: ${error.message}`);
             }
         }
 
-        async function updatePassportStatus(userId, status) {
+        function toggleImageSize(img) {
+            img.classList.toggle('enlarged');
+        }
+
+        async function approveUser(userId) {
             try {
                 const { error } = await supabase
                     .from('users')
-                    .update({ passport_status: status })
+                    .update({ passport_status: 'approved' })
                     .eq('user_id', userId);
-                if (error) throw error;
-
-                await fetch('/.netlify/functions/data', {
-                    method: 'POST',
-                    body: JSON.stringify({ user_id: userId, passport_status: status }),
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                alert(`ID ${userId} has been ${status === 'approved' ? 'approved' : 'rejected'}.`);
+                if (error) throw new Error(`Approve User Error: ${error.message}`);
+                alert('User approved successfully.');
                 loadUsers();
             } catch (error) {
-                console.error('Update Passport Status Error:', error.message);
-                alert('An error occurred during passport verification.');
+                console.error('Approve User Error:', error.message);
+                alert(`An error occurred while approving user: ${error.message}`);
             }
         }
 
-        async function processDepositWithdraw() {
+        async function rejectUser(userId) {
             try {
-                const phone = document.getElementById('dw-phone').value;
-                const amount = parseInt(document.getElementById('dw-amount').value);
-                const type = document.getElementById('dw-type').value;
-                const pin = document.getElementById('dw-pin').value;
-                const errorMessage = document.getElementById('dw-error');
-
-                if (pin !== SERVER_PIN) {
-                    errorMessage.textContent = 'Incorrect PIN.';
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
-
-                if (!phone.match(/^09\d{9}$/) || amount <= 0) {
-                    errorMessage.textContent = 'Invalid phone number or amount.';
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
-
-                const { data: user, error: userError } = await supabase
+                const { error } = await supabase
                     .from('users')
-                    .select('*')
-                    .eq('phone', phone)
-                    .single();
-                if (userError) throw userError;
-                if (!user || user.passport_status !== 'approved') {
-                    errorMessage.textContent = 'Account not found or passport not approved.';
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
-
-                const newBalance = type === 'deposit' ? user.balance + amount : user.balance - amount;
-                if (newBalance < 0) {
-                    errorMessage.textContent = 'Insufficient balance.';
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
-
-                const { error: updateError } = await supabase
-                    .from('users')
-                    .update({ balance: newBalance })
-                    .eq('user_id', user.user_id);
-                if (updateError) throw updateError;
-
-                const { error: insertError } = await supabase
-                    .from('transactions')
-                    .insert({
-                        from_phone: type === 'withdraw' ? user.phone : 'server',
-                        to_phone: type === 'deposit' ? user.phone : 'server',
-                        amount: amount,
-                        note: `${type === 'deposit' ? 'Deposit' : 'Withdraw'} by Server`,
-                        timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' })
-                    });
-                if (insertError) throw insertError;
-
-                await fetch('/.netlify/functions/data', {
-                    method: 'POST',
-                    body: JSON.stringify({ user_id: user.user_id, balance: newBalance }),
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                alert(`${type === 'deposit' ? 'Deposit' : 'Withdraw'} successful. New balance: ${newBalance} Ks`);
-                errorMessage.classList.add('hidden');
+                    .update({ passport_status: 'rejected', submitted_at: null, passport_image: null, selfie_image: null })
+                    .eq('user_id', userId);
+                if (error) throw new Error(`Reject User Error: ${error.message}`);
+                alert('User rejected. They will need to resubmit their passport details.');
                 loadUsers();
-                loadHistory();
             } catch (error) {
-                console.error('Deposit/Withdraw Error:', error.message);
-                document.getElementById('dw-error').textContent = 'An error occurred during deposit/withdraw.';
-                document.getElementById('dw-error').classList.remove('hidden');
+                console.error('Reject User Error:', error.message);
+                alert(`An error occurred while rejecting user: ${error.message}`);
             }
         }
 
-        async function loadHistory() {
+        async function enableTransfers() {
             try {
-                const { data: transactions, error } = await supabase
-                    .from('transactions')
-                    .select('*')
-                    .order('timestamp', { ascending: false });
-                if (error) throw error;
-                const historyList = document.getElementById('history-list');
-                historyList.innerHTML = '';
-
-                (transactions || []).forEach(t => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    item.innerHTML = `${t.from_phone === 'server' ? 'Deposit' : t.to_phone === 'server' ? 'Withdraw' : 'Transfer'}: ${t.amount} Ks<br>From: ${t.from_phone} To: ${t.to_phone}<br>Note: ${t.note || 'None'}<br>Time: ${t.timestamp}`;
-                    historyList.appendChild(item);
-                });
+                const { error } = await supabase
+                    .from('settings')
+                    .update({ allow_transfers: true, updated_at: new Date().toISOString() })
+                    .eq('id', (await supabase.from('settings').select('id').single()).data.id);
+                if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
+                alert('Transfers enabled successfully.');
             } catch (error) {
-                console.error('Load History Error:', error.message);
+                console.error('Enable Transfers Error:', error.message);
+                alert(`An error occurred while enabling transfers: ${error.message}`);
             }
         }
 
-        window.onload = () => {
-            loadUsers();
-            loadHistory();
+        async function disableTransfers() {
+            try {
+                const { error } = await supabase
+                    .from('settings')
+                    .update({ allow_transfers: false, updated_at: new Date().toISOString() })
+                    .eq('id', (await supabase.from('settings').select('id').single()).data.id);
+                if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
+                alert('Transfers disabled successfully.');
+            } catch (error) {
+                console.error('Disable Transfers Error:', error.message);
+                alert(`An error occurred while disabling transfers: ${error.message}`);
+            }
+        }
 
-            supabase.channel('users-channel')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => loadUsers())
-                .subscribe();
-
-            supabase.channel('transactions-channel')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, () => loadHistory())
-                .subscribe();
-        };
+        window.onload = loadUsers;
     </script>
 </body>
 </html>
