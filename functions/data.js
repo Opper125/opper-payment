@@ -1,64 +1,112 @@
-exports.handler = async (event, context) => {
-  try {
-    const { createClient } = require('@supabase/supabase-js');
-    const supabaseUrl = process.env.SUPABASE_URL || 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Initialize Supabase client
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    const { user_id, phone, payment_pin, passport_number, address, passport_image, selfie_image, submitted_at, balance } = JSON.parse(event.body || '{}');
+const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (user_id) {
-      const { data: existingUser, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('user_id', user_id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (!existingUser) {
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({ 
-            user_id, 
-            phone: phone || null, 
-            payment_pin: payment_pin || null, 
-            balance: balance || 0, 
-            passport_status: 'pending',
-            passport_number: passport_number || null,
-            address: address || null,
-            passport_image: passport_image || null,
-            selfie_image: selfie_image || null,
-            submitted_at: submitted_at || null
-          });
-        if (insertError) throw insertError;
-      } else {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ 
-            phone: phone || existingUser.phone, 
-            payment_pin: payment_pin || existingUser.payment_pin,
-            balance: balance !== undefined ? balance : existingUser.balance,
-            passport_number: passport_number || existingUser.passport_number,
-            address: address || existingUser.address,
-            passport_image: passport_image || existingUser.passport_image,
-            selfie_image: selfie_image || existingUser.selfie_image,
-            submitted_at: submitted_at || existingUser.submitted_at
-          })
-          .eq('user_id', user_id);
-        if (updateError) throw updateError;
-      }
+// Function to fetch chat messages for a user
+async function getChatMessages(userId) {
+    try {
+        const { data, error } = await supabase
+            .from('chat_messages')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        if (error) throw new Error(`Fetch Chat Messages Error: ${error.message}`);
+        return data;
+    } catch (error) {
+        console.error('Get Chat Messages Error:', error.message);
+        return [];
     }
+}
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Data updated successfully' }),
-    };
-  } catch (error) {
-    console.error('Data Update Error:', error.message);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to update data' }),
-    };
-  }
-};
+// Function to send a new message
+async function sendMessage(userId, username, message) {
+    try {
+        const newMessage = {
+            user_id: userId,
+            username,
+            message,
+            status: 'open',
+            created_at: new Date().toISOString()
+        };
+        const { data, error } = await supabase
+            .from('chat_messages')
+            .insert([newMessage])
+            .select()
+            .single();
+        if (error) throw new Error(`Send Message Error: ${error.message}`);
+        return data;
+    } catch (error) {
+        console.error('Send Message Error:', error.message);
+        throw error;
+    }
+}
+
+// Function to get unread message count
+async function getUnreadCount(userId) {
+    try {
+        const { count, error } = await supabase
+            .from('chat_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('status', 'open')
+            .is('admin_response', null);
+        if (error) throw new Error(`Get Unread Count Error: ${error.message}`);
+        return count || 0;
+    } catch (error) {
+        console.error('Get Unread Count Error:', error.message);
+        return 0;
+    }
+}
+
+// Function to subscribe to real-time chat updates
+function subscribeToChat(userId, callback) {
+    const channel = supabase
+        .channel(`chat-${userId}`)
+        .on('postgres_changes', 
+            { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'chat_messages', 
+                filter: `user_id=eq.${userId}` 
+            }, 
+            payload => {
+                callback(payload.new);
+            }
+        )
+        .on('postgres_changes', 
+            { 
+                event: 'UPDATE', 
+                schema: 'public', 
+                table: 'chat_messages', 
+                filter: `user_id=eq.${userId}` 
+            }, 
+            payload => {
+                callback(payload.new);
+            }
+        )
+        .subscribe();
+    return () => supabase.removeChannel(channel);
+}
+
+async function respondToChat(chatId, response) {
+    try {
+        const { error } = await supabase
+            .from('chat_messages')
+            .update({ 
+                admin_response: response, 
+                status: 'responded',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', chatId);
+        if (error) throw new Error(`Respond to Chat Error: ${error.message}`);
+    } catch (error) {
+        console.error('Respond to Chat Error:', error.message);
+        throw error;
+    }
+}
+
+// Export functions for use in other files
+export { getChatMessages, sendMessage, getUnreadCount, subscribeToChat, respondToChat };
