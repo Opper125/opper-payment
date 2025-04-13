@@ -38,6 +38,8 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         .control-panel .enable-btn {
             background: #4caf50;
@@ -51,16 +53,59 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
         }
+        .control-panel button::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+        .control-panel button:active::after {
+            width: 200px;
+            height: 200px;
+        }
+        .search-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        .search-panel input {
+            padding: 10px;
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            outline: none;
+            flex: 1;
+        }
+        .search-panel button {
+            padding: 10px 20px;
+            background: #00c4ff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
         .user-list {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
         .user-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
             padding: 15px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
         }
@@ -100,6 +145,8 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         .action-buttons .approve-btn {
             background: #4caf50;
@@ -117,9 +164,33 @@
             background: #ffaa00;
             color: #fff;
         }
+        .action-buttons .ban-btn {
+            background: #d32f2f;
+            color: #fff;
+        }
+        .action-buttons .unban-btn {
+            background: #388e3c;
+            color: #fff;
+        }
         .action-buttons button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        .action-buttons button::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+        .action-buttons button:active::after {
+            width: 200px;
+            height: 200px;
         }
         .action-buttons input {
             padding: 8px;
@@ -155,6 +226,12 @@
         <button class="disable-btn" onclick="disableTransfers()">Disable Transfers</button>
     </div>
 
+    <!-- Search Panel -->
+    <div class="search-panel">
+        <input type="text" id="search-phone" placeholder="Enter Phone Number (09xxxxxxxxx)">
+        <button onclick="searchUser()">Search</button>
+    </div>
+
     <!-- User List -->
     <div class="user-list" id="user-list"></div>
 
@@ -164,7 +241,6 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
 
-        // Function to ensure settings table has at least one row
         async function ensureSettings() {
             try {
                 const { data: settings, error: fetchError } = await supabase
@@ -178,7 +254,6 @@
                         .from('settings')
                         .insert({ allow_transfers: true, updated_at: new Date().toISOString() });
                     if (insertError) throw new Error(`Insert Default Settings Error: ${insertError.message}`);
-                    console.log('Default settings inserted.');
                     return (await supabase.from('settings').select('*').single()).data;
                 }
                 return settings;
@@ -188,19 +263,23 @@
             }
         }
 
-        async function loadUsers() {
+        async function loadUsers(filter = { passport_status: 'pending' }) {
             try {
-                const { data: users, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('passport_status', 'pending');
+                let query = supabase.from('users').select('*');
+                if (filter.passport_status) {
+                    query = query.eq('passport_status', filter.passport_status);
+                }
+                if (filter.phone) {
+                    query = query.eq('phone', filter.phone);
+                }
+                const { data: users, error } = await query;
                 if (error) throw new Error(`Fetch Users Error: ${error.message}`);
 
                 const userList = document.getElementById('user-list');
                 userList.innerHTML = '';
 
                 if (users.length === 0) {
-                    userList.innerHTML = '<p>No pending users found.</p>';
+                    userList.innerHTML = '<p>No users found.</p>';
                     return;
                 }
 
@@ -213,6 +292,8 @@
                         <p>Passport Number: ${user.passport_number || 'N/A'}</p>
                         <p>Address: ${user.address || 'N/A'}</p>
                         <p>Balance: ${user.balance || 0} Ks</p>
+                        <p>Passport Status: ${user.passport_status}</p>
+                        <p>Banned: ${user.is_banned ? 'Yes' : 'No'}</p>
                         <p>Submitted At: ${user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A'}</p>
                         <div>
                             <p>Passport Image:</p>
@@ -228,6 +309,7 @@
                             <input type="number" id="amount-${user.user_id}" placeholder="Amount (Ks)" min="0">
                             <button class="deposit-btn" onclick="deposit('${user.user_id}')">Deposit</button>
                             <button class="withdraw-btn" onclick="withdraw('${user.user_id}')">Withdraw</button>
+                            <button class="${user.is_banned ? 'unban-btn' : 'ban-btn'}" onclick="${user.is_banned ? `unbanUser('${user.user_id}')` : `banUser('${user.user_id}')`}">${user.is_banned ? 'Unban' : 'Ban'}</button>
                         </div>
                     `;
                     userList.appendChild(userItem);
@@ -235,6 +317,20 @@
             } catch (error) {
                 console.error('Load Users Error:', error.message);
                 alert(`An error occurred while loading users: ${error.message}`);
+            }
+        }
+
+        async function searchUser() {
+            try {
+                const phone = document.getElementById('search-phone').value;
+                if (!phone.match(/^09\d{9}$/)) {
+                    alert('Please enter a valid phone number (09xxxxxxxxx).');
+                    return;
+                }
+                await loadUsers({ phone });
+            } catch (error) {
+                console.error('Search User Error:', error.message);
+                alert(`An error occurred while searching: ${error.message}`);
             }
         }
 
@@ -297,7 +393,7 @@
                 if (updateError) throw new Error(`Deposit Error: ${updateError.message}`);
 
                 alert(`Successfully deposited ${amount} Ks to User ID: ${userId}. New balance: ${newBalance} Ks`);
-                amountInput.value = ''; // Clear the input field
+                amountInput.value = '';
                 loadUsers();
             } catch (error) {
                 console.error('Deposit Error:', error.message);
@@ -336,7 +432,7 @@
                 if (updateError) throw new Error(`Withdraw Error: ${updateError.message}`);
 
                 alert(`Successfully withdrew ${amount} Ks from User ID: ${userId}. New balance: ${newBalance} Ks`);
-                amountInput.value = ''; // Clear the input field
+                amountInput.value = '';
                 loadUsers();
             } catch (error) {
                 console.error('Withdraw Error:', error.message);
@@ -344,10 +440,39 @@
             }
         }
 
+        async function banUser(userId) {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ is_banned: true })
+                    .eq('user_id', userId);
+                if (error) throw new Error(`Ban User Error: ${error.message}`);
+                alert('User banned successfully.');
+                loadUsers();
+            } catch (error) {
+                console.error('Ban User Error:', error.message);
+                alert(`An error occurred while banning user: ${error.message}`);
+            }
+        }
+
+        async function unbanUser(userId) {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ is_banned: false })
+                    .eq('user_id', userId);
+                if (error) throw new Error(`Unban User Error: ${error.message}`);
+                alert('User unbanned successfully.');
+                loadUsers();
+            } catch (error) {
+                console.error('Unban User Error:', error.message);
+                alert(`An error occurred while unbanning user: ${error.message}`);
+            }
+        }
+
         async function enableTransfers() {
             try {
                 const settings = await ensureSettings();
-
                 const { error } = await supabase
                     .from('settings')
                     .update({ allow_transfers: true, updated_at: new Date().toISOString() })
@@ -356,14 +481,13 @@
                 alert('Transfers enabled successfully.');
             } catch (error) {
                 console.error('Enable Transfers Error:', error.message);
-                alert(`An error occurred while enabling transfers: ${error.message}. Please ensure the settings table exists and is accessible.`);
+                alert(`An error occurred while enabling transfers: ${error.message}`);
             }
         }
 
         async function disableTransfers() {
             try {
                 const settings = await ensureSettings();
-
                 const { error } = await supabase
                     .from('settings')
                     .update({ allow_transfers: false, updated_at: new Date().toISOString() })
@@ -372,7 +496,7 @@
                 alert('Transfers disabled successfully.');
             } catch (error) {
                 console.error('Disable Transfers Error:', error.message);
-                alert(`An error occurred while disabling transfers: ${error.message}. Please ensure the settings table exists and is accessible.`);
+                alert(`An error occurred while disabling transfers: ${error.message}`);
             }
         }
 
@@ -382,7 +506,7 @@
                 loadUsers();
             } catch (error) {
                 console.error('Initialization Error:', error.message);
-                alert(`An error occurred during initialization: ${error.message}. Please ensure the settings table exists.`);
+                alert(`An error occurred during initialization: ${error.message}`);
             }
         };
     </script>
