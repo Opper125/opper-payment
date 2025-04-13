@@ -154,11 +154,29 @@
             font-size: 1rem;
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
         }
         button:hover {
             background: linear-gradient(135deg, #007bff, #00c4ff);
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        button::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+        button:active::after {
+            width: 200px;
+            height: 200px;
         }
         .menu {
             display: flex;
@@ -202,12 +220,16 @@
             border-radius: 10px;
             margin-bottom: 10px;
             font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.3);
             position: relative;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
-        .history-item:hover { transform: scale(1.02); }
+        .history-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
         .history-item.out {
             color: #ff6f61;
             border: 1px solid #ff6f61;
@@ -242,6 +264,7 @@
             border: 1px solid #ffd700;
             font-size: 0.9rem;
             color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
         .status {
             padding: 5px 10px;
@@ -294,6 +317,36 @@
         }
         .back-btn:hover {
             background: linear-gradient(135deg, #ff9f43, #ff6f61);
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.5s ease forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .chat-notification {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6f61;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
         }
         @media (max-width: 480px) {
             body { padding: 10px; font-size: 14px; }
@@ -410,6 +463,11 @@
         <button onclick="showSection('host')" id="host-btn"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
         <button onclick="showSection('game')" id="game-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/game-icon.png" alt="Game">Game</button>
         <button onclick="openTelegram()" id="telegram-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/telegram-icon.png" alt="Telegram">Telegram</button>
+        <button onclick="showSection('support')" id="support-btn">
+            <img src="https://github.com/Opper125/opper-payment/raw/main/chat.png" alt="Support">
+            Support
+            <span id="chat-notification" class="chat-notification hidden">0</span>
+        </button>
         <button onclick="showSection('mi')" id="mi-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
@@ -421,7 +479,7 @@
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
         const imgurClientId = '5befa9dd970c7d0';
 
-        let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
+        let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null, is_banned: false };
         let allowTransfers = true;
 
         // Add Particles
@@ -473,11 +531,14 @@
         }
 
         function showSection(sectionId) {
-            ['wallet', 'host', 'mi', 'game'].forEach(id => {
+            ['wallet', 'host', 'mi', 'game', 'support'].forEach(id => {
                 document.getElementById(id).classList.toggle('active', id === sectionId);
                 document.getElementById(`${id}-btn`).classList.toggle('active', id === sectionId);
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (sectionId === 'support') {
+                window.location.href = 'support.html';
+            }
         }
 
         function openTelegram() {
@@ -506,7 +567,7 @@
                 allowTransfers = data.allow_transfers;
             } catch (error) {
                 console.error('Check Transfer Settings Error:', error.message);
-                allowTransfers = false; // Default to false if error occurs
+                allowTransfers = false;
             }
         }
 
@@ -549,10 +610,14 @@
                     if (user) currentUser = user;
                 });
 
+                if (currentUser.is_banned) {
+                    alert('Your account is banned. Please contact support.');
+                    return;
+                }
+
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                 updateStatus(currentUser.passport_status);
 
-                // Check transfer settings on load
                 await checkTransferSettings();
 
                 supabase.channel('users-channel')
@@ -560,6 +625,10 @@
                         currentUser = { ...currentUser, ...payload.new };
                         document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                         updateStatus(currentUser.passport_status);
+                        if (currentUser.is_banned) {
+                            alert('Your account has been banned.');
+                            window.location.reload();
+                        }
                     })
                     .subscribe();
 
@@ -567,39 +636,45 @@
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, async payload => {
                         const transaction = payload.new;
                         if (transaction.to_phone === currentUser.phone) {
-                            const message = document.createElement('div');
-                            message.className = 'receiver-message';
-                            message.innerHTML = `Received ${transaction.amount} Ks<br>From: ${transaction.from_phone}`;
-                            document.body.appendChild(message);
-                            setTimeout(() => message.remove(), 5000);
+                            const notification = document.createElement('div');
+                            notification.className = 'notification';
+                            notification.textContent = `You received ${transaction.amount} Ks from ${transaction.from_phone}!`;
+                            document.body.appendChild(notification);
+                            setTimeout(() => notification.remove(), 5000);
                         }
                         loadHistory();
                     })
                     .subscribe();
 
-                supabase.channel('settings-channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, payload => {
-                        allowTransfers = payload.new.allow_transfers;
-                    })
-                    .subscribe();
-
                 loadHistory();
             } catch (error) {
-                console.error('Initialization Error:', error.message);
-                alert(`An error occurred: ${error.message}. Please try again.`);
+                console.error('Initialize User Error:', error.message);
+                alert(`An error occurred during initialization: ${error.message}`);
             }
         }
 
-        function toggleTransfer() {
-            if (currentUser.passport_status !== 'approved') {
-                alert('Passport must be approved to transfer money.');
-                return;
+        function updateStatus(status) {
+            const walletStatus = document.getElementById('wallet-status');
+            const miStatus = document.getElementById('mi-status');
+            const transferBtn = document.getElementById('transfer-btn');
+            const passportForm = document.getElementById('passport-form');
+            const passportSubmitted = document.getElementById('passport-submitted');
+
+            walletStatus.textContent = miStatus.textContent = status === 'approved' ? 'Verified' : status === 'rejected' ? 'Verification Rejected' : 'Passport Verification Required';
+            walletStatus.className = miStatus.className = `status ${status}`;
+            transferBtn.disabled = status !== 'approved' || !allowTransfers || currentUser.is_banned;
+
+            if (status === 'pending' || status === 'rejected') {
+                passportForm.classList.remove('hidden');
+                passportSubmitted.classList.add('hidden');
+            } else {
+                passportForm.classList.add('hidden');
+                passportSubmitted.classList.remove('hidden');
+                document.getElementById('submitted-phone').textContent = currentUser.phone || 'N/A';
+                document.getElementById('submitted-passport').textContent = currentUser.passport_number || 'N/A';
+                document.getElementById('submitted-address').textContent = currentUser.address || 'N/A';
+                document.getElementById('submitted-time').textContent = currentUser.submitted_at ? new Date(currentUser.submitted_at).toLocaleString() : 'N/A';
             }
-            if (!allowTransfers) {
-                alert('Transfer functionality is currently disabled by the server.');
-                return;
-            }
-            document.getElementById('transfer').classList.toggle('hidden');
         }
 
         async function checkPhone() {
@@ -607,159 +682,50 @@
                 const phone = document.getElementById('transfer-phone').value;
                 const receiverName = document.getElementById('receiver-name');
                 receiverName.textContent = '';
-                if (phone.match(/^09\d{9}$/)) {
-                    // Check if the phone number is the same as the current user's phone
-                    if (phone === currentUser.phone) {
-                        receiverName.className = 'account-status not-found';
-                        receiverName.textContent = 'You cannot transfer money to your own phone number.';
-                        return;
-                    }
 
-                    const { data: receiver, error } = await supabase
-                        .from('users')
-                        .select('user_id, phone, passport_status')
-                        .eq('phone', phone)
-                        .single();
-                    if (error && error.code !== 'PGRST116') throw error;
-                    if (receiver && receiver.passport_status === 'approved') {
-                        receiverName.className = 'account-status found';
-                        receiverName.textContent = `Account Found: ${receiver.phone} (ID: ${receiver.user_id})`;
-                    } else {
-                        receiverName.className = 'account-status not-found';
-                        receiverName.textContent = 'Account not found or passport not approved.';
-                    }
+                if (phone.length !== 11 || !phone.match(/^09\d{9}$/)) return;
+
+                if (phone === currentUser.phone) {
+                    receiverName.textContent = 'Cannot transfer to yourself.';
+                    receiverName.style.color = '#ff6f61';
+                    return;
+                }
+
+                const { data: user, error } = await supabase
+                    .from('users')
+                    .select('user_id, passport_status, is_banned')
+                    .eq('phone', phone)
+                    .single();
+                if (error && error.code !== 'PGRST116') throw new Error(`Check Phone Error: ${error.message}`);
+
+                if (!user) {
+                    receiverName.textContent = 'Account not found.';
+                    receiverName.style.color = '#ff6f61';
+                } else if (user.passport_status !== 'approved') {
+                    receiverName.textContent = 'Recipient account is not verified.';
+                    receiverName.style.color = '#ff6f61';
+                } else if (user.is_banned) {
+                    receiverName.textContent = 'Recipient account is banned.';
+                    receiverName.style.color = '#ff6f61';
+                } else {
+                    receiverName.textContent = `Recipient ID: ${user.user_id}`;
+                    receiverName.style.color = '#4caf50';
                 }
             } catch (error) {
                 console.error('Check Phone Error:', error.message);
-                document.getElementById('receiver-name').textContent = 'An error occurred.';
+                document.getElementById('receiver-name').textContent = 'Error checking phone number.';
+                document.getElementById('receiver-name').style.color = '#ff6f61';
             }
         }
 
-        async function loadHistory() {
-            try {
-                const month = document.getElementById('month-filter').value;
-                const now = new Date();
-                const year = now.getFullYear();
-                const monthFilter = month === 'current' ? now.getMonth() : now.getMonth() - 1;
-                const startDate = new Date(year, monthFilter, 1).toISOString();
-                const endDate = new Date(year, monthFilter + 1, 0).toISOString();
-
-                const { data: transactions, error } = await supabase
-                    .from('transactions')
-                    .select('*')
-                    .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
-                    .gte('created_at', startDate)
-                    .lte('created_at', endDate);
-                if (error) throw error;
-
-                const historyList = document.getElementById('history-list');
-                historyList.innerHTML = '';
-                let totalIn = 0, totalOut = 0;
-
-                (transactions || []).forEach(t => {
-                    const item = document.createElement('div');
-                    item.className = `history-item ${t.from_phone === currentUser.phone ? 'out' : 'in'}`;
-                    item.innerHTML = `
-                        <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-                        ${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>
-                        Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
-                        Note: ${t.note || 'None'}<br>
-                        Time: ${t.timestamp}<br>
-                        Status: ${t.from_phone === currentUser.phone ? 'Sent' : 'Received'}
-                        <button class="print-btn" onclick="printTransaction('${t.id}')"></button>
-                    `;
-                    historyList.appendChild(item);
-                    if (t.from_phone === currentUser.phone) totalOut += t.amount;
-                    else totalIn += t.amount;
-                });
-
-                document.getElementById('total-in').textContent = `${totalIn} Ks`;
-                document.getElementById('total-out').textContent = `${totalOut} Ks`;
-            } catch (error) {
-                console.error('Load History Error:', error.message);
-                alert(`Error loading transaction history: ${error.message}`);
-            }
-        }
-
-        async function printTransaction(transactionId) {
-            try {
-                const { data: transaction, error } = await supabase
-                    .from('transactions')
-                    .select('*')
-                    .eq('id', transactionId)
-                    .single();
-                if (error) throw error;
-
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                    <head>
-                        <title>Transaction Receipt</title>
-                        <style>
-                            body { font-family: 'Inter', sans-serif; margin: 20px; background: #fff; }
-                            .receipt { border: 5px solid #ffd700; padding: 20px; max-width: 600px; margin: 0 auto; background: #fff; }
-                            .logo { display: block; margin: 0 auto; width: 80px; height: 80px; }
-                            h1 { text-align: center; color: #ffd700; font-size: 1.5rem; margin-bottom: 20px; }
-                            p { font-size: 1rem; margin: 5px 0; color: #333; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="receipt">
-                            <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-                            <h1>OPPER Payment Transaction Receipt</h1>
-                            <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
-                            <p><strong>From:</strong> ${transaction.from_phone}</p>
-                            <p><strong>To:</strong> ${transaction.to_phone}</p>
-                            <p><strong>Note:</strong> ${transaction.note || 'None'}</p>
-                            <p><strong>Time:</strong> ${transaction.timestamp}</p>
-                            <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
-                        </div>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-
-                setTimeout(() => {
-                    printWindow.print();
-                    html2pdf().from(printWindow.document.body).save(`Transaction_${transaction.id}.pdf`);
-                    printWindow.close();
-                }, 500);
-            } catch (error) {
-                console.error('Print Transaction Error:', error.message);
-                alert(`Error printing transaction: ${error.message}`);
-            }
-        }
-
-        function updateStatus(status) {
-            const walletStatus = document.getElementById('wallet-status');
-            const miStatus = document.getElementById('mi-status');
-            walletStatus.className = `status ${status}`;
-            miStatus.className = `status ${status}`;
-            walletStatus.textContent = status === 'pending' ? 'Passport Verification Required' : status === 'approved' ? 'Approved' : 'Passport Rejected';
-            miStatus.textContent = walletStatus.textContent;
-
-            const passportForm = document.getElementById('passport-form');
-            const passportSubmitted = document.getElementById('passport-submitted');
-
-            if (status === 'approved') {
-                document.getElementById('transfer-btn').disabled = false;
-                passportForm.classList.add('hidden');
-                passportSubmitted.classList.remove('hidden');
-                document.getElementById('submitted-phone').textContent = currentUser.phone || 'N/A';
-                document.getElementById('submitted-passport').textContent = currentUser.passport_number || 'N/A';
-                document.getElementById('submitted-address').textContent = currentUser.address || 'N/A';
-                document.getElementById('submitted-time').textContent = currentUser.submitted_at ? new Date(currentUser.submitted_at).toLocaleString() : 'N/A';
-            } else if (status === 'pending' && currentUser.submitted_at) {
-                passportForm.classList.add('hidden');
-                passportSubmitted.classList.remove('hidden');
-                document.getElementById('submitted-phone').textContent = currentUser.phone || 'N/A';
-                document.getElementById('submitted-passport').textContent = currentUser.passport_number || 'N/A';
-                document.getElementById('submitted-address').textContent = currentUser.address || 'N/A';
-                document.getElementById('submitted-time').textContent = currentUser.submitted_at ? new Date(currentUser.submitted_at).toLocaleString() : 'N/A';
-            } else {
-                passportForm.classList.remove('hidden');
-                passportSubmitted.classList.add('hidden');
-            }
+        function toggleTransfer() {
+            document.getElementById('transfer').classList.toggle('hidden');
+            document.getElementById('transfer-error').classList.add('hidden');
+            document.getElementById('transfer-phone').value = '';
+            document.getElementById('transfer-amount').value = '';
+            document.getElementById('transfer-note').value = '';
+            document.getElementById('transfer-pin').value = '';
+            document.getElementById('receiver-name').textContent = '';
         }
 
         async function uploadToImgur(file) {
@@ -781,7 +747,7 @@
             }
         }
 
-        document.getElementById('submit-passport-btn').addEventListener('click', async () => {
+        async function submitPassport() {
             try {
                 const passportNumber = document.getElementById('passport-number').value;
                 const address = document.getElementById('address').value;
@@ -790,136 +756,277 @@
                 const passportImage = document.getElementById('passport-image').files[0];
                 const selfieImage = document.getElementById('selfie-image').files[0];
 
-                if (!passportNumber || !address || !phone.match(/^09\d{9}$/) || paymentPin.length !== 6 || !passportImage || !selfieImage) {
-                    alert('Please fill all fields correctly. PIN must be 6 digits.');
+                if (!passportNumber || !address || !phone || !paymentPin || !passportImage || !selfieImage) {
+                    alert('Please fill in all fields and upload both images.');
                     return;
                 }
 
-                const [passportUrl, selfieUrl] = await Promise.all([
-                    retryOperation(() => uploadToImgur(passportImage)),
-                    retryOperation(() => uploadToImgur(selfieImage))
-                ]);
+                if (!phone.match(/^09\d{9}$/)) {
+                    alert('Please enter a valid phone number (09xxxxxxxxx).');
+                    return;
+                }
 
-                const updatedData = {
-                    user_id: currentUser.user_id,
-                    phone,
-                    payment_pin: paymentPin,
-                    passport_number: passportNumber,
-                    address,
-                    passport_image: passportUrl,
-                    selfie_image: selfieUrl,
-                    submitted_at: new Date().toISOString()
-                };
+                if (paymentPin.length !== 6 || !/^\d{6}$/.test(paymentPin)) {
+                    alert('Payment PIN must be exactly 6 digits.');
+                    return;
+                }
 
-                await retryOperation(async () => {
-                    const { error } = await supabase.from('users').update(updatedData).eq('user_id', currentUser.user_id);
-                    if (error) throw new Error(`Update User Error: ${error.message}`);
-                });
+                const { data: existingPhone, error: phoneError } = await supabase
+                    .from('users')
+                    .select('phone')
+                    .eq('phone', phone)
+                    .neq('user_id', currentUser.user_id)
+                    .single();
+                if (phoneError && phoneError.code !== 'PGRST116') throw new Error(`Check Phone Error: ${phoneError.message}`);
+                if (existingPhone) {
+                    alert('This phone number is already registered.');
+                    return;
+                }
 
-                currentUser = { ...currentUser, ...updatedData, passport_status: 'pending' };
-                alert('Passport details submitted successfully. Awaiting approval.');
-                updateStatus('pending');
+                const passportImageUrl = await uploadToImgur(passportImage);
+                const selfieImageUrl = await uploadToImgur(selfieImage);
+
+                const { error } = await supabase
+                    .from('users')
+                    .update({
+                        passport_number: passportNumber,
+                        address,
+                        phone,
+                        payment_pin: paymentPin,
+                        passport_image: passportImageUrl,
+                        selfie_image: selfieImageUrl,
+                        submitted_at: new Date().toISOString(),
+                        passport_status: 'pending'
+                    })
+                    .eq('user_id', currentUser.user_id);
+                if (error) throw new Error(`Submit Passport Error: ${error.message}`);
+
+                alert('Passport details submitted successfully.');
+                initializeUser();
             } catch (error) {
                 console.error('Submit Passport Error:', error.message);
                 alert(`An error occurred while submitting passport details: ${error.message}`);
             }
-        });
+        }
 
-        document.getElementById('confirm-transfer-btn').addEventListener('click', async () => {
+        async function confirmTransfer() {
             try {
-                if (!allowTransfers) {
-                    document.getElementById('transfer-error').textContent = 'Transfer functionality is currently disabled by the server.';
-                    document.getElementById('transfer-error').classList.remove('hidden');
-                    return;
-                }
-
+                document.getElementById('transfer-error').classList.add('hidden');
                 const phone = document.getElementById('transfer-phone').value;
                 const amount = parseInt(document.getElementById('transfer-amount').value);
                 const note = document.getElementById('transfer-note').value;
                 const pin = document.getElementById('transfer-pin').value;
 
-                if (!phone.match(/^09\d{9}$/) || amount > 1000000 || amount <= 0 || pin.length !== 6) {
-                    document.getElementById('transfer-error').textContent = 'Invalid input. Max 1,000,000 Ks, PIN must be 6 digits.';
+                if (!phone.match(/^09\d{9}$/)) {
+                    document.getElementById('transfer-error').textContent = 'Please enter a valid phone number (09xxxxxxxxx).';
                     document.getElementById('transfer-error').classList.remove('hidden');
                     return;
                 }
 
-                // Check if the phone number is the same as the current user's phone
-                if (phone === currentUser.phone) {
-                    document.getElementById('transfer-error').textContent = 'You cannot transfer money to your own phone number.';
+                if (!amount || amount <= 0 || amount > 1000000) {
+                    document.getElementById('transfer-error').textContent = 'Please enter a valid amount (1 to 1,000,000 Ks).';
                     document.getElementById('transfer-error').classList.remove('hidden');
                     return;
                 }
 
-                const { data: sender, error: senderError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('user_id', currentUser.user_id)
-                    .eq('payment_pin', pin)
-                    .single();
-                if (senderError) throw new Error(`Sender Fetch Error: ${senderError.message}`);
+                if (!pin || pin !== currentUser.payment_pin) {
+                    document.getElementById('transfer-error').textContent = 'Incorrect PIN.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
+
                 const { data: receiver, error: receiverError } = await supabase
                     .from('users')
-                    .select('*')
+                    .select('user_id, balance, passport_status, is_banned')
                     .eq('phone', phone)
                     .single();
-                if (receiverError) throw new Error(`Receiver Fetch Error: ${receiverError.message}`);
-
-                if (!sender || !receiver || sender.balance < amount || receiver.passport_status !== 'approved') {
-                    document.getElementById('transfer-error').textContent = !sender ? 'Incorrect PIN.' : !receiver ? 'Recipient account not found.' : sender.balance < amount ? 'Insufficient balance.' : 'Recipient passport not approved.';
+                if (receiverError || !receiver) {
+                    document.getElementById('transfer-error').textContent = 'Recipient not found.';
                     document.getElementById('transfer-error').classList.remove('hidden');
                     return;
                 }
 
-                const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
+                if (receiver.passport_status !== 'approved') {
+                    document.getElementById('transfer-error').textContent = 'Recipient account is not verified.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
 
-                await retryOperation(async () => {
-                    const { error: updateSenderError } = await supabase
-                        .from('users')
-                        .update({ balance: sender.balance - amount })
-                        .eq('user_id', sender.user_id);
-                    if (updateSenderError) throw new Error(`Update Sender Error: ${updateSenderError.message}`);
-                });
+                if (receiver.is_banned) {
+                    document.getElementById('transfer-error').textContent = 'Recipient account is banned.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
 
-                await retryOperation(async () => {
-                    const { error: updateReceiverError } = await supabase
-                        .from('users')
-                        .update({ balance: receiver.balance + amount })
-                        .eq('user_id', receiver.user_id);
-                    if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`);
-                });
+                if (phone === currentUser.phone) {
+                    document.getElementById('transfer-error').textContent = 'Cannot transfer to yourself.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
 
-                await retryOperation(async () => {
-                    const { error: insertError } = await supabase
-                        .from('transactions')
-                        .insert({
-                            from_phone: sender.phone,
-                            to_phone: receiver.phone,
-                            amount: amount,
-                            note: note || null,
-                            timestamp: now
-                        });
-                    if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`);
-                });
+                if (currentUser.balance < amount) {
+                    document.getElementById('transfer-error').textContent = 'Insufficient balance.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
 
-                currentUser.balance = sender.balance - amount;
-                document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
-                document.getElementById('transfer-error').classList.add('hidden');
-                document.getElementById('transfer').classList.add('hidden');
+                const senderNewBalance = currentUser.balance - amount;
+                const receiverNewBalance = (receiver.balance || 0) + amount;
 
-                const animation = document.createElement('div');
-                animation.className = 'transfer-animation';
-                animation.innerHTML = `Transfer Successful<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>`;
-                document.body.appendChild(animation);
-                setTimeout(() => animation.remove(), 1500);
+                const { data: settings, error: settingsError } = await supabase
+                    .from('settings')
+                    .select('allow_transfers')
+                    .single();
+                if (settingsError || !settings.allow_transfers) {
+                    document.getElementById('transfer-error').textContent = 'Transfers are currently disabled.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
 
-                loadHistory();
+                const { error: senderError } = await supabase
+                    .from('users')
+                    .update({ balance: senderNewBalance })
+                    .eq('user_id', currentUser.user_id);
+                if (senderError) throw new Error(`Update Sender Balance Error: ${senderError.message}`);
+
+                const { error: receiverErrorUpdate } = await supabase
+                    .from('users')
+                    .update({ balance: receiverNewBalance })
+                    .eq('user_id', receiver.user_id);
+                if (receiverErrorUpdate) throw new Error(`Update Receiver Balance Error: ${receiverErrorUpdate.message}`);
+
+                const { data: transactionRef, error: refError } = await supabase.rpc('generate_transaction_ref');
+                if (refError) throw new Error(`Generate Transaction Ref Error: ${refError.message}`);
+
+                const { error: transactionError } = await supabase
+                    .from('transactions')
+                    .insert({
+                        transaction_ref: transactionRef,
+                        from_phone: currentUser.phone,
+                        to_phone: phone,
+                        amount,
+                        note,
+                        timestamp: new Date().toISOString()
+                    });
+                if (transactionError) throw new Error(`Insert Transaction Error: ${transactionError.message}`);
+
+                toggleTransfer();
+                alert(`Successfully transferred ${amount} Ks to ${phone}. Transaction Ref: ${transactionRef}`);
             } catch (error) {
-                console.error('Transfer Error:', error.message);
-                document.getElementById('transfer-error').textContent = `An error occurred during transfer: ${error.message}`;
+                console.error('Confirm Transfer Error:', error.message);
+                document.getElementById('transfer-error').textContent = `An error occurred: ${error.message}`;
                 document.getElementById('transfer-error').classList.remove('hidden');
             }
-        });
+        }
+
+        async function loadHistory() {
+            try {
+                const monthFilter = document.getElementById('month-filter').value;
+                const now = new Date();
+                let startDate, endDate;
+
+                if (monthFilter === 'current') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                } else {
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+                }
+
+                const { data: transactions, error } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
+                    .gte('created_at', startDate.toISOString())
+                    .lte('created_at', endDate.toISOString())
+                    .order('created_at', { ascending: false });
+                if (error) throw new Error(`Fetch Transactions Error: ${error.message}`);
+
+                const historyList = document.getElementById('history-list');
+                historyList.innerHTML = '';
+
+                let totalIn = 0, totalOut = 0;
+
+                transactions.forEach(t => {
+                    const isSender = t.from_phone === currentUser.phone;
+                    const amount = t.amount;
+                    if (!isSender) totalIn += amount;
+                    else totalOut += amount;
+
+                    const item = document.createElement('div');
+                    item.className = `history-item ${isSender ? 'out' : 'in'}`;
+                    item.innerHTML = `
+                        <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="Logo">
+                        <p><strong>${isSender ? 'Sent to' : 'Received from'}: </strong>${isSender ? t.to_phone : t.from_phone}</p>
+                        <p><strong>Amount: </strong>${amount} Ks</p>
+                        <p><strong>Note: </strong>${t.note || 'N/A'}</p>
+                        <p><strong>Transaction Ref: </strong>${t.transaction_ref}</p>
+                        <p><strong>Time: </strong>${new Date(t.timestamp).toLocaleString()}</p>
+                        <button class="print-btn" onclick="printReceipt('${t.transaction_ref}')"></button>
+                    `;
+                    historyList.appendChild(item);
+                });
+
+                document.getElementById('total-in').textContent = `${totalIn} Ks`;
+                document.getElementById('total-out').textContent = `${totalOut} Ks`;
+            } catch (error) {
+                console.error('Load History Error:', error.message);
+                alert(`An error occurred while loading history: ${error.message}`);
+            }
+        }
+
+        async function printReceipt(transactionRef) {
+            try {
+                const { data: transaction, error } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .eq('transaction_ref', transactionRef)
+                    .single();
+                if (error) throw new Error(`Fetch Transaction Error: ${error.message}`);
+
+                const isSender = transaction.from_phone === currentUser.phone;
+                const receipt = document.createElement('div');
+                receipt.style.padding = '20px';
+                receipt.style.background = '#fff';
+                receipt.style.color = '#000';
+                receipt.style.fontFamily = 'Arial, sans-serif';
+                receipt.style.borderRadius = '10px';
+                receipt.style.maxWidth = '400px';
+                receipt.style.margin = 'auto';
+                receipt.innerHTML = `
+                    <div style="text-align: center;">
+                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" style="width: 80px; margin-bottom: 10px;">
+                        <h2 style="color: #1e3c72;">OPPER Payment</h2>
+                        <h3>Transaction Receipt</h3>
+                    </div>
+                    <hr style="border: 1px solid #ffd700; margin: 10px 0;">
+                    <p><strong>Transaction Reference:</strong> ${transaction.transaction_ref}</p>
+                    <p><strong>${isSender ? 'Recipient' : 'Sender'} Phone:</strong> ${isSender ? transaction.to_phone : transaction.from_phone}</p>
+                    <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
+                    <p><strong>Note:</strong> ${transaction.note || 'N/A'}</p>
+                    <p><strong>Date:</strong> ${new Date(transaction.timestamp).toLocaleString()}</p>
+                    <p><strong>Status:</strong> Completed</p>
+                    <hr style="border: 1px solid #ffd700; margin: 10px 0;">
+                    <p style="text-align: center; font-size: 0.9rem;">Thank you for using OPPER Payment!</p>
+                `;
+
+                const opt = {
+                    margin: 10,
+                    filename: `OPPER_Receipt_${transaction.transaction_ref}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().from(receipt).set(opt).save();
+            } catch (error) {
+                console.error('Print Receipt Error:', error.message);
+                alert(`An error occurred while generating receipt: ${error.message}`);
+            }
+        }
+
+        document.getElementById('submit-passport-btn').addEventListener('click', submitPassport);
+        document.getElementById('confirm-transfer-btn').addEventListener('click', confirmTransfer);
 
         window.onload = initializeUser;
     </script>
