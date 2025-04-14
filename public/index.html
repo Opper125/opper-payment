@@ -19,6 +19,65 @@
             color: #e0e7ff;
             position: relative;
         }
+        .intro-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a192f;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            animation: fadeOut 1s ease 10s forwards;
+        }
+        .intro-logo {
+            width: 300px;
+            height: 300px;
+            filter: blur(10px);
+            animation: focusLogo 3s ease forwards;
+        }
+        .intro-text {
+            margin-top: 20px;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #60a5fa;
+            opacity: 0;
+            animation: slideText 2s ease 3s forwards;
+        }
+        .intro-text span {
+            opacity: 0;
+            animation: letterFade 0.5s ease forwards;
+        }
+        .intro-text span:nth-child(1) { animation-delay: 3.5s; }
+        .intro-text span:nth-child(2) { animation-delay: 3.6s; }
+        .intro-text span:nth-child(3) { animation-delay: 3.7s; }
+        .intro-text span:nth-child(4) { animation-delay: 3.8s; }
+        .intro-text span:nth-child(5) { animation-delay: 3.9s; }
+        .intro-text span:nth-child(6) { animation-delay: 4.0s; }
+        .intro-text span:nth-child(7) { animation-delay: 4.1s; }
+        .intro-text span:nth-child(8) { animation-delay: 4.2s; }
+        .intro-text span:nth-child(9) { animation-delay: 4.3s; }
+        .intro-text span:nth-child(10) { animation-delay: 4.4s; }
+        .intro-text span:nth-child(11) { animation-delay: 4.5s; }
+        @keyframes focusLogo {
+            0% { filter: blur(10px); transform: scale(0.8); }
+            100% { filter: blur(0); transform: scale(1); }
+        }
+        @keyframes slideText {
+            0% { opacity: 0; transform: translateX(-50px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes letterFade {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
         .background-waves {
             position: fixed;
             top: 0;
@@ -278,6 +337,10 @@
             margin-bottom: 6px;
             filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
         }
+        .menu #game-btn img, .menu #telegram-btn img {
+            width: 34px;
+            height: 34px;
+        }
         .history-item {
             padding: 18px;
             border-radius: 12px;
@@ -401,6 +464,19 @@
             z-index: 10000;
             animation: popIn 0.5s ease forwards, fadeOut 1s ease 1s forwards;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        .transfer-animation .logo {
+            position: absolute;
+            top: 0;
+            left: calc(100% + 10px);
+            width: 50px;
+            height: 50px;
+            animation: followAmount 0.5s ease forwards;
+        }
+        @keyframes followAmount {
+            0% { left: calc(100% + 10px); }
+            100% { left: calc(100% + 10px); }
         }
         .receiver-message {
             position: fixed;
@@ -456,6 +532,87 @@
         .back-btn:hover {
             background: linear-gradient(135deg, #ef4444, #f87171);
         }
+        .receipt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+        .receipt-content {
+            background: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .receipt-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(59,130,246,0.1)"/></svg>');
+            opacity: 0.1;
+        }
+        .receipt-content .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .receipt-content .header img {
+            width: 80px;
+            height: 80px;
+            margin-right: 20px;
+        }
+        .receipt-content .header h1 {
+            font-size: 1.8rem;
+            color: #3b82f6;
+            margin: 0;
+            font-weight: 700;
+        }
+        .receipt-content p {
+            font-size: 1rem;
+            color: #1f2937;
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+        .receipt-content p strong {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .receipt-content .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        .receipt-content .download-btn {
+            width: auto;
+            padding: 12px 24px;
+            margin-top: 20px;
+            display: block;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        }
+        .receipt-content .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: #1f2937;
+            cursor: pointer;
+        }
         @media (max-width: 480px) {
             body {
                 padding: 12px;
@@ -481,11 +638,26 @@
             .game-container {
                 height: 70vh;
             }
+            .intro-logo {
+                width: 200px;
+                height: 200px;
+            }
+            .intro-text {
+                font-size: 1.5rem;
+            }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Intro Animation -->
+    <div class="intro-container" id="intro-container">
+        <img class="intro-logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+        <div class="intro-text">
+            <span>O</span><span>p</span><span>p</span><span>e</span><span>r</span> <span>P</span><span>a</span><span>y</span><span>m</span><span>e</span><span>n</span><span>t</span>
+        </div>
+    </div>
+
     <!-- Download APK Bar -->
     <div class="download-bar" id="download-bar">
         <p>Download the OPPER Payment App for a better experience!</p>
@@ -585,6 +757,13 @@
         <button class="back-btn" onclick="showSection('wallet')">Back to Payment</button>
     </div>
 
+    <!-- Receipt Overlay -->
+    <div class="receipt-overlay" id="receipt-overlay">
+        <div class="receipt-content" id="receipt-content">
+            <button class="close-btn" onclick="closeReceipt()">✖</button>
+        </div>
+    </div>
+
     <!-- Menu Bar -->
     <div class="menu">
         <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
@@ -594,8 +773,10 @@
         <button onclick="showSection('mi')" id="mi-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
+    <audio id="intro-sound" src="https://cdn.pixabay.com/audio/2023/03/22/14-16-48-141_140bpm.mp3" preload="auto"></audio>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
@@ -604,6 +785,16 @@
 
         let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
         let allowTransfers = true;
+
+        // Play Intro Sound
+        window.onload = () => {
+            const introSound = document.getElementById('intro-sound');
+            introSound.play();
+            setTimeout(() => {
+                document.getElementById('intro-container').style.display = 'none';
+                initializeUser();
+            }, 10000);
+        };
 
         function showSection(sectionId) {
             ['wallet', 'host', 'mi', 'game'].forEach(id => {
@@ -797,7 +988,7 @@
                         Note: ${t.note || 'None'}<br>
                         Time: ${t.timestamp}<br>
                         Status: ${t.from_phone === currentUser.phone ? 'Sent' : 'Received'}
-                        <button class="print-btn" onclick="printTransaction('${t.id}')"></button>
+                        <button class="print-btn" onclick="showReceipt('${t.id}')"></button>
                     `;
                     historyList.appendChild(item);
                     if (t.from_phone === currentUser.phone) totalOut += t.amount;
@@ -812,7 +1003,7 @@
             }
         }
 
-        async function printTransaction(transactionId) {
+        async function showReceipt(transactionId) {
             try {
                 const { data: transaction, error } = await supabase
                     .from('transactions')
@@ -821,114 +1012,52 @@
                     .single();
                 if (error) throw error;
 
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                    <head>
-                        <title>Transaction Receipt</title>
-                        <style>
-                            body {
-                                font-family: 'Poppins', sans-serif;
-                                margin: 0;
-                                padding: 0;
-                                background: linear-gradient(135deg, #0a192f, #1e3a8a);
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                                min-height: 100vh;
-                            }
-                            .receipt {
-                                background: #fff;
-                                border-radius: 15px;
-                                padding: 30px;
-                                max-width: 600px;
-                                width: 100%;
-                                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-                                position: relative;
-                                overflow: hidden;
-                            }
-                            .receipt::before {
-                                content: '';
-                                position: absolute;
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;
-                                background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(59,130,246,0.1)"/></svg>');
-                                opacity: 0.1;
-                            }
-                            .header {
-                                display: flex;
-                                align-items: center;
-                                margin-bottom: 20px;
-                            }
-                            .header img {
-                                width: 80px;
-                                height: 80px;
-                                margin-right: 20px;
-                            }
-                            .header h1 {
-                                font-size: 1.8rem;
-                                color: #3b82f6;
-                                margin: 0;
-                                font-weight: 700;
-                            }
-                            p {
-                                font-size: 1rem;
-                                color: #1f2937;
-                                margin: 10px 0;
-                                line-height: 1.5;
-                            }
-                            p strong {
-                                color: #3b82f6;
-                                font-weight: 600;
-                            }
-                            .footer {
-                                text-align: center;
-                                margin-top: 20px;
-                                font-size: 0.9rem;
-                                color: #6b7280;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="receipt">
-                            <div class="header">
-                                <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-                                <h1>OPPER Payment</h1>
-                            </div>
-                            <p><strong>Transaction Receipt</strong></p>
-                            <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
-                            <p><strong>From:</strong> ${transaction.from_phone}</p>
-                            <p><strong>To:</strong> ${transaction.to_phone}</p>
-                            <p><strong>To ID:</strong> ${transaction.to_phone === currentUser.phone ? currentUser.user_id : (await supabase.from('users').select('user_id').eq('phone', transaction.to_phone).single()).data.user_id}</p>
-                            <p><strong>Note:</strong> ${transaction.note || 'None'}</p>
-                            <p><strong>Time:</strong> ${transaction.timestamp}</p>
-                            <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
-                            <div class="footer">
-                                Powered by OPPER Payment
-                            </div>
-                        </div>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-
-                setTimeout(() => {
-                    printWindow.print();
-                    html2pdf().from(printWindow.document.body).set({
-                        margin: 0,
-                        filename: `Transaction_${transaction.id}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2 },
-                        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                    }).save();
-                    printWindow.close();
-                }, 500);
+                const receiptContent = document.getElementById('receipt-content');
+                receiptContent.innerHTML = `
+                    <button class="close-btn" onclick="closeReceipt()">✖</button>
+                    <div class="header">
+                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                        <h1>OPPER Payment</h1>
+                    </div>
+                    <p><strong>Transaction Receipt</strong></p>
+                    <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
+                    <p><strong>From:</strong> ${transaction.from_phone}</p>
+                    <p><strong>To:</strong> ${transaction.to_phone}</p>
+                    <p><strong>To ID:</strong> ${transaction.to_phone === currentUser.phone ? currentUser.user_id : (await supabase.from('users').select('user_id').eq('phone', transaction.to_phone).single()).data.user_id}</p>
+                    <p><strong>Note:</strong> ${transaction.note || 'None'}</p>
+                    <p><strong>Time:</strong> ${transaction.timestamp}</p>
+                    <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
+                    <div class="footer">
+                        Powered by OPPER Payment
+                    </div>
+                    <button class="download-btn" onclick="downloadReceipt(${transaction.id})">Download PDF</button>
+                `;
+                document.getElementById('receipt-overlay').style.display = 'flex';
             } catch (error) {
-                console.error('Print Transaction Error:', error.message);
-                alert(`Error printing transaction: ${error.message}`);
+                console.error('Show Receipt Error:', error.message);
+                alert(`Error showing receipt: ${error.message}`);
             }
+        }
+
+        async function downloadReceipt(transactionId) {
+            try {
+                const receiptContent = document.getElementById('receipt-content');
+                const opt = {
+                    margin: 0.5,
+                    filename: `Transaction_${transactionId}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+                await html2pdf().set(opt).from(receiptContent).save();
+            } catch (error) {
+                console.error('Download Receipt Error:', error.message);
+                alert(`Error downloading receipt: ${error.message}`);
+            }
+        }
+
+        function closeReceipt() {
+            document.getElementById('receipt-overlay').style.display = 'none';
         }
 
         function updateStatus(status) {
@@ -1109,7 +1238,10 @@
 
                 const animation = document.createElement('div');
                 animation.className = 'transfer-animation';
-                animation.innerHTML = `Transfer Successful<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>`;
+                animation.innerHTML = `
+                    Transfer Successful<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>
+                    <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                `;
                 document.body.appendChild(animation);
                 setTimeout(() => animation.remove(), 1500);
 
@@ -1142,8 +1274,6 @@
             a.click();
             document.body.removeChild(a);
         }
-
-        window.onload = initializeUser;
     </script>
 </body>
 </html>
