@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OPPER Payment</title>
     <style>
         * {
@@ -18,6 +18,7 @@
             overflow-x: hidden;
             color: #e0e7ff;
             position: relative;
+            touch-action: manipulation;
         }
         .intro-container {
             position: fixed;
@@ -202,6 +203,8 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             transition: transform 0.4s ease, opacity 0.4s ease;
+            min-height: calc(100vh - 200px);
+            overflow-y: auto;
         }
         .container.active {
             display: block;
@@ -468,15 +471,17 @@
         }
         .transfer-animation .logo {
             position: absolute;
-            top: 0;
-            left: calc(100% + 10px);
-            width: 50px;
-            height: 50px;
-            animation: followAmount 0.5s ease forwards;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            animation: glow 1.5s ease-in-out infinite;
         }
-        @keyframes followAmount {
-            0% { left: calc(100% + 10px); }
-            100% { left: calc(100% + 10px); }
+        @keyframes glow {
+            0% { filter: drop-shadow(0 0 5px #3b82f6); }
+            50% { filter: drop-shadow(0 0 15px #60a5fa); }
+            100% { filter: drop-shadow(0 0 5px #3b82f6); }
         }
         .receiver-message {
             position: fixed;
@@ -549,10 +554,13 @@
             border-radius: 15px;
             padding: 30px;
             max-width: 600px;
-            width: 100%;
+            width: 90%;
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .receipt-content::before {
             content: '';
@@ -568,6 +576,10 @@
             display: flex;
             align-items: center;
             margin-bottom: 20px;
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
         }
         .receipt-content .header img {
             width: 80px;
@@ -576,7 +588,7 @@
         }
         .receipt-content .header h1 {
             font-size: 1.8rem;
-            color: #3b82f6;
+            color: #fff;
             margin: 0;
             font-weight: 700;
         }
@@ -585,6 +597,7 @@
             color: #1f2937;
             margin: 10px 0;
             line-height: 1.5;
+            width: 100%;
         }
         .receipt-content p strong {
             color: #3b82f6;
@@ -595,23 +608,28 @@
             margin-top: 20px;
             font-size: 0.9rem;
             color: #6b7280;
+            width: 100%;
         }
-        .receipt-content .download-btn {
-            width: auto;
-            padding: 12px 24px;
+        .receipt-content .action-buttons {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
-            display: block;
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            width: 100%;
+            justify-content: center;
+        }
+        .receipt-content .download-btn, .receipt-content .close-btn {
+            width: 45%;
+            padding: 12px;
+            margin: 0;
         }
         .receipt-content .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            font-size: 1.5rem;
-            color: #1f2937;
-            cursor: pointer;
+            background: linear-gradient(135deg, #f87171, #ef4444);
+        }
+        .receipt-content .download-btn:hover, .receipt-content .close-btn:hover {
+            transform: translateY(-2px);
+        }
+        .pdf-content {
+            display: none;
         }
         @media (max-width: 480px) {
             body {
@@ -644,6 +662,19 @@
             }
             .intro-text {
                 font-size: 1.5rem;
+            }
+            .receipt-content {
+                padding: 20px;
+            }
+            .receipt-content .header img {
+                width: 60px;
+                height: 60px;
+            }
+            .receipt-content .header h1 {
+                font-size: 1.4rem;
+            }
+            .receipt-content p {
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -712,7 +743,7 @@
                 <p>Total Received: <span id="total-in">0 Ks</span></p>
                 <p>Total Sent: <span id="total-out">0 Ks</span></p>
             </div>
-            <div id="history-list"></div>
+            <div id="history-list" style="max-height: 60vh; overflow-y: auto;"></div>
         </div>
     </div>
 
@@ -759,10 +790,11 @@
 
     <!-- Receipt Overlay -->
     <div class="receipt-overlay" id="receipt-overlay">
-        <div class="receipt-content" id="receipt-content">
-            <button class="close-btn" onclick="closeReceipt()">✖</button>
-        </div>
+        <div class="receipt-content" id="receipt-content"></div>
     </div>
+
+    <!-- PDF Content for Download -->
+    <div class="pdf-content" id="pdf-content"></div>
 
     <!-- Menu Bar -->
     <div class="menu">
@@ -971,7 +1003,8 @@
                     .select('*')
                     .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
                     .gte('created_at', startDate)
-                    .lte('created_at', endDate);
+                    .lte('created_at', endDate)
+                    .order('created_at', { ascending: false });
                 if (error) throw error;
 
                 const historyList = document.getElementById('history-list');
@@ -1014,7 +1047,6 @@
 
                 const receiptContent = document.getElementById('receipt-content');
                 receiptContent.innerHTML = `
-                    <button class="close-btn" onclick="closeReceipt()">✖</button>
                     <div class="header">
                         <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
                         <h1>OPPER Payment</h1>
@@ -1030,7 +1062,10 @@
                     <div class="footer">
                         Powered by OPPER Payment
                     </div>
-                    <button class="download-btn" onclick="downloadReceipt(${transaction.id})">Download PDF</button>
+                    <div class="action-buttons">
+                        <button class="download-btn" onclick="downloadReceipt(${transaction.id})">Download PDF</button>
+                        <button class="close-btn" onclick="closeReceipt()">Close</button>
+                    </div>
                 `;
                 document.getElementById('receipt-overlay').style.display = 'flex';
             } catch (error) {
@@ -1041,7 +1076,33 @@
 
         async function downloadReceipt(transactionId) {
             try {
-                const receiptContent = document.getElementById('receipt-content');
+                const { data: transaction, error } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .eq('id', transactionId)
+                    .single();
+                if (error) throw error;
+
+                const pdfContent = document.getElementById('pdf-content');
+                pdfContent.innerHTML = `
+                    <div style="background: #fff; border-radius: 15px; padding: 30px; max-width: 600px; width: 100%; box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(59,130,246,0.1)"/></svg>'); opacity: 0.1;"></div>
+                        <div style="display: flex; align-items: center; margin-bottom: 20px; width: 100%; background: linear-gradient(135deg, #3b82f6, #60a5fa); padding: 15px; border-radius: 10px 10px 0 0;">
+                            <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" style="width: 80px; height: 80px; margin-right: 20px;">
+                            <h1 style="font-size: 1.8rem; color: #fff; margin: 0; font-weight: 700;">OPPER Payment</h1>
+                        </div>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Transaction Receipt</strong></p>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Amount:</strong> ${transaction.amount} Ks</p>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>From:</strong> ${transaction.from_phone}</p>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>To:</strong> ${transaction.to_phone}</p>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>To ID:</strong> ${transaction.to_phone === currentUser.phone ? currentUser.user_id : (await supabase.from('users').select('user_id').eq('phone', transaction.to_phone).single()).data.user_id}</p>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Note:</strong> ${transaction.note || 'None'}</p>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Time:</strong> ${transaction.timestamp}</p>
+                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
+                        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #6b7280;">Powered by OPPER Payment</div>
+                    </div>
+                `;
+
                 const opt = {
                     margin: 0.5,
                     filename: `Transaction_${transactionId}.pdf`,
@@ -1049,7 +1110,7 @@
                     html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
-                await html2pdf().set(opt).from(receiptContent).save();
+                await html2pdf().set(opt).from(pdfContent).save();
             } catch (error) {
                 console.error('Download Receipt Error:', error.message);
                 alert(`Error downloading receipt: ${error.message}`);
@@ -1058,6 +1119,7 @@
 
         function closeReceipt() {
             document.getElementById('receipt-overlay').style.display = 'none';
+            showSection('wallet');
         }
 
         function updateStatus(status) {
@@ -1180,6 +1242,16 @@
                     return;
                 }
 
+                const animation = document.createElement('div');
+                animation.className = 'transfer-animation';
+                animation.innerHTML = `
+                    Processing Transfer...<br><img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                `;
+                document.body.appendChild(animation);
+
+                const isOnline = navigator.onLine;
+                animation.style.animationDuration = isOnline ? '1s' : '3s';
+
                 const { data: sender, error: senderError } = await supabase
                     .from('users')
                     .select('*')
@@ -1197,6 +1269,7 @@
                 if (!sender || !receiver || sender.balance < amount || receiver.passport_status !== 'approved') {
                     document.getElementById('transfer-error').textContent = !sender ? 'Incorrect PIN.' : !receiver ? 'Recipient account not found.' : sender.balance < amount ? 'Insufficient balance.' : 'Recipient passport not approved.';
                     document.getElementById('transfer-error').classList.remove('hidden');
+                    animation.remove();
                     return;
                 }
 
@@ -1218,8 +1291,9 @@
                     if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`);
                 });
 
+                let transactionId;
                 await retryOperation(async () => {
-                    const { error: insertError } = await supabase
+                    const { data, error: insertError } = await supabase
                         .from('transactions')
                         .insert({
                             from_phone: sender.phone,
@@ -1227,8 +1301,11 @@
                             amount: amount,
                             note: note || null,
                             timestamp: now
-                        });
+                        })
+                        .select('id')
+                        .single();
                     if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`);
+                    transactionId = data.id;
                 });
 
                 currentUser.balance = sender.balance - amount;
@@ -1236,20 +1313,39 @@
                 document.getElementById('transfer-error').classList.add('hidden');
                 document.getElementById('transfer').classList.add('hidden');
 
-                const animation = document.createElement('div');
-                animation.className = 'transfer-animation';
-                animation.innerHTML = `
-                    Transfer Successful<br>${amount} Ks<br><span style="font-size: 2rem;">✔</span>
-                    <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                animation.remove();
+
+                const receiptContent = document.getElementById('receipt-content');
+                receiptContent.innerHTML = `
+                    <div class="header">
+                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                        <h1>OPPER Payment</h1>
+                    </div>
+                    <p><strong>Transaction Receipt</strong></p>
+                    <p><strong>Amount:</strong> ${amount} Ks</p>
+                    <p><strong>From:</strong> ${sender.phone}</p>
+                    <p><strong>To:</strong> ${receiver.phone}</p>
+                    <p><strong>To ID:</strong> ${receiver.user_id}</p>
+                    <p><strong>Note:</strong> ${note || 'None'}</p>
+                    <p><strong>Time:</strong> ${now}</p>
+                    <p><strong>Status:</strong> Sent</p>
+                    <div class="footer">
+                        Powered by OPPER Payment
+                    </div>
+                    <div class="action-buttons">
+                        <button class="download-btn" onclick="downloadReceipt(${transactionId})">Download PDF</button>
+                        <button class="close-btn" onclick="closeReceipt()">Close</button>
+                    </div>
                 `;
-                document.body.appendChild(animation);
-                setTimeout(() => animation.remove(), 1500);
+                document.getElementById('receipt-overlay').style.display = 'flex';
 
                 loadHistory();
             } catch (error) {
                 console.error('Transfer Error:', error.message);
                 document.getElementById('transfer-error').textContent = `An error occurred during transfer: ${error.message}`;
                 document.getElementById('transfer-error').classList.remove('hidden');
+                const animation = document.querySelector('.transfer-animation');
+                if (animation) animation.remove();
             }
         });
 
