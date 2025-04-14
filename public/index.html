@@ -7,28 +7,39 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             min-height: 100vh;
             padding: 15px;
             overflow-x: hidden;
             font-size: 16px;
             position: relative;
             color: #fff;
+            animation: fadeInBody 1s ease-in;
         }
-        .background-particles {
+        @keyframes fadeInBody {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .background-waves {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: transparent;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"%3E%3Cpath fill="%23ffd700" fill-opacity="0.2" d="M0,192L48,176C96,160,192,128,288,149.3C384,171,480,245,576,256C672,267,768,213,864,186.7C960,160,1056,160,1152,176C1248,192,1344,224,1392,240L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"%3E%3C/path%3E%3C/svg%3E') repeat;
+            animation: wave 10s infinite linear;
+        }
+        @keyframes wave {
+            0% { background-position: 0 0; }
+            100% { background-position: 1440px 0; }
         }
         .particle {
             position: absolute;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 215, 0, 0.5);
             border-radius: 50%;
             animation: float 15s infinite;
+            z-index: -1;
         }
         @keyframes float {
             0% { transform: translateY(0); opacity: 0.5; }
@@ -40,13 +51,18 @@
             top: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(135deg, #ff6f61, #ff9f43);
+            background: linear-gradient(135deg, #ff6f61, #ffd700);
             padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            animation: slideInTop 0.5s ease;
+        }
+        @keyframes slideInTop {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
         }
         .download-bar p {
             margin: 0;
@@ -62,10 +78,11 @@
             color: #ff6f61;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .download-bar button:hover {
-            transform: scale(1.05);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         .download-bar .close-btn {
             background: transparent;
@@ -80,43 +97,59 @@
             width: 50px;
             height: 50px;
             z-index: 100;
-            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
         .id-badge {
             position: fixed;
             top: 60px;
             right: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #ffd700;
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
             border-radius: 20px;
-            padding: 5px 15px;
+            padding: 8px 15px;
             font-weight: 600;
             color: #ffd700;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             z-index: 100;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
+            animation: glow 3s infinite;
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(255, 215, 0, 0.7); }
+            100% { box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); }
         }
         .container {
             width: 100%;
             max-width: 450px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
             margin: 80px auto 20px;
             display: none;
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease;
+            border= border: 2px solid rgba(255, 215, 0, 0.3);
+            animation: fadeIn 0.5s ease;
         }
         .container.active { display: block; transform: scale(1.02); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         h2 {
             text-align: center;
             color: #ffd700;
             margin-bottom: 20px;
             font-size: 1.8rem;
             font-weight: 700;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
         }
         .form-group { margin-bottom: 20px; }
         label {
@@ -129,9 +162,9 @@
         input, select {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ffd700;
+            border: 2px solid #ffd700;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             color: #fff;
             outline: none;
             font-size: 1rem;
@@ -139,35 +172,35 @@
         }
         input:focus, select:focus {
             border-color: #00c4ff;
-            box-shadow: 0 0 8px rgba(0, 196, 255, 0.3);
-            transform: scale(1.01);
+            box-shadow: 0 0 10px rgba(0, 196, 255, 0.5);
+            transform: scale(1.02);
         }
         button {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, #00c4ff, #007bff);
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
             border: none;
             border-radius: 10px;
-            color: #fff;
+            color: #1a2a6c;
             font-weight: 700;
             cursor: pointer;
             font-size: 1rem;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             position: relative;
             overflow: hidden;
         }
         button:hover {
-            background: linear-gradient(135deg, #007bff, #00c4ff);
+            background: linear-gradient(135deg, #ffaa00, #ffd700);
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
         button::after {
             content: '';
             position: absolute;
             width: 0;
             height: 0;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.4);
             border-radius: 50%;
             top: 50%;
             left: 50%;
@@ -185,12 +218,12 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             padding: 10px;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4);
             z-index: 100;
             backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
         }
         .menu button {
             flex: 1;
@@ -199,44 +232,54 @@
             flex-direction: column;
             align-items: center;
             font-size: 0.9rem;
-            padding: 8px;
+            padding: 10px;
             background: transparent;
             border: none;
             color: #fff;
             transition: all 0.3s ease;
+            position: relative;
         }
         .menu button.active {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 215, 0, 0.3);
             border-radius: 10px;
+            transform: scale(1.1);
+        }
+        .menu button:hover {
+            color: #ffd700;
+            transform: scale(1.05);
         }
         .menu img {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             margin-bottom: 5px;
-            filter: drop-shadow(0 0 5px #ffd700);
+            filter: drop-shadow(0 0 8px #ffd700);
+            transition: transform 0.3s ease;
+        }
+        .menu button:hover img {
+            transform: rotate(10deg) scale(1.2);
         }
         .history-item {
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 10px;
             font-size: 0.9rem;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border: 2px solid rgba(255, 215, 0, 0.3);
             position: relative;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         .history-item:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
         .history-item.out {
             color: #ff6f61;
-            border: 1px solid #ff6f61;
+            border: 2px solid #ff6f61;
         }
         .history-item.in {
             color: #4caf50;
-            border: 1px solid #4caf50;
+            border: 2px solid #4caf50;
         }
         .history-item .logo {
             position: absolute;
@@ -257,14 +300,14 @@
             cursor: pointer;
         }
         .history-header {
-            background: linear-gradient(135deg, #00c4ff, #007bff);
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 15px;
-            border: 1px solid #ffd700;
+            border: 2px solid #ffd700;
             font-size: 0.9rem;
-            color: #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            color: #1a2a6c;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         .status {
             padding: 5px 10px;
@@ -280,12 +323,18 @@
             background: linear-gradient(135deg, #ffd700, #ffaa00);
             padding: 15px;
             border-radius: 10px;
-            color: #1e3c72;
+            color: #1a2a6c;
             font-size: 1.5rem;
             font-weight: 700;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             margin-bottom: 20px;
+            animation: pulseBalance 2s infinite;
+        }
+        @keyframes pulseBalance {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
         }
         .error-message {
             color: #ff6f61;
@@ -301,7 +350,7 @@
             margin: 20px auto;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
         .game-container iframe {
             width: 100%;
@@ -313,26 +362,59 @@
             padding: 10px 20px;
             margin: 10px auto;
             display: block;
-            background: linear-gradient(135deg, #ff6f61, #ff9f43);
+            background: linear-gradient(135deg, #ff6f61, #ffd700);
         }
         .back-btn:hover {
-            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            background: linear-gradient(135deg, #ffd700, #ff6f61);
         }
         .notification {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #1a2a6c;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             z-index: 1000;
-            animation: slideIn 0.5s ease forwards;
+            animation: slideInRight 0.5s ease forwards;
         }
-        @keyframes slideIn {
+        @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+        .success-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            z-index: 2000;
+            animation: popIn 0.5s ease;
+            display: none;
+        }
+        .success-modal.active { display: block; }
+        @keyframes popIn {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .success-modal h3 {
+            color: #1a2a6c;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        .success-modal p {
+            color: #333;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        .success-modal button {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #1a2a6c;
         }
         .chat-notification {
             position: absolute;
@@ -356,6 +438,7 @@
             .download-bar p { font-size: 0.9rem; }
             .download-bar button { padding: 6px 12px; font-size: 0.9rem; }
             .game-container { height: 70vh; }
+            .success-modal { width: 90%; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -363,14 +446,15 @@
 <body>
     <!-- Download APK Bar -->
     <div class="download-bar" id="download-bar">
-        <p>Download the OPPER Payment App for a better experience!</p>
+        <p>Download the OPPER Payment App for a Premium Experience!</p>
         <div>
             <button onclick="downloadApk()">Download</button>
             <button class="close-btn" onclick="hideDownloadBar()">✖</button>
         </div>
     </div>
 
-    <!-- Background Particles -->
+    <!-- Background Waves and Particles -->
+    <div class="background-waves"></div>
     <div class="background-particles" id="particles"></div>
 
     <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
@@ -395,7 +479,7 @@
             <input type="text" id="transfer-note" placeholder="Note (optional)">
             <label>Payment PIN (6 digits)</label>
             <input type="password" id="transfer-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
-            <button id="confirm-transfer-btn">Confirm Transfer</button>
+            <button id="confirm-transfer-btn" onclick="confirmTransfer()">Confirm Transfer</button>
             <p id="transfer-error" class="error-message hidden"></p>
         </div>
     </div>
@@ -436,7 +520,7 @@
                 <input type="file" id="passport-image" accept="image/*" required>
                 <label>Selfie with Passport</label>
                 <input type="file" id="selfie-image" accept="image/*" required>
-                <button id="submit-passport-btn">Submit</button>
+                <button id="submit-passport-btn" onclick="submitPassport()">Submit</button>
             </div>
             <div id="passport-submitted" class="passport-submitted hidden">
                 <h3>Submitted</h3>
@@ -457,6 +541,13 @@
         <button class="back-btn" onclick="showSection('wallet')">Back to Payment</button>
     </div>
 
+    <!-- Success Modal -->
+    <div id="success-modal" class="success-modal">
+        <h3>Transfer Successful!</h3>
+        <p id="success-message"></p>
+        <button onclick="closeSuccessModal()">OK</button>
+    </div>
+
     <!-- Menu Bar -->
     <div class="menu">
         <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
@@ -471,9 +562,9 @@
         <button onclick="showSection('mi')" id="mi-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
-    <script>
+    <script type="module">
+        import { getUnreadCount, subscribeToChat } from './data.js';
+
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
@@ -561,13 +652,16 @@
             try {
                 const { data, error } = await supabase
                     .from('settings')
+                    .selectmeets('allow_transfers')
                     .select('allow_transfers')
                     .single();
                 if (error) throw new Error(`Fetch Settings Error: ${error.message}`);
                 allowTransfers = data.allow_transfers;
+                document.getElementById('transfer-btn').disabled = !allowTransfers || currentUser.passport_status !== 'approved' || currentUser.is_banned;
             } catch (error) {
                 console.error('Check Transfer Settings Error:', error.message);
                 allowTransfers = false;
+                document.getElementById('transfer-btn').disabled = true;
             }
         }
 
@@ -617,6 +711,7 @@
 
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                 updateStatus(currentUser.passport_status);
+                await updateUnreadCount();
 
                 await checkTransferSettings();
 
@@ -625,6 +720,7 @@
                         currentUser = { ...currentUser, ...payload.new };
                         document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                         updateStatus(currentUser.passport_status);
+                        checkTransferSettings();
                         if (currentUser.is_banned) {
                             alert('Your account has been banned.');
                             window.location.reload();
@@ -646,11 +742,22 @@
                     })
                     .subscribe();
 
+                subscribeToChat(userId, async () => {
+                    await updateUnreadCount();
+                });
+
                 loadHistory();
             } catch (error) {
                 console.error('Initialize User Error:', error.message);
                 alert(`An error occurred during initialization: ${error.message}`);
             }
+        }
+
+        async function updateUnreadCount() {
+            const count = await getUnreadCount(currentUser.user_id);
+            const notification = document.getElementById('chat-notification');
+            notification.textContent = count;
+            notification.classList.toggle('hidden', count === 0);
         }
 
         function updateStatus(status) {
@@ -812,10 +919,10 @@
         async function confirmTransfer() {
             try {
                 document.getElementById('transfer-error').classList.add('hidden');
-                const phone = document.getElementById('transfer-phone').value;
+                const phone = document.getElementById('transfer-phone').value.trim();
                 const amount = parseInt(document.getElementById('transfer-amount').value);
-                const note = document.getElementById('transfer-note').value;
-                const pin = document.getElementById('transfer-pin').value;
+                const note = document.getElementById('transfer-note').value.trim();
+                const pin = document.getElementById('transfer-pin').value.trim();
 
                 if (!phone.match(/^09\d{9}$/)) {
                     document.getElementById('transfer-error').textContent = 'Please enter a valid phone number (09xxxxxxxxx).';
@@ -835,9 +942,27 @@
                     return;
                 }
 
+                if (!currentUser.phone) {
+                    document.getElementById('transfer-error').textContent = 'Your account is not fully set up. Please verify your phone number.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
+
+                if (currentUser.passport_status !== 'approved') {
+                    document.getElementById('transfer-error').textContent = 'Your account is not verified.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
+
+                if (currentUser.is_banned) {
+                    document.getElementById('transfer-error').textContent = 'Your account is banned.';
+                    document.getElementById('transfer-error').classList.remove('hidden');
+                    return;
+                }
+
                 const { data: receiver, error: receiverError } = await supabase
                     .from('users')
-                    .select('user_id, balance, passport_status, is_banned')
+                    .select('user_id, balance, passport_status, is_banned, phone')
                     .eq('phone', phone)
                     .single();
                 if (receiverError || !receiver) {
@@ -870,9 +995,6 @@
                     return;
                 }
 
-                const senderNewBalance = currentUser.balance - amount;
-                const receiverNewBalance = (receiver.balance || 0) + amount;
-
                 const { data: settings, error: settingsError } = await supabase
                     .from('settings')
                     .select('allow_transfers')
@@ -883,35 +1005,28 @@
                     return;
                 }
 
-                const { error: senderError } = await supabase
-                    .from('users')
-                    .update({ balance: senderNewBalance })
-                    .eq('user_id', currentUser.user_id);
-                if (senderError) throw new Error(`Update Sender Balance Error: ${senderError.message}`);
-
-                const { error: receiverErrorUpdate } = await supabase
-                    .from('users')
-                    .update({ balance: receiverNewBalance })
-                    .eq('user_id', receiver.user_id);
-                if (receiverErrorUpdate) throw new Error(`Update Receiver Balance Error: ${receiverErrorUpdate.message}`);
+                const senderNewBalance = currentUser.balance - amount;
+                const receiverNewBalance = (receiver.balance || 0) + amount;
 
                 const { data: transactionRef, error: refError } = await supabase.rpc('generate_transaction_ref');
                 if (refError) throw new Error(`Generate Transaction Ref Error: ${refError.message}`);
 
-                const { error: transactionError } = await supabase
-                    .from('transactions')
-                    .insert({
-                        transaction_ref: transactionRef,
-                        from_phone: currentUser.phone,
-                        to_phone: phone,
-                        amount,
-                        note,
-                        timestamp: new Date().toISOString()
-                    });
-                if (transactionError) throw new Error(`Insert Transaction Error: ${transactionError.message}`);
+                // Update sender and receiver balances in a transaction
+                const { error: updateError } = await supabase.rpc('transfer_money', {
+                    sender_id: currentUser.user_id,
+                    receiver_id: receiver.user_id,
+                    amount,
+                    transaction_ref: transactionRef,
+                    from_phone: currentUser.phone,
+                    to_phone: receiver.phone,
+                    note
+                });
+
+                if (updateError) throw new Error(`Transfer Error: ${updateError.message}`);
 
                 toggleTransfer();
-                alert(`Successfully transferred ${amount} Ks to ${phone}. Transaction Ref: ${transactionRef}`);
+                showSuccessModal(`Successfully transferred ${amount} Ks to ${phone}. Transaction Ref: ${transactionRef}`);
+                triggerConfetti();
             } catch (error) {
                 console.error('Confirm Transfer Error:', error.message);
                 document.getElementById('transfer-error').textContent = `An error occurred: ${error.message}`;
@@ -986,28 +1101,29 @@
 
                 const isSender = transaction.from_phone === currentUser.phone;
                 const receipt = document.createElement('div');
-                receipt.style.padding = '20px';
+                receipt.style.padding = '30px';
                 receipt.style.background = '#fff';
-                receipt.style.color = '#000';
-                receipt.style.fontFamily = 'Arial, sans-serif';
-                receipt.style.borderRadius = '10px';
+                receipt.style.color = '#1a2a6c';
+                receipt.style.fontFamily = 'Inter, sans-serif';
+                receipt.style.borderRadius = '15px';
                 receipt.style.maxWidth = '400px';
                 receipt.style.margin = 'auto';
+                receipt.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
                 receipt.innerHTML = `
                     <div style="text-align: center;">
-                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" style="width: 80px; margin-bottom: 10px;">
-                        <h2 style="color: #1e3c72;">OPPER Payment</h2>
-                        <h3>Transaction Receipt</h3>
+                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" style="width: 100px; margin-bottom: 15px;">
+                        <h2 style="color: #1a2a6c; font-size: 2rem;">OPPER Payment</h2>
+                        <h3 style="font-size: 1.5rem;">Transaction Receipt</h3>
                     </div>
-                    <hr style="border: 1px solid #ffd700; margin: 10px 0;">
-                    <p><strong>Transaction Reference:</strong> ${transaction.transaction_ref}</p>
-                    <p><strong>${isSender ? 'Recipient' : 'Sender'} Phone:</strong> ${isSender ? transaction.to_phone : transaction.from_phone}</p>
-                    <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
-                    <p><strong>Note:</strong> ${transaction.note || 'N/A'}</p>
-                    <p><strong>Date:</strong> ${new Date(transaction.timestamp).toLocaleString()}</p>
-                    <p><strong>Status:</strong> Completed</p>
-                    <hr style="border: 1px solid #ffd700; margin: 10px 0;">
-                    <p style="text-align: center; font-size: 0.9rem;">Thank you for using OPPER Payment!</p>
+                    <hr style="border: 2px solid #ffd700; margin: 15px 0;">
+                    <p style="font-size: 1rem;"><strong>Transaction Reference:</strong> ${transaction.transaction_ref}</p>
+                    <p style="font-size: 1rem;"><strong>${isSender ? 'Recipient' : 'Sender'} Phone:</strong> ${isSender ? transaction.to_phone : transaction.from_phone}</p>
+                    <p style="font-size: 1rem;"><strong>Amount:</strong> ${transaction.amount} Ks</p>
+                    <p style="font-size: 1rem;"><strong>Note:</strong> ${transaction.note || 'N/A'}</p>
+                    <p style="font-size: 1rem;"><strong>Date:</strong> ${new Date(transaction.timestamp).toLocaleString()}</p>
+                    <p style="font-size: 1rem;"><strong>Status:</strong> Completed</p>
+                    <hr style="border: 2px solid #ffd700; margin: 15px 0;">
+                    <p style="text-align: center; font-size: 0.9rem; color: #333;">Thank you for using OPPER Payment!</p>
                 `;
 
                 const opt = {
@@ -1025,10 +1141,47 @@
             }
         }
 
-        document.getElementById('submit-passport-btn').addEventListener('click', submitPassport);
-        document.getElementById('confirm-transfer-btn').addEventListener('click', confirmTransfer);
+        function showSuccessModal(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.add('active');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.remove('active');
+        }
+
+        function triggerConfetti() {
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 2000 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+        }
 
         window.onload = initializeUser;
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </body>
 </html>
