@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPPER Payment Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0a192f, #1e3a8a);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e7ff;
+            font-size: 16px;
+            position: relative;
+            overflow-x: auto;
+        }
+        .background-waves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: transparent;
+            overflow: hidden;
+        }
+        .wave {
+            position: absolute;
+            bottom: -100px;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(59,130,246,0.3)"/></svg>');
+            background-size: cover;
+            animation: wave 10s linear infinite;
+        }
+        .wave:nth-child(2) {
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(147,197,253,0.2)"/></svg>');
+            animation: wave 15s linear infinite reverse;
+        }
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(1200px); }
+        }
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .login-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-box h2 {
+            color: #60a5fa;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #60a5fa;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e7ff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .login-box input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .login-box button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+        }
+        .login-box button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .login-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        .login-box .error-message {
+            color: #f87171;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        .login-box .success-message {
+            color: #4ade80;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        h1 {
+            text-align: center;
+            color: #60a5fa;
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+        }
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .control-panel button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .control-panel button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+        }
+        .control-panel button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .control-panel .enable-btn {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: #fff;
+        }
+        .control-panel .disable-btn {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: #fff;
+        }
+        .control-panel button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        .bulk-deposit {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .bulk-deposit h2 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .bulk-deposit .form-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .bulk-deposit input {
+            padding: 12px;
+            border: 1px solid #60a5fa;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e7ff;
+            font-size: 1rem;
+            outline: none;
+            flex: 1;
+        }
+        .bulk-deposit input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        }
+        .bulk-deposit button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .bulk-deposit button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+        }
+        .bulk-deposit button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .bulk-deposit button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        .search-bar {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .search-bar .form-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .search-bar input {
+            padding: 12px;
+            border: 1px solid #60a5fa;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e7ff;
+            font-size: 1rem;
+            outline: none;
+            flex: 1;
+        }
+        .search-bar input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        }
+        .search-bar button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .search-bar button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+        }
+        .search-bar button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .search-bar button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        .user-list {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .user-list h2 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .user-list table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        .user-list th, .user-list td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .user-list th {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+        .user-list td img {
+            width: 100px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .user-list button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .user-list .approve-btn {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: #fff;
+        }
+        .user-list .reject-btn {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: #fff;
+        }
+        .user-list .deposit-btn {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: #fff;
+        }
+        .user-list button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .error-message {
+            color: #f87171;
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .success-message {
+            color: #4ade80;
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+                font-size: 14px;
+            }
+            .login-box {
+                padding: 20px;
+                max-width: 90%;
+            }
+            .control-panel {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .bulk-deposit .form-group {
+                flex-direction: column;
+            }
+            .search-bar .form-group {
+                flex-direction: column;
+            }
+            .user-list table {
+                font-size: 0.85rem;
+            }
+            .user-list th, .user-list td {
+                padding: 8px;
+            }
+            .user-list td img {
+                width: 80px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Waves -->
+    <div class="background-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <!-- Login Container -->
+    <div class="login-container" id="login-container">
+        <div class="login-box">
+            <h2>Admin Login</h2>
+            <input type="email" id="admin-email" placeholder="Enter Email" required>
+            <input type="password" id="admin-pin" placeholder="Enter PIN" required>
+            <button onclick="adminLogin()">Login</button>
+            <p class="error-message" id="login-error"></p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <h1>OPPER Payment Server</h1>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <button class="enable-btn" onclick="enableTransfers()">Enable Transfers</button>
+        <button class="disable-btn" onclick="disableTransfers()">Disable Transfers</button>
+    </div>
+
+    <!-- Bulk Deposit -->
+    <div class="bulk-deposit">
+        <h2>Bulk Deposit to Approved Accounts</h2>
+        <div class="form-group">
+            <input type="number" id="bulk-amount" placeholder="Enter Amount (Ks)" required>
+            <button onclick="bulkDeposit()">Deposit to All Approved</button>
+        </div>
+        <p class="success-message" id="bulk-success"></p>
+        <p class="error-message" id="bulk-error"></p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <h2>Search User</h2>
+        <div class="form-group">
+            <input type="text" id="search-input" placeholder="Enter User ID or Phone Number" oninput="searchUser()">
+            <button onclick="searchUser()">Search</button>
+        </div>
+    </div>
+
+    <!-- User List -->
+    <div class="user-list">
+        <h2>User List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Phone</th>
+                    <th>Balance</th>
+                    <th>Status</th>
+                    <th>Passport</th>
+                    <th>Selfie</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="user-table"></tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
+
+        const ADMIN_EMAIL = 'crakb68@gmail.com';
+        const ADMIN_PIN = '155872';
+
+        function adminLogin() {
+            const email = document.getElementById('admin-email').value;
+            const pin = document.getElementById('admin-pin').value;
+            const errorMessage = document.getElementById('login-error');
+
+            if (email === ADMIN_EMAIL && pin === ADMIN_PIN) {
+                document.getElementById('login-container').classList.add('hidden');
+                loadUsers();
+            } else {
+                errorMessage.textContent = 'Invalid email or PIN.';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    console.warn(`Retry ${i + 1}/${maxRetries} failed: ${error.message}`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        async function loadUsers(searchQuery = '') {
+            try {
+                let query = supabase.from('users').select('*');
+                if (searchQuery) {
+                    query = query.or(`user_id.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
+                }
+                const { data: users, error } = await query;
+                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
+
+                const userTable = document.getElementById('user-table');
+                userTable.innerHTML = '';
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.user_id}</td>
+                        <td>${user.phone || 'N/A'}</td>
+                        <td>${user.balance} Ks</td>
+                        <td>${user.passport_status}</td>
+                        <td><img src="${user.passport_image || ''}" alt="Passport" onclick="window.open('${user.passport_image || ''}', '_blank')"></td>
+                        <td><img src="${user.selfie_image || ''}" alt="Selfie" onclick="window.open('${user.selfie_image || ''}', '_blank')"></td>
+                        <td>
+                            ${user.passport_status === 'pending' ? `
+                                <button class="approve-btn" onclick="updateStatus('${user.user_id}', 'approved')">Approve</button>
+                                <button class="reject-btn" onclick="updateStatus('${user.user_id}', 'rejected')">Reject</button>
+                            ` : ''}
+                            <button class="deposit-btn" onclick="depositToUser('${user.user_id}')">Deposit</button>
+                        </td>
+                    `;
+                    userTable.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Load Users Error:', error.message);
+                alert(`Error loading users: ${error.message}`);
+            }
+        }
+
+        async function searchUser() {
+            const searchQuery = document.getElementById('search-input').value;
+            loadUsers(searchQuery);
+        }
+
+        async function updateStatus(userId, status) {
+            try {
+                await retryOperation(async () => {
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ passport_status: status })
+                        .eq('user_id', userId);
+                    if (error) throw new Error(`Update Status Error: ${error.message}`);
+                });
+                loadUsers();
+                alert(`User ${status} successfully.`);
+            } catch (error) {
+                console.error('Update Status Error:', error.message);
+                alert(`Error updating status: ${error.message}`);
+            }
+        }
+
+        async function depositToUser(userId) {
+            const amount = prompt('Enter deposit amount (Ks):');
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount.');
+                return;
+            }
+
+            try {
+                await retryOperation(async () => {
+                    const { data: user, error: fetchError } = await supabase
+                        .from('users')
+                        .select('balance')
+                        .eq('user_id', userId)
+                        .single();
+                    if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
+
+                    const newBalance = user.balance + parseInt(amount);
+                    const { error: updateError } = await supabase
+                        .from('users')
+                        .update({ balance: newBalance })
+                        .eq('user_id', userId);
+                    if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+                });
+
+                loadUsers();
+                alert(`Deposited ${amount} Ks successfully.`);
+            } catch (error) {
+                console.error('Deposit Error:', error.message);
+                alert(`Error depositing: ${error.message}`);
+            }
+        }
+
+        async function bulkDeposit() {
+            const amount = parseInt(document.getElementById('bulk-amount').value);
+            const successMessage = document.getElementById('bulk-success');
+            const errorMessage = document.getElementById('bulk-error');
+
+            if (!amount || amount <= 0) {
+                errorMessage.textContent = 'Please enter a valid amount.';
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+                return;
+            }
+
+            try {
+                await retryOperation(async () => {
+                    const { data: users, error: fetchError } = await supabase
+                        .from('users')
+                        .select('user_id, balance')
+                        .eq('passport_status', 'approved');
+                    if (fetchError) throw new Error(`Fetch Users Error: ${fetchError.message}`);
+
+                    for (const user of users) {
+                        const newBalance = user.balance + amount;
+                        const { error: updateError } = await supabase
+                            .from('users')
+                            .update({ balance: newBalance })
+                            .eq('user_id', user.user_id);
+                        if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+                    }
+                });
+
+                successMessage.textContent = `Successfully deposited ${amount} Ks to all approved accounts.`;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                loadUsers();
+            } catch (error) {
+                console.error('Bulk Deposit Error:', error.message);
+                errorMessage.textContent = `Error during bulk deposit: ${error.message}`;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+        }
+
+        async function enableTransfers() {
+            try {
+                await retryOperation(async () => {
+                    const { error } = await supabase
+                        .from('settings')
+                        .update({ allow_transfers: true })
+                        .eq('id', 1);
+                    if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
+                });
+                alert('Transfers enabled successfully.');
+            } catch (error) {
+                console.error('Enable Transfers Error:', error.message);
+                alert(`Error enabling transfers: ${error.message}`);
+            }
+        }
+
+        async function disableTransfers() {
+            try {
+                await retryOperation(async () => {
+                    const { error } = await supabase
+                        .from('settings')
+                        .update({ allow_transfers: false })
+                        .eq('id', 1);
+                    if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
+                });
+                alert('Transfers disabled successfully.');
+            } catch (error) {
+                console.error('Disable Transfers Error:', error.message);
+                alert(`Error disabling transfers: ${error.message}`);
+            }
+        }
+
+        window.onload = () => {
+            document.getElementById('login-container').classList.remove('hidden');
+        };
+    </script>
+</body>
+</html>
