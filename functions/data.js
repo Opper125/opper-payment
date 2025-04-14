@@ -1,33 +1,32 @@
-// Initialize Supabase client
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
 const supabase = createClient(supabaseUrl, supabaseKey);
+const imgurClientId = '5befa9dd970c7d0';
 
-// Function to fetch chat messages for a user
 async function getChatMessages(userId) {
     try {
         const { data, error } = await supabase
             .from('chat_messages')
             .select('*')
             .eq('user_id', userId)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: true });
         if (error) throw new Error(`Fetch Chat Messages Error: ${error.message}`);
-        return data;
+        return data || [];
     } catch (error) {
         console.error('Get Chat Messages Error:', error.message);
         return [];
     }
 }
 
-// Function to send a new message
-async function sendMessage(userId, username, message) {
+async function sendMessage(userId, message, imageUrl = null, voiceUrl = null) {
     try {
         const newMessage = {
             user_id: userId,
-            username,
             message,
+            image_message: imageUrl,
+            voice_message: voiceUrl,
             status: 'open',
             created_at: new Date().toISOString()
         };
@@ -44,7 +43,6 @@ async function sendMessage(userId, username, message) {
     }
 }
 
-// Function to get unread message count
 async function getUnreadCount(userId) {
     try {
         const { count, error } = await supabase
@@ -61,31 +59,17 @@ async function getUnreadCount(userId) {
     }
 }
 
-// Function to subscribe to real-time chat updates
 function subscribeToChat(userId, callback) {
     const channel = supabase
         .channel(`chat-${userId}`)
         .on('postgres_changes', 
             { 
-                event: 'INSERT', 
+                event: '*', 
                 schema: 'public', 
                 table: 'chat_messages', 
                 filter: `user_id=eq.${userId}` 
             }, 
-            payload => {
-                callback(payload.new);
-            }
-        )
-        .on('postgres_changes', 
-            { 
-                event: 'UPDATE', 
-                schema: 'public', 
-                table: 'chat_messages', 
-                filter: `user_id=eq.${userId}` 
-            }, 
-            payload => {
-                callback(payload.new);
-            }
+            payload => callback(payload.new)
         )
         .subscribe();
     return () => supabase.removeChannel(channel);
@@ -108,5 +92,23 @@ async function respondToChat(chatId, response) {
     }
 }
 
-// Export functions for use in other files
-export { getChatMessages, sendMessage, getUnreadCount, subscribeToChat, respondToChat };
+async function uploadToImgur(file) {
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch('https://api.imgur.com/3/image', {
+            method: 'POST',
+            headers: { Authorization: `Client-ID ${imgurClientId}` },
+            body: formData,
+            timeout: 10000
+        });
+        const data = await response.json();
+        if (!data.success) throw new Error('Imgur Upload Failed');
+        return data.data.link;
+    } catch (error) {
+        console.error('Imgur Upload Error:', error.message);
+        throw error;
+    }
+}
+
+export { getChatMessages, sendMessage, getUnreadCount, subscribeToChat, respondToChat, uploadToImgur };
