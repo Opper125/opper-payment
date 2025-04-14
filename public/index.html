@@ -18,7 +18,7 @@
             overflow-x: hidden;
             color: #e0e7ff;
             position: relative;
-            touch-action: manipulation;
+            touch-action: auto;
         }
         .intro-container {
             position: fixed;
@@ -465,23 +465,39 @@
             font-size: 1.2rem;
             font-weight: 600;
             z-index: 10000;
-            animation: popIn 0.5s ease forwards, fadeOut 1s ease 1s forwards;
+            animation: popIn 0.5s ease forwards;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
             position: relative;
         }
-        .transfer-animation .logo {
-            position: absolute;
+        .success-animation {
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+            background: rgba(74, 222, 128, 0.9);
+            color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            z-index: 10001;
+            animation: popIn 0.5s ease forwards, fadeOut 1s ease 2s forwards;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .success-animation img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
             animation: glow 1.5s ease-in-out infinite;
         }
         @keyframes glow {
-            0% { filter: drop-shadow(0 0 5px #3b82f6); }
-            50% { filter: drop-shadow(0 0 15px #60a5fa); }
-            100% { filter: drop-shadow(0 0 5px #3b82f6); }
+            0% { filter: drop-shadow(0 0 5px #4ade80); }
+            50% { filter: drop-shadow(0 0 15px #4ade80); }
+            100% { filter: drop-shadow(0 0 5px #4ade80); }
         }
         .receiver-message {
             position: fixed;
@@ -743,7 +759,7 @@
                 <p>Total Received: <span id="total-in">0 Ks</span></p>
                 <p>Total Sent: <span id="total-out">0 Ks</span></p>
             </div>
-            <div id="history-list" style="max-height: 60vh; overflow-y: auto;"></div>
+            <div id="history-list" style="overflow-y: auto;"></div>
         </div>
     </div>
 
@@ -1244,9 +1260,7 @@
 
                 const animation = document.createElement('div');
                 animation.className = 'transfer-animation';
-                animation.innerHTML = `
-                    Processing Transfer...<br><img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-                `;
+                animation.textContent = 'Processing Transfer...';
                 document.body.appendChild(animation);
 
                 const isOnline = navigator.onLine;
@@ -1315,29 +1329,41 @@
 
                 animation.remove();
 
-                const receiptContent = document.getElementById('receipt-content');
-                receiptContent.innerHTML = `
-                    <div class="header">
-                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-                        <h1>OPPER Payment</h1>
-                    </div>
-                    <p><strong>Transaction Receipt</strong></p>
-                    <p><strong>Amount:</strong> ${amount} Ks</p>
-                    <p><strong>From:</strong> ${sender.phone}</p>
-                    <p><strong>To:</strong> ${receiver.phone}</p>
-                    <p><strong>To ID:</strong> ${receiver.user_id}</p>
-                    <p><strong>Note:</strong> ${note || 'None'}</p>
-                    <p><strong>Time:</strong> ${now}</p>
-                    <p><strong>Status:</strong> Sent</p>
-                    <div class="footer">
-                        Powered by OPPER Payment
-                    </div>
-                    <div class="action-buttons">
-                        <button class="download-btn" onclick="downloadReceipt(${transactionId})">Download PDF</button>
-                        <button class="close-btn" onclick="closeReceipt()">Close</button>
-                    </div>
+                const successAnimation = document.createElement('div');
+                successAnimation.className = 'success-animation';
+                successAnimation.innerHTML = `
+                    <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                    Transfer Successful
                 `;
-                document.getElementById('receipt-overlay').style.display = 'flex';
+                document.body.appendChild(successAnimation);
+
+                setTimeout(() => {
+                    successAnimation.remove();
+
+                    const receiptContent = document.getElementById('receipt-content');
+                    receiptContent.innerHTML = `
+                        <div class="header">
+                            <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                            <h1>OPPER Payment</h1>
+                        </div>
+                        <p><strong>Transaction Receipt</strong></p>
+                        <p><strong>Amount:</strong> ${amount} Ks</p>
+                        <p><strong>From:</strong> ${sender.phone}</p>
+                        <p><strong>To:</strong> ${receiver.phone}</p>
+                        <p><strong>To ID:</strong> ${receiver.user_id}</p>
+                        <p><strong>Note:</strong> ${note || 'None'}</p>
+                        <p><strong>Time:</strong> ${now}</p>
+                        <p><strong>Status:</strong> Sent</p>
+                        <div class="footer">
+                            Powered by OPPER Payment
+                        </div>
+                        <div class="action-buttons">
+                            <button class="download-btn" onclick="downloadReceipt(${transactionId})">Download PDF</button>
+                            <button class="close-btn" onclick="closeReceipt()">Close</button>
+                        </div>
+                    `;
+                    document.getElementById('receipt-overlay').style.display = 'flex';
+                }, 2500);
 
                 loadHistory();
             } catch (error) {
