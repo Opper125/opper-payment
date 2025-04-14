@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPPER Admin Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+            font-size: 16px;
+            position: relative;
+        }
+        .background-waves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"%3E%3Cpath fill="%23ffd700" fill-opacity="0.2" d="M0,192L48,176C96,160,192,128,288,149.3C384,171,480,245,576,256C672,267,768,213,864,186.7C960,160,1056,160,1152,176C1248,192,1344,224,1392,240L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"%3E%3C/path%3E%3C/svg%3E') repeat;
+            animation: wave 10s infinite linear;
+        }
+        @keyframes wave {
+            0% { background-position: 0 0; }
+            100% { background-position: 1440px 0; }
+        }
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+        }
+        .admin-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        .user-list {
+            width: 30%;
+            border-right: 2px solid rgba(255, 215, 0, 0.3);
+            overflow-y: auto;
+            padding: 10px;
+            height: 80vh;
+        }
+        .user-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .user-item:hover {
+            background: rgba(255, 215, 0, 0.3);
+            transform: scale(1.02);
+        }
+        .user-item.active {
+            background: rgba(255, 215, 0, 0.5);
+        }
+        .user-item p {
+            font-size: 0.9rem;
+        }
+        .chat-area {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        .message.user {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #1a2a6c;
+            align-self: flex-end;
+        }
+        .message.admin {
+            background: linear-gradient(135deg, #00c4ff, #007bff);
+            color: #fff;
+            align-self: flex-start;
+        }
+        .message img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        .message audio {
+            width: 100%;
+            margin-top: 5px;
+        }
+        .message-timestamp {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        .chat-input input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            outline: none;
+        }
+        .chat-input input[type="text"]:focus {
+            border-color: #00c4ff;
+            box-shadow: 0 0 10px rgba(0, 196, 255, 0.5);
+        }
+        .chat-input button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            border: none;
+            border-radius: 10px;
+            color: #1a2a6c;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .chat-input button:hover {
+            background: linear-gradient(135deg, #ffaa00, #ffd700);
+            transform: scale(1.05);
+        }
+        .error-message {
+            color: #ff6f61;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .controls {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .controls button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ff6f61, #ffd700);
+            border: none;
+            border-radius: 10px;
+            color: #1a2a6c;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .controls button:hover {
+            background: linear-gradient(135deg, #ffd700, #ff6f61);
+            transform: scale(1.05);
+        }
+        @media (max-width: 768px) {
+            .admin-container { flex-direction: column; }
+            .user-list { width: 100%; height: 200px; border-right: none; border-bottom: 2px solid rgba(255, 215, 0, 0.3); }
+            .chat-area { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            body { padding: 10px; font-size: 14px; }
+            h1 { font-size: 1.5rem; }
+            .chat-input button { padding: 8px 15px; }
+            .controls button { padding: 8px 15px; }
+            .message { max-width: 85%; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-waves"></div>
+    <h1>OPPER Admin Panel</h1>
+    <div class="admin-container">
+        <div class="user-list" id="user-list"></div>
+        <div class="chat-area">
+            <div class="controls" id="controls" style="display: none;">
+                <button onclick="approvePassport()">Approve Passport</button>
+                <button onclick="rejectPassport()">Reject Passport</button>
+                <button onclick="toggleBan()">Ban/Unban User</button>
+                <button onclick="toggleTransfers()">Toggle Transfers</button>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" id="chat-text" placeholder="Type your response...">
+                <button onclick="sendAdminResponse()">Send</button>
+            </div>
+            <p id="chat-error" class="error-message hidden"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getChatMessages, respondToChat } from './data.js';
+
+        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc'; // Replace with actual service_role key
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
+
+        let selectedUserId = null;
+
+        async function initializeAdmin() {
+            try {
+                await loadUsers();
+                supabase.channel('chat-messages')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, () => loadUsers())
+                    .subscribe();
+            } catch (error) {
+                console.error('Initialize Admin Error:', error.message);
+                document.getElementById('chat-error').textContent = `Error: ${error.message}`;
+                document.getElementById('chat-error').classList.remove('hidden');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const { data: messages, error } = await supabase
+                    .from('chat_messages')
+                    .select('user_id, username')
+                    .order('created_at', { ascending: false });
+                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
+
+                const uniqueUsers = Array.from(new Set(messages.map(m => m.user_id)))
+                    .map(user_id => ({
+                        user_id,
+                        username: messages.find(m => m.user_id === user_id).username
+                    }));
+
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = '';
+
+                uniqueUsers.forEach(user => {
+                    const userItem = document.createElement('div');
+                    userItem.className = `user-item ${user.user_id === selectedUserId ? 'active' : ''}`;
+                    userItem.innerHTML = `
+                        <p><strong>ID:</strong> ${user.user_id}</p>
+                        <p><strong>Username:</strong> ${user.username}</p>
+                    `;
+                    userItem.onclick = () => selectUser(user.user_id);
+                    userList.appendChild(userItem);
+                });
+            } catch (error) {
+                console.error('Load Users Error:', error.message);
+                document.getElementById('chat-error').textContent = `Error loading users: ${error.message}`;
+                document.getElementById('chat-error').classList.remove('hidden');
+            }
+        }
+
+        async function selectUser(userId) {
+            try {
+                selectedUserId = userId;
+                document.getElementById('controls').style.display = 'block';
+                await loadMessages();
+                await checkUserStatus();
+
+                supabase.channel(`chat-${userId}`)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `user_id=eq.${userId}` }, () => loadMessages())
+                    .subscribe();
+
+                document.querySelectorAll('.user-item').forEach(item => {
+                    item.classList.toggle('active', item.innerHTML.includes(userId));
+                });
+            } catch (error) {
+                console.error('Select User Error:', error.message);
+                document.getElementById('chat-error').textContent = `Error selecting user: ${error.message}`;
+                document.getElementById('chat-error').classList.remove('hidden');
+            }
+        }
+
+        async function checkUserStatus() {
+            try {
+                const { data: user, error } = await supabase
+                    .from('users')
+                    .select('passport_status, is_banned')
+                    .eq('user_id', selectedUserId)
+                    .single();
+                if (error) throw new Error(`Check User Status Error: ${error.message}`);
+            } catch (error) {
+                console.error('Check User Status Error:', error.message);
+            }
+        }
+
+        async function loadMessages() {
+            if (!selectedUserId) return;
+            try {
+                const messages = await getChatMessages(selectedUserId);
+                const chatMessages = document.getElementById('chat-messages');
+                chatMessages.innerHTML = '';
+
+                messages.forEach(msg => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${msg.admin_response ? 'admin' : 'user'}`;
+                    let content = '';
+                    if (msg.message) content += `<p>${msg.message}</p>`;
+                    if (msg.image_message) content += `<img src="${msg.image_message}" alt="Chat Image">`;
+                    if (msg.voice_message) content += `<audio controls src="${msg.voice_message}"></audio>`;
+                    if (msg.admin_response) content += `<p>${msg.admin_response}</p>`;
+                    messageDiv.innerHTML = `
+                        ${content}
+                        <div class="message-timestamp">${new Date(msg.created_at).toLocaleString()}</div>
+                    `;
+                    chatMessages.appendChild(messageDiv);
+                });
+
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (error) {
+                console.error('Load Messages Error:', error.message);
+                document.getElementById('chat-error').textContent = `Error loading messages: ${error.message}`;
+                document.getElementById('chat-error').classList.remove('hidden');
+            }
+        }
+
+        async function sendAdminResponse() {
+            try {
+                document.getElementById('chat-error').classList.add('hidden');
+                const response = document.getElementById('chat-text').value.trim();
+                if (!response || !selectedUserId) {
+                    document.getElementById('chat-error').textContent = 'Please select a user and enter a response.';
+                    document.getElementById('chat-error').classList.remove('hidden');
+                    return;
+                }
+
+                await respondToChat(selectedUserId, response);
+                document.getElementById('chat-text').value = '';
+                await loadMessages();
+            } catch (error) {
+                console.error('Send Admin Response Error:', error.message);
+                document.getElementById('chat-error').textContent = `Error sending response: ${error.message}`;
+                document.getElementById('chat-error').classList.remove('hidden');
+            }
+        }
+
+        async function approvePassport() {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ passport_status: 'approved' })
+                    .eq('user_id', selectedUserId);
+                if (error) throw new Error(`Approve Passport Error: ${error.message}`);
+                alert('Passport approved successfully.');
+                await checkUserStatus();
+            } catch (error) {
+                console.error('Approve Passport Error:', error.message);
+                alert(`Error approving passport: ${error.message}`);
+            }
+        }
+
+        async function rejectPassport() {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ passport_status: 'rejected' })
+                    .eq('user_id', selectedUserId);
+                if (error) throw new Error(`Reject Passport Error: ${error.message}`);
+                alert('Passport rejected successfully.');
+                await checkUserStatus();
+            } catch (error) {
+                console.error('Reject Passport Error:', error.message);
+                alert(`Error rejecting passport: ${error.message}`);
+            }
+        }
+
+        async function toggleBan() {
+            try {
+                const { data: user, error: fetchError } = await supabase
+                    .from('users')
+                    .select('is_banned')
+                    .eq('user_id', selectedUserId)
+                    .single();
+                if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
+
+                const newBanStatus = !user.is_banned;
+                const { error } = await supabase
+                    .from('users')
+                    .update({ is_banned: newBanStatus })
+                    .eq('user_id', selectedUserId);
+                if (error) throw new Error(`Toggle Ban Error: ${error.message}`);
+
+                alert(`User ${newBanStatus ? 'banned' : 'unbanned'} successfully.`);
+                await checkUserStatus();
+            } catch (error) {
+                console.error('Toggle Ban Error:', error.message);
+                alert(`Error toggling ban: ${error.message}`);
+            }
+        }
+
+        async function toggleTransfers() {
+            try {
+                const { data: settings, error: fetchError } = await supabase
+                    .from('settings')
+                    .select('allow_transfers')
+                    .single();
+                if (fetchError) throw new Error(`Fetch Settings Error: ${fetchError.message}`);
+
+                const newStatus = !settings.allow_transfers;
+                const { error } = await supabase
+                    .from('settings')
+                    .update({ allow_transfers: newStatus, updated_at: new Date().toISOString() })
+                    .eq('id', settings.id);
+                if (error) throw new Error(`Toggle Transfers Error: ${error.message}`);
+
+                alert(`Transfers ${newStatus ? 'enabled' : 'disabled'} successfully.`);
+            } catch (error) {
+                console.error('Toggle Transfers Error:', error.message);
+                alert(`Error toggling transfers: ${error.message}`);
+            }
+        }
+
+        window.onload = initializeAdmin;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>
