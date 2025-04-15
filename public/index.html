@@ -474,7 +474,6 @@
             z-index: 10000;
             animation: popIn 0.5s ease forwards;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            position: relative;
         }
         .success-animation {
             position: fixed;
@@ -530,10 +529,6 @@
             0% { transform: translateX(-50%) translateY(-100%); opacity: 0; }
             100% { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
-        }
         .hidden {
             display: none;
         }
@@ -584,98 +579,121 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            font-family: 'Montserrat', sans-serif;
         }
-        .receipt-content::before {
+        .ticket-container {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 15px;
+            position: relative;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin: 0 auto;
+        }
+        .ticket-container::before,
+        .ticket-container::after {
             content: '';
             position: absolute;
-            top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(59,130,246,0.1)"/></svg>');
-            opacity: 0.1;
+            right: 0;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0,10 C10,0 20,20 30,10 C40,0 50,20 60,10 C70,0 80,20 90,10 C100,0 100,20 100,10 L100,20 L0,20 Z" fill="white"/></svg>') repeat-x;
+            background-size: 20px 20px;
         }
-        .receipt-content .header {
+        .ticket-container::before {
+            top: -10px;
+        }
+        .ticket-container::after {
+            bottom: -10px;
+            transform: rotate(180deg);
+        }
+        .ticket-container .header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
-            width: 100%;
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            justify-content: center;
             padding: 15px;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
             border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
         }
-        .receipt-content .header img {
-            width: 80px;
-            height: 80px;
-            margin-right: 20px;
+        .ticket-container .header img {
+            width: 60px;
+            height: 60px;
+            margin-right: 15px;
         }
-        .receipt-content .header h1 {
-            font-size: 1.8rem;
+        .ticket-container .header h1 {
+            font-size: 1.6rem;
             color: #fff;
             margin: 0;
             font-weight: 700;
+            font-family: 'Playfair Display', serif;
         }
-        .receipt-content p {
-            font-size: 1rem;
+        .ticket-container .content {
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 0 0 10px 10px;
+        }
+        .ticket-container p {
+            font-size: 0.95rem;
             color: #1f2937;
-            margin: 10px 0;
+            margin: 8px 0;
             line-height: 1.5;
-            width: 100%;
+            font-family: 'Montserrat', sans-serif;
         }
-        .receipt-content p strong {
+        .ticket-container p strong {
             color: #3b82f6;
             font-weight: 600;
         }
-        .receipt-content .footer {
+        .ticket-container .footer {
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.9rem;
+            margin-top: 15px;
+            font-size: 0.85rem;
             color: #6b7280;
-            width: 100%;
+            font-style: italic;
         }
-        .receipt-content .action-buttons {
+        .action-buttons {
             display: flex;
             gap: 10px;
             margin-top: 20px;
             width: 100%;
             justify-content: center;
         }
-        .receipt-content .download-btn, .receipt-content .close-btn {
+        .download-btn, .close-btn {
             width: 45%;
             padding: 12px;
             margin: 0;
         }
-        .receipt-content .close-btn {
+        .close-btn {
             background: linear-gradient(135deg, #f87171, #ef4444);
         }
-        .receipt-content .download-btn:hover, .receipt-content .close-btn:hover {
+        .download-btn:hover, .close-btn:hover {
             transform: translateY(-2px);
         }
-        .receipt-content .done-ui {
+        .done-ui {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 20px;
-            padding: 10px;
+            margin-top: 15px;
+            padding: 8px;
             background: #4ade80;
-            border-radius: 10px;
+            border-radius: 8px;
             color: #fff;
             font-weight: 600;
             width: 100%;
             text-align: center;
         }
-        .receipt-content .done-ui img {
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
+        .done-ui img {
+            width: 25px;
+            height: 25px;
+            margin-right: 8px;
         }
-        .pdf-content {
+        .photo-content {
             display: none;
         }
         @media (max-width: 480px) {
             body {
                 padding: 12px;
-                font900px;
             }
             .container {
                 padding: 18px;
@@ -704,22 +722,22 @@
             .intro-text {
                 font-size: 1.5rem;
             }
-            .receipt-content {
-                padding: 20px;
+            .ticket-container {
+                max-width: 300px;
             }
-            .receipt-content .header img {
-                width: 60px;
-                height: 60px;
+            .ticket-container .header img {
+                width: 50px;
+                height: 50px;
             }
-            .receipt-content .header h1 {
+            .ticket-container .header h1 {
                 font-size: 1.4rem;
             }
-            .receipt-content p {
-                font-size: 0.9rem;
+            .ticket-container p {
+                font-size: 0.85rem;
             }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Intro Animation -->
@@ -831,11 +849,17 @@
 
     <!-- Receipt Overlay -->
     <div class="receipt-overlay" id="receipt-overlay">
-        <div class="receipt-content" id="receipt-content"></div>
+        <div class="receipt-content">
+            <div class="ticket-container" id="ticket-content"></div>
+            <div class="action-buttons">
+                <button class="download-btn" onclick="downloadReceipt()">Download Photo</button>
+                <button class="close-btn" onclick="closeReceipt()">Close</button>
+            </div>
+        </div>
     </div>
 
-    <!-- PDF Content for Download -->
-    <div class="pdf-content" id="pdf-content"></div>
+    <!-- Photo Content for Download -->
+    <div class="photo-content" id="photo-content"></div>
 
     <!-- Menu Bar -->
     <div class="menu">
@@ -846,10 +870,13 @@
         <button onclick="showSection('mi')" id="mi-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
+    <!-- Audio Elements -->
     <audio id="intro-sound" src="https://cdn.pixabay.com/audio/2023/03/22/14-16-48-141_140bpm.mp3" preload="auto"></audio>
+    <audio id="transfer-sent-sound" src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_sent.mp3" preload="auto"></audio>
+    <audio id="transfer-received-sound" src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_received.mp3" preload="auto"></audio>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
@@ -859,6 +886,7 @@
 
         let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
         let allowTransfers = true;
+        let currentTransactionId = null;
 
         // Play Intro Sound
         window.onload = () => {
@@ -968,6 +996,7 @@
                             message.className = 'receiver-message';
                             message.innerHTML = `Received ${transaction.amount} Ks<br>From: ${transaction.from_phone}`;
                             document.body.appendChild(message);
+                            document.getElementById('transfer-received-sound').play();
                             setTimeout(() => message.remove(), 5000);
                         }
                         loadHistory();
@@ -1087,34 +1116,33 @@
                     .single();
                 if (error) throw error;
 
+                currentTransactionId = transactionId;
                 const toUserId = transaction.to_phone === currentUser.phone 
                     ? currentUser.user_id 
                     : (await supabase.from('users').select('user_id').eq('phone', transaction.to_phone).single()).data.user_id;
 
-                const receiptContent = document.getElementById('receipt-content');
-                receiptContent.innerHTML = `
+                const ticketContent = document.getElementById('ticket-content');
+                ticketContent.innerHTML = `
                     <div class="header">
-                        <img src="${logoUrl}" alt="OPPER Logo" style="width: 80px; height: 80px; margin-right: 20px;">
+                        <img src="${logoUrl}" alt="OPPER Logo">
                         <h1>OPPER Payment</h1>
                     </div>
-                    <p><strong>Transaction Receipt</strong></p>
-                    <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
-                    <p><strong>From:</strong> ${transaction.from_phone}</p>
-                    <p><strong>To:</strong> ${transaction.to_phone}</p>
-                    <p><strong>To ID:</strong> ${toUserId}</p>
-                    <p><strong>Note:</strong> ${transaction.note || 'None'}</p>
-                    <p><strong>Time:</strong> ${transaction.timestamp}</p>
-                    <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
-                    <div class="done-ui">
-                        <img src="${logoUrl}" alt="Done Icon">
-                        Transaction Completed
-                    </div>
-                    <div class="footer">
-                        Powered by OPPER Payment
-                    </div>
-                    <div class="action-buttons">
-                        <button class="download-btn" onclick="downloadReceipt(${transaction.id})">Download PDF</button>
-                        <button class="close-btn" onclick="closeReceipt()">Close</button>
+                    <div class="content">
+                        <p><strong>Transaction Receipt</strong></p>
+                        <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
+                        <p><strong>From:</strong> ${transaction.from_phone}</p>
+                        <p><strong>To:</strong> ${transaction.to_phone}</p>
+                        <p><strong>To ID:</strong> ${toUserId}</p>
+                        <p><strong>Note:</strong> ${transaction.note || 'None'}</p>
+                        <p><strong>Time:</strong> ${transaction.timestamp}</p>
+                        <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
+                        <div class="done-ui">
+                            <img src="${logoUrl}" alt="Done Icon">
+                            Transaction Completed
+                        </div>
+                        <div class="footer">
+                            Powered by OPPER Payment
+                        </div>
                     </div>
                 `;
                 document.getElementById('receipt-overlay').style.display = 'flex';
@@ -1124,61 +1152,19 @@
             }
         }
 
-        async function downloadReceipt(transactionId) {
+        async function downloadReceipt() {
             try {
-                const { data: transaction, error } = await supabase
-                    .from('transactions')
-                    .select('*')
-                    .eq('id', transactionId)
-                    .single();
-                if (error) throw error;
-
-                const toUserId = transaction.to_phone === currentUser.phone 
-                    ? currentUser.user_id 
-                    : (await supabase.from('users').select('user_id').eq('phone', transaction.to_phone).single()).data.user_id;
-
-                const pdfContent = document.getElementById('pdf-content');
-                pdfContent.innerHTML = `
-                    <div style="background: #fff; border-radius: 15px; padding: 30px; max-width: 600px; width: 100%; box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; font-family: 'Poppins', sans-serif;">
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('data:image/svg+xml;utf8,<svg viewBox=\\"0 0 1200 120\\" preserveAspectRatio=\\"none\\"><path d=\\"M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z\\" fill=\\"rgba(59,130,246,0.1)\\"/></svg>'); opacity: 0.1;"></div>
-                        <div style="display: flex; align-items: center; margin-bottom: 20px; width: 100%; background: linear-gradient(135deg, #3b82f6, #60a5fa); padding: 15px; border-radius: 10px 10px 0 0;">
-                            <img src="${logoUrl}" alt="OPPER Logo" style="width: 80px; height: 80px; margin-right: 20px;">
-                            <h1 style="font-size: 1.8rem; color: #fff; margin: 0; font-weight: 700;">OPPER Payment</h1>
-                        </div>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Transaction Receipt</strong></p>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Amount:</strong> ${transaction.amount} Ks</p>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>From:</strong> ${transaction.from_phone}</p>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>To:</strong> ${transaction.to_phone}</p>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>To ID:</strong> ${toUserId}</p>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Note:</strong> ${transaction.note || 'None'}</p>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Time:</strong> ${transaction.timestamp}</p>
-                        <p style="font-size: 1rem; color: #1f2937; margin: 10px 0; line-height: 1.5;"><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? 'Sent' : 'Received'}</p>
-                        <div style="display: flex; align-items: center; justify-content: center; margin-top: 20px; padding: 10px; background: #4ade80; border-radius: 10px; color: #fff; font-weight: 600; width: 100%; text-align: center;">
-                            <img src="${logoUrl}" alt="Done Icon" style="width: 30px; height: 30px; margin-right: 10px;">
-                            Transaction Completed
-                        </div>
-                        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #6b7280;">Powered by OPPER Payment</div>
-                    </div>
-                `;
-
-                const opt = {
-                    margin: 0.5,
-                    filename: `Transaction_${transactionId}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2, 
-                        useCORS: true,
-                        onclone: (clonedDoc) => {
-                            const images = clonedDoc.querySelectorAll('img');
-                            images.forEach(img => {
-                                img.crossOrigin = 'Anonymous';
-                                img.src = logoUrl;
-                            });
-                        }
-                    },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
-                await html2pdf().set(opt).from(pdfContent).save();
+                const ticketContent = document.getElementById('ticket-content');
+                const canvas = await html2canvas(ticketContent, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+                
+                const link = document.createElement('a');
+                link.download = `Transaction_${currentTransactionId}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
             } catch (error) {
                 console.error('Download Receipt Error:', error.message);
                 alert(`Error downloading receipt: ${error.message}`);
@@ -1381,6 +1367,8 @@
 
                 animation.remove();
 
+                document.getElementById('transfer-sent-sound').play();
+
                 const successAnimation = document.createElement('div');
                 successAnimation.className = 'success-animation';
                 successAnimation.innerHTML = `
@@ -1392,32 +1380,31 @@
                 setTimeout(() => {
                     successAnimation.remove();
 
-                    const receiptContent = document.getElementById('receipt-content');
-                    receiptContent.innerHTML = `
+                    const ticketContent = document.getElementById('ticket-content');
+                    ticketContent.innerHTML = `
                         <div class="header">
-                            <img src="${logoUrl}" alt="OPPER Logo" style="width: 80px; height: 80px; margin-right: 20px;">
+                            <img src="${logoUrl}" alt="OPPER Logo">
                             <h1>OPPER Payment</h1>
                         </div>
-                        <p><strong>Transaction Receipt</strong></p>
-                        <p><strong>Amount:</strong> ${amount} Ks</p>
-                        <p><strong>From:</strong> ${sender.phone}</p>
-                        <p><strong>To:</strong> ${receiver.phone}</p>
-                        <p><strong>To ID:</strong> ${receiver.user_id}</p>
-                        <p><strong>Note:</strong> ${note || 'None'}</p>
-                        <p><strong>Time:</strong> ${now}</p>
-                        <p><strong>Status:</strong> Sent</p>
-                        <div class="done-ui">
-                            <img src="${logoUrl}" alt="Done Icon">
-                            Transaction Completed
-                        </div>
-                        <div class="footer">
-                            Powered by OPPER Payment
-                        </div>
-                        <div class="action-buttons">
-                            <button class="download-btn" onclick="downloadReceipt(${transactionId})">Download PDF</button>
-                            <button class="close-btn" onclick="closeReceipt()">Close</button>
+                        <div class="content">
+                            <p><strong>Transaction Receipt</strong></p>
+                            <p><strong>Amount:</strong> ${amount} Ks</p>
+                            <p><strong>From:</strong> ${sender.phone}</p>
+                            <p><strong>To:</strong> ${receiver.phone}</p>
+                            <p><strong>To ID:</strong> ${receiver.user_id}</p>
+                            <p><strong>Note:</strong> ${note || 'None'}</p>
+                            <p><strong>Time:</strong> ${now}</p>
+                            <p><strong>Status:</strong> Sent</p>
+                            <div class="done-ui">
+                                <img src="${logoUrl}" alt="Done Icon">
+                                Transaction Completed
+                            </div>
+                            <div class="footer">
+                                Powered by OPPER Payment
+                            </div>
                         </div>
                     `;
+                    currentTransactionId = transactionId;
                     document.getElementById('receipt-overlay').style.display = 'flex';
                 }, 2500);
 
@@ -1451,6 +1438,14 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+        }
+
+        // Function to update sound files (optional for future use)
+        function updateSound(type, newUrl) {
+            const soundElement = document.getElementById(`${type}-sound`);
+            if (soundElement) {
+                soundElement.src = newUrl;
+            }
         }
     </script>
 </body>
