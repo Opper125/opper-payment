@@ -691,6 +691,46 @@
         .photo-content {
             display: none;
         }
+        .printer-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 200px;
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 10002;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+        .printer-icon {
+            width: 80px;
+            height: 80px;
+            background: url('https://cdn-icons-png.flaticon.com/512/748/748113.png') no-repeat center;
+            background-size: contain;
+            animation: printPulse 1.5s ease-in-out infinite;
+        }
+        .paper {
+            width: 200px;
+            height: 50px;
+            background: #fff;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            animation: slidePaper 2s ease forwards;
+        }
+        @keyframes printPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes slidePaper {
+            0% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
         @media (max-width: 480px) {
             body {
                 padding: 12px;
@@ -734,6 +774,18 @@
             }
             .ticket-container p {
                 font-size: 0.85rem;
+            }
+            .printer-animation {
+                width: 250px;
+                height: 180px;
+            }
+            .printer-icon {
+                width: 60px;
+                height: 60px;
+            }
+            .paper {
+                width: 180px;
+                height: 40px;
             }
         }
     </style>
@@ -858,6 +910,12 @@
         </div>
     </div>
 
+    <!-- Printer Animation -->
+    <div class="printer-animation" id="printer-animation">
+        <div class="printer-icon"></div>
+        <div class="paper"></div>
+    </div>
+
     <!-- Photo Content for Download -->
     <div class="photo-content" id="photo-content"></div>
 
@@ -871,9 +929,15 @@
     </div>
 
     <!-- Audio Elements -->
-    <audio id="intro-sound" src="https://cdn.pixabay.com/audio/2023/03/22/14-16-48-141_140bpm.mp3" preload="auto"></audio>
-    <audio id="transfer-sent-sound" src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_sent.mp3" preload="auto"></audio>
-    <audio id="transfer-received-sound" src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_received.mp3" preload="auto"></audio>
+    <audio id="intro-sound" preload="auto">
+        <source src="https://cdn.pixabay.com/audio/2023/03/22/14-16-48-141_140bpm.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="transfer-sent-sound" preload="auto">
+        <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_sent.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="transfer-received-sound" preload="auto">
+        <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_received.mp3" type="audio/mpeg">
+    </audio>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -891,7 +955,7 @@
         // Play Intro Sound
         window.onload = () => {
             const introSound = document.getElementById('intro-sound');
-            introSound.play();
+            introSound.play().catch(err => console.error('Intro sound error:', err));
             setTimeout(() => {
                 document.getElementById('intro-container').style.display = 'none';
                 initializeUser();
@@ -996,7 +1060,7 @@
                             message.className = 'receiver-message';
                             message.innerHTML = `Received ${transaction.amount} Ks<br>From: ${transaction.from_phone}`;
                             document.body.appendChild(message);
-                            document.getElementById('transfer-received-sound').play();
+                            document.getElementById('transfer-received-sound').play().catch(err => console.error('Received sound error:', err));
                             setTimeout(() => message.remove(), 5000);
                         }
                         loadHistory();
@@ -1109,6 +1173,9 @@
 
         async function showReceipt(transactionId) {
             try {
+                const printerAnimation = document.getElementById('printer-animation');
+                printerAnimation.style.display = 'flex';
+
                 const { data: transaction, error } = await supabase
                     .from('transactions')
                     .select('*')
@@ -1145,10 +1212,43 @@
                         </div>
                     </div>
                 `;
-                document.getElementById('receipt-overlay').style.display = 'flex';
+                
+                setTimeout(async () => {
+                    printerAnimation.style.display = 'none';
+                    document.getElementById('receipt-overlay').style.display = 'flex';
+                    await autoSaveReceipt(transactionId);
+                }, 2000);
             } catch (error) {
                 console.error('Show Receipt Error:', error.message);
+                document.getElementById('printer-animation').style.display = 'none';
                 alert(`Error showing receipt: ${error.message}`);
+            }
+        }
+
+        async function autoSaveReceipt(transactionId) {
+            try {
+                const ticketContent = document.getElementById('ticket-content');
+                const canvas = await html2canvas(ticketContent, {
+                    scale: 4, // Increased scale for higher resolution
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `Transaction_${transactionId}.png`;
+                link.href = imgData;
+                
+                // Attempt to save automatically
+                link.click();
+                
+                // Store in localStorage for backup
+                const transactions = JSON.parse(localStorage.getItem('receipts') || '{}');
+                transactions[transactionId] = imgData;
+                localStorage.setItem('receipts', JSON.stringify(transactions));
+            } catch (error) {
+                console.error('Auto Save Receipt Error:', error.message);
+                alert('Failed to auto-save receipt. Please download manually.');
             }
         }
 
@@ -1156,7 +1256,7 @@
             try {
                 const ticketContent = document.getElementById('ticket-content');
                 const canvas = await html2canvas(ticketContent, {
-                    scale: 2,
+                    scale: 4,
                     useCORS: true,
                     backgroundColor: '#ffffff'
                 });
@@ -1367,7 +1467,7 @@
 
                 animation.remove();
 
-                document.getElementById('transfer-sent-sound').play();
+                document.getElementById('transfer-sent-sound').play().catch(err => console.error('Sent sound error:', err));
 
                 const successAnimation = document.createElement('div');
                 successAnimation.className = 'success-animation';
@@ -1377,8 +1477,12 @@
                 `;
                 document.body.appendChild(successAnimation);
 
-                setTimeout(() => {
+                const printerAnimation = document.getElementById('printer-animation');
+                printerAnimation.style.display = 'flex';
+
+                setTimeout(async () => {
                     successAnimation.remove();
+                    printerAnimation.style.display = 'none';
 
                     const ticketContent = document.getElementById('ticket-content');
                     ticketContent.innerHTML = `
@@ -1406,6 +1510,7 @@
                     `;
                     currentTransactionId = transactionId;
                     document.getElementById('receipt-overlay').style.display = 'flex';
+                    await autoSaveReceipt(transactionId);
                 }, 2500);
 
                 loadHistory();
@@ -1431,7 +1536,7 @@
         }
 
         function downloadApk() {
-            const apkUrl = 'https://appsgeyser.io/18713925/OPPER-Payment';
+            const apkUrl = 'https://appsgeyser.io/18731061/OPPER-Payment';
             const a = document.createElement('a');
             a.href = apkUrl;
             a.download = 'opper-payment.apk';
@@ -1440,11 +1545,12 @@
             document.body.removeChild(a);
         }
 
-        // Function to update sound files (optional for future use)
+        // Function to update sound files
         function updateSound(type, newUrl) {
             const soundElement = document.getElementById(`${type}-sound`);
             if (soundElement) {
                 soundElement.src = newUrl;
+                soundElement.load();
             }
         }
     </script>
