@@ -4,656 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KPAY+ Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Base Styles */
+        /* Admin Dashboard Specific Styles */
         :root {
-            --primary: #d42628;
-            --primary-dark: #b51f21;
-            --primary-light: #f15456;
-            --secondary: #fcd92b;
-            --secondary-dark: #d9bc25;
-            --secondary-light: #ffe563;
-            --dark-blue: #051441;
-            --dark-blue-light: #152654;
-            --light: #ffffff;
-            --dark: #13111a;
-            --gray-light: #e5e7eb;
-            --gray: #94a3b8;
-            --gray-dark: #334155;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --radius-sm: 0.375rem;
-            --radius-md: 0.75rem;
-            --radius-lg: 1.25rem;
-            --radius-full: 9999px;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.25);
-            --transition-fast: 0.2s ease;
-            --transition-normal: 0.3s ease;
-            --transition-slow: 0.5s ease;
-            --font-main: 'Pyidaungsu', 'Poppins', sans-serif;
-            --font-display: 'Padauk', 'Playfair Display', serif;
-            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-light));
-            --gradient-secondary: linear-gradient(135deg, var(--secondary), var(--secondary-light));
-            --gradient-dark: linear-gradient(135deg, var(--dark-blue), var(--dark-blue-light));
-            --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            --admin-primary: #0f1b4c;
+            --admin-primary-dark: #0a1337;
+            --admin-primary-light: #1c2e66;
+            --admin-secondary: #45c6f3;
+            --admin-secondary-dark: #2caae4;
+            --admin-secondary-light: #75d5fa;
+            --admin-success: #28a745;
+            --admin-error: #dc3545;
+            --admin-warning: #ffc107;
+            --admin-info: #17a2b8;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: var(--font-main);
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        
         body {
-            background: var(--gradient-dark);
-            min-height: 100vh;
-            padding: 2vw;
-            color: var(--light);
-            font-size: clamp(14px, 3vw, 16px);
-            position: relative;
-            overflow-x: hidden;
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-light));
         }
-
-        /* Typography */
-        h1, h2, h3, h4 {
-            font-family: var(--font-display);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        /* Animation and Effects */
-        .particles-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            background: var(--primary-light);
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float linear infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0) rotate(0); }
-            100% { transform: translateY(-100vh) rotate(360deg); }
-        }
-
-        /* Login Screen */
-        .login-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(5, 20, 65, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            backdrop-filter: blur(10px);
-        }
-
-        .login-box {
-            background: var(--gradient-glass);
-            padding: clamp(25px, 5vw, 30px);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            width: 90%;
-            max-width: 400px;
-            animation: loginBoxAppear 0.5s var(--transition-normal);
-        }
-
-        @keyframes loginBoxAppear {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .login-box h2 {
-            color: var(--primary);
-            margin-bottom: 3vh;
-            font-size: clamp(1.8rem, 5vw, 2.2rem);
-            font-weight: 700;
-            text-align: center;
-            position: relative;
-        }
-
-        .login-box h2::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: var(--primary);
-            border-radius: var(--radius-full);
-        }
-
-        .login-logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            display: block;
-            animation: logoSpin 2s infinite alternate ease-in-out;
-        }
-
-        @keyframes logoSpin {
-            0% { transform: rotateY(0deg); }
-            100% { transform: rotateY(20deg); }
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .login-box input {
-            width: 100%;
-            padding: clamp(12px, 3vw, 16px);
-            margin: 2vh 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--light);
-            font-size: clamp(0.9rem, 2.5vw, 1rem);
-            outline: none;
-            transition: all var(--transition-normal);
-        }
-
-        .login-box input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(212, 38, 40, 0.3);
-        }
-
-        .icon-input {
-            position: relative;
-        }
-
-        .icon-input input {
-            padding-left: 45px;
-        }
-
-        .icon-input .icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary);
-            font-size: 1.2rem;
-        }
-
-        .login-box button {
-            width: 100%;
-            padding: clamp(12px, 3vw, 16px);
-            background: var(--gradient-primary);
-            border: none;
-            border-radius: var(--radius-md);
-            color: var(--light);
-            font-weight: 700;
-            font-size: clamp(1rem, 2.5vw, 1.1rem);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all var(--transition-normal);
-            box-shadow: var(--shadow-md);
-        }
-
-        .login-box button:hover {
-            box-shadow: var(--shadow-lg);
-        }
-
-        .login-box button:active {
-            transform: translateY(2px);
-        }
-
-        .login-box .error-message {
-            color: var(--error);
-            font-size: clamp(0.8rem, 2.2vw, 0.9rem);
-            margin-top: 2vh;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        /* Dashboard Styles */
-        h1 {
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 4vh;
-            font-size: clamp(2rem, 6vw, 2.5rem);
-            font-weight: 800;
-            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
-            position: relative;
-        }
-
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -1.5vh;
-            left: 50%;
-            transform: translateX(-50%);
-            width: clamp(60px, 15vw, 80px);
-            height: 3px;
-            background: var(--primary);
-            border-radius: var(--radius-full);
-        }
-
-        .dashboard-header {
+        
+        .admin-header {
+            background: var(--admin-primary-dark);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
-
-        .logo-container {
+        
+        .admin-logo {
             display: flex;
             align-items: center;
             gap: 15px;
         }
-
-        .logo-container img {
+        
+        .admin-logo img {
             width: 50px;
             height: 50px;
         }
-
-        .admin-badge {
-            background: var(--primary);
+        
+        .admin-logo-text {
             color: var(--light);
-            padding: 8px 16px;
-            border-radius: var(--radius-full);
-            font-weight: 600;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .admin-badge i {
-            font-size: 1.2rem;
-        }
-
-        .card {
-            background: var(--gradient-glass);
-            padding: clamp(20px, 4vw, 25px);
-            border-radius: var(--radius-lg);
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .card h2 {
-            color: var(--light);
-            margin-bottom: 20px;
-            font-size: clamp(1.4rem, 4vw, 1.6rem);
-            font-weight: 600;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card h2 i {
-            color: var(--primary);
-            font-size: 1.6rem;
-        }
-
-        /* Control Panel Styles */
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .control-btn {
-            padding: clamp(12px, 3vw, 16px);
-            border: none;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: clamp(0.9rem, 2.5vw, 1rem);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all var(--transition-normal);
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            text-align: center;
-        }
-
-        .control-btn i {
-            font-size: 1.8rem;
-        }
-
-        .control-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .control-btn:active {
-            transform: translateY(1px);
-        }
-
-        .enable-btn {
-            background: linear-gradient(135deg, var(--success), #0d9668);
-            color: var(--light);
-        }
-
-        .disable-btn {
-            background: linear-gradient(135deg, var(--error), #dc2626);
-            color: var(--light);
-        }
-
-        .system-btn {
-            background: linear-gradient(135deg, var(--info), #2563eb);
-            color: var(--light);
-        }
-
-        /* Deposit Form Styles */
-        .deposit-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-field label {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--gray-light);
-        }
-
-        input, select {
-            padding: clamp(12px, 3vw, 14px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--light);
-            font-size: clamp(0.9rem, 2.5vw, 1rem);
-            outline: none;
-            width: 100%;
-            transition: all var(--transition-normal);
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(212, 38, 40, 0.3);
-        }
-
-        button {
-            padding: clamp(12px, 3vw, 14px);
-            background: var(--gradient-primary);
-            border: none;
-            border-radius: var(--radius-md);
-            color: var(--light);
-            font-weight: 600;
-            font-size: clamp(0.9rem, 2.5vw, 1rem);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all var(--transition-normal);
-            box-shadow: var(--shadow-sm);
-        }
-
-        button:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        button:active {
-            transform: translateY(2px);
-        }
-
-        /* User List Styles */
-        .search-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-form input {
-            flex: 1;
-        }
-
-        .user-list {
-            overflow-x: auto;
-        }
-
-        .user-list table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: clamp(0.85rem, 2.2vw, 0.95rem);
-            white-space: nowrap;
-        }
-
-        .user-list th, .user-list td {
-            padding: clamp(10px, 2vw, 14px);
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .user-list th {
-            color: var(--primary-light);
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            background: var(--dark-blue);
-            z-index: 10;
-        }
-
-        .user-list tr {
-            transition: background-color var(--transition-fast);
-        }
-
-        .user-list tr:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .user-list td img {
-            width: clamp(60px, 15vw, 80px);
-            height: clamp(60px, 15vw, 80px);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            object-fit: cover;
-            transition: transform var(--transition-normal);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .user-list td img:hover {
-            transform: scale(1.1);
-            box-shadow: var(--shadow-md);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border-radius: var(--radius-md);
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .approve-btn {
-            background: var(--success);
-            color: var(--light);
-        }
-
-        .reject-btn {
-            background: var(--error);
-            color: var(--light);
-        }
-
-        .deposit-btn {
-            background: var(--info);
-            color: var(--light);
-        }
-
-        .user-status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: var(--radius-full);
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-pending {
-            background: var(--warning);
-            color: var(--dark);
-        }
-
-        .status-approved {
-            background: var(--success);
-            color: var(--light);
-        }
-
-        .status-rejected {
-            background: var(--error);
-            color: var(--light);
-        }
-
-        /* Dashboard Cards */
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: var(--gradient-glass);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stat-title {
-            font-size: 0.9rem;
-            color: var(--gray-light);
-            font-weight: 500;
-        }
-
-        .stat-icon {
-            font-size: 1.5rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-
-        .icon-users {
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--info);
-        }
-
-        .icon-pending {
-            background: rgba(245, 158, 11, 0.2);
-            color: var(--warning);
-        }
-
-        .icon-transactions {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-
-        .icon-balance {
-            background: rgba(212, 38, 40, 0.2);
-            color: var(--primary);
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
             font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .admin-logo-text span {
+            color: var(--admin-secondary);
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .admin-nav-item {
             color: var(--light);
+            opacity: 0.7;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
         }
-
-        .stat-footer {
-            font-size: 0.8rem;
-            color: var(--gray);
+        
+        .admin-nav-item.active {
+            opacity: 1;
+            color: var(--admin-secondary);
         }
-
-        /* Modals */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
+        
+        .admin-nav-item:hover {
+            opacity: 1;
+        }
+        
+        .admin-nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(5, 20, 65, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
+            height: 2px;
+            background: var(--admin-secondary);
+            border-radius: 2px;
         }
-
-        .modal {
-            background: var(--gradient-glass);
-            padding: 25px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            width: 90%;
-            max-width: 500px;
-            animation: modalAppear 0.3s var(--transition-normal);
+        
+        .admin-content {
+            margin-top: 80px;
+            padding: 20px;
         }
-
-        @keyframes modalAppear {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        
+        .admin-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
-
-        .modal-header {
+        
+        .admin-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -661,566 +119,992 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 15px;
         }
-
-        .modal-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--gray);
+        
+        .admin-card-title {
             font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0;
-            box-shadow: none;
-        }
-
-        .modal-close:hover {
+            font-weight: 700;
             color: var(--light);
-            box-shadow: none;
         }
-
-        .modal-footer {
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .admin-stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .admin-stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .admin-stat-icon {
+            position: absolute;
+            bottom: -20px;
+            right: -10px;
+            font-size: 5rem;
+            opacity: 0.2;
+            color: var(--admin-secondary);
+        }
+        
+        .admin-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--light);
+            margin-bottom: 5px;
+        }
+        
+        .admin-stat-label {
+            font-size: 1rem;
+            color: var(--gray-light);
+        }
+        
+        .admin-stat-growth {
             display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
         }
-
-        .modal-btn {
-            min-width: 100px;
+        
+        .admin-stat-growth.positive {
+            color: var(--admin-success);
         }
-
-        .btn-cancel {
-            background: var(--gray-dark);
+        
+        .admin-stat-growth.negative {
+            color: var(--admin-error);
         }
-
-        /* Image Preview */
-        .img-preview-container {
+        
+        .admin-stat-growth.neutral {
+            color: var(--gray);
+        }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .admin-table th {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--light);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--light);
+        }
+        
+        .admin-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .admin-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .status-badge.pending {
+            background: var(--admin-warning);
+            color: var(--dark);
+        }
+        
+        .status-badge.approved {
+            background: var(--admin-success);
+            color: var(--light);
+        }
+        
+        .status-badge.rejected {
+            background: var(--admin-error);
+            color: var(--light);
+        }
+        
+        .action-btn {
+            padding: 7px 12px;
+            border-radius: 5px;
+            background: var(--admin-secondary);
+            color: var(--light);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .action-btn.approve {
+            background: var(--admin-success);
+        }
+        
+        .action-btn.reject {
+            background: var(--admin-error);
+        }
+        
+        .action-btn.view {
+            background: var(--admin-info);
+        }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        /* User Detail Modal */
+        .admin-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.7);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
-            backdrop-filter: blur(10px);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-
-        .img-preview {
-            max-width: 90%;
-            max-height: 90%;
-            border: 2px solid var(--primary);
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-lg);
+        
+        .admin-modal.show {
+            display: flex;
+            opacity: 1;
         }
-
-        .img-preview-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--primary);
+        
+        .admin-modal-content {
+            background: var(--admin-primary-dark);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: modal-open 0.5s forwards;
+        }
+        
+        @keyframes modal-open {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .admin-modal-header {
+            background: var(--admin-primary);
+            padding: 15px 20px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .admin-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
             color: var(--light);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        }
+        
+        .admin-modal-close {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            border: none;
-            box-shadow: var(--shadow-md);
-        }
-
-        /* Messages */
-        .message {
-            padding: 15px;
-            border-radius: var(--radius-md);
-            margin-bottom: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .message i {
-            font-size: 1.2rem;
-        }
-
-        .message-success {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .message-error {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--error);
-            border: 1px solid var(--error);
-        }
-
-        .message-warning {
-            background: rgba(245, 158, 11, 0.2);
-            color: var(--warning);
-            border: 1px solid var(--warning);
-        }
-
-        .message-info {
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--info);
-            border: 1px solid var(--info);
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top-color: var(--light);
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
+            transition: all 0.3s ease;
         }
-
+        
+        .admin-modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-modal-body {
+            padding: 20px;
+        }
+        
+        .admin-modal-section {
+            margin-bottom: 25px;
+        }
+        
+        .admin-modal-section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--admin-secondary);
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .admin-modal-field {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .admin-modal-label {
+            width: 120px;
+            font-weight: 600;
+            color: var(--gray-light);
+        }
+        
+        .admin-modal-value {
+            flex: 1;
+            color: var(--light);
+            font-weight: 500;
+        }
+        
+        .admin-modal-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        .admin-modal-footer button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-modal-footer .cancel-btn {
+            background: var(--gray-dark);
+            color: var(--light);
+            border: none;
+        }
+        
+        .admin-modal-footer .approve-btn {
+            background: var(--admin-success);
+            color: var(--light);
+            border: none;
+        }
+        
+        .admin-modal-footer .reject-btn {
+            background: var(--admin-error);
+            color: var(--light);
+            border: none;
+        }
+        
+        .admin-modal-footer button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .admin-modal-gallery {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-modal-image {
+            flex: 1;
+            min-width: 200px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .admin-modal-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .admin-modal-image-caption {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            color: var(--light);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        /* Loading Spinner */
+        .admin-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .admin-loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--admin-secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .hidden {
-            display: none;
+        
+        /* Search Bar */
+        .admin-search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
         }
-
+        
+        .admin-search-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 12px 15px;
+            color: var(--light);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-search-input:focus {
+            border-color: var(--admin-secondary);
+            box-shadow: 0 0 0 2px rgba(69, 198, 243, 0.3);
+        }
+        
+        .admin-search-btn {
+            background: var(--admin-secondary);
+            border: none;
+            border-radius: 5px;
+            padding: 0 20px;
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-search-btn:hover {
+            background: var(--admin-secondary-dark);
+        }
+        
+        /* Filter and Sort */
+        .admin-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .admin-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .admin-filter-label {
+            color: var(--gray-light);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .admin-filter-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: var(--light);
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-filter-select:focus {
+            border-color: var(--admin-secondary);
+        }
+        
+        /* Pagination */
+        .admin-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+        
+        .admin-pagination-item {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-pagination-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .admin-pagination-item.active {
+            background: var(--admin-secondary);
+        }
+        
+        .admin-pagination-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Notifications */
+        .admin-notifications {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .admin-notification {
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--light);
+            border-radius: 5px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+            animation: slide-in 0.3s forwards;
+            max-width: 350px;
+        }
+        
+        @keyframes slide-in {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        .admin-notification-icon {
+            font-size: 1.5rem;
+        }
+        
+        .admin-notification-content {
+            flex: 1;
+        }
+        
+        .admin-notification-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .admin-notification-message {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .admin-notification.success {
+            border-left: 4px solid var(--admin-success);
+        }
+        
+        .admin-notification.error {
+            border-left: 4px solid var(--admin-error);
+        }
+        
+        .admin-notification.warning {
+            border-left: 4px solid var(--admin-warning);
+        }
+        
+        .admin-notification.info {
+            border-left: 4px solid var(--admin-info);
+        }
+        
+        /* Admin settings modal */
+        .admin-settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .admin-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .admin-form-label {
+            font-weight: 600;
+            color: var(--light);
+        }
+        
+        .admin-form-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 12px 15px;
+            color: var(--light);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-form-input:focus {
+            border-color: var(--admin-secondary);
+        }
+        
+        .admin-form-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .admin-form-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .admin-form-switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-dark);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .admin-form-switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .admin-form-switch input:checked + .admin-form-switch-slider {
+            background-color: var(--admin-success);
+        }
+        
+        .admin-form-switch input:focus + .admin-form-switch-slider {
+            box-shadow: 0 0 1px var(--admin-success);
+        }
+        
+        .admin-form-switch input:checked + .admin-form-switch-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .admin-form-switch-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .admin-form-switch-label span {
+            font-weight: 600;
+            color: var(--light);
+        }
+        
         /* Responsive */
-        @media (min-width: 769px) {
-            .search-form {
-                display: flex;
-                flex-direction: row;
-            }
-
-            .deposit-form {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                grid-gap: 15px;
-            }
-
-            .deposit-form button {
-                grid-column: span 2;
-            }
-        }
-
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .button-grid {
+            .admin-stats {
                 grid-template-columns: 1fr;
             }
-
-            .dashboard-stats {
-                grid-template-columns: 1fr;
+            
+            .admin-nav {
+                display: none;
             }
-
-            .user-list td img {
-                width: 50px;
-                height: 50px;
+            
+            .admin-mobile-menu {
+                display: block;
+                font-size: 1.5rem;
+                color: var(--light);
+                cursor: pointer;
             }
-
-            .search-form {
-                flex-direction: column;
+            
+            .admin-modal-content {
+                width: 95%;
             }
-
-            .action-buttons {
+            
+            .admin-modal-field {
                 flex-direction: column;
                 gap: 5px;
             }
-
-            .action-btn {
+            
+            .admin-modal-label {
                 width: 100%;
-                justify-content: center;
             }
-        }
-
-        @media (max-width: 480px) {
-            .login-box {
-                padding: 20px;
-                width: 95%;
-            }
-
-            .card {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            .card h2 {
-                font-size: 1.3rem;
-            }
-
-            .dashboard-header {
+            
+            .admin-filters {
                 flex-direction: column;
-                gap: 15px;
-                align-items: center;
-                text-align: center;
-            }
-
-            .admin-badge {
-                margin-bottom: 15px;
             }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Background Particles -->
-    <div class="particles-container" id="particles-container"></div>
-
-    <!-- Login Container -->
-    <div class="login-container" id="login-container">
-        <div class="login-box">
-            <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER+ Logo" class="login-logo">
-            <h2>Admin အကောင့်ဝင်ရန်</h2>
-            
-            <div class="form-group">
-                <div class="icon-input">
-                    <i class="fas fa-user icon"></i>
-                    <input type="email" id="admin-email" placeholder="အီးမေးလ်ထည့်ပါ" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <div class="icon-input">
-                    <i class="fas fa-lock icon"></i>
-                    <input type="password" id="admin-pin" placeholder="PIN ထည့်ပါ" required>
-                </div>
-            </div>
-            
-            <button onclick="adminLogin()">
-                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i> ဝင်ရောက်မည်
-            </button>
-            
-            <p class="error-message hidden" id="login-error"></p>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-logo">
+            <img src="https://i.imgur.com/Yt7QeLf.png" alt="KPAY+ Logo">
+            <div class="admin-logo-text">KPAY+ <span>Admin</span></div>
+        </div>
+        <div class="admin-nav">
+            <div class="admin-nav-item active" onclick="showSection('dashboard')">Dashboard</div>
+            <div class="admin-nav-item" onclick="showSection('users')">Users</div>
+            <div class="admin-nav-item" onclick="showSection('transactions')">Transactions</div>
+            <div class="admin-nav-item" onclick="showSection('verification')">Verification</div>
+            <div class="admin-nav-item" onclick="showSection('settings')">Settings</div>
+        </div>
+        <div class="admin-mobile-menu" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
         </div>
     </div>
 
-    <!-- Main Dashboard -->
-    <div class="dashboard-container hidden" id="dashboard-container">
-        <div class="dashboard-header">
-            <div class="logo-container">
-                <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER+ Logo">
-                <h1>OPPER+ Admin Panel</h1>
+    <!-- Admin Content -->
+    <div class="admin-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="admin-section active">
+            <div class="admin-stats">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="total-users">0</div>
+                    <div class="admin-stat-label">Total Users</div>
+                    <div class="admin-stat-growth positive">
+                        <i class="fas fa-arrow-up"></i> <span id="users-growth">0%</span> this week
+                    </div>
+                    <i class="fas fa-users admin-stat-icon"></i>
+                </div>
+                
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="total-transactions">0</div>
+                    <div class="admin-stat-label">Total Transactions</div>
+                    <div class="admin-stat-growth positive">
+                        <i class="fas fa-arrow-up"></i> <span id="transactions-growth">0%</span> this week
+                    </div>
+                    <i class="fas fa-exchange-alt admin-stat-icon"></i>
+                </div>
+                
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="pending-verifications">0</div>
+                    <div class="admin-stat-label">Pending Verifications</div>
+                    <div class="admin-stat-growth neutral">
+                        <i class="fas fa-minus"></i> No change
+                    </div>
+                    <i class="fas fa-user-check admin-stat-icon"></i>
+                </div>
+                
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="total-volume">0</div>
+                    <div class="admin-stat-label">Total Transaction Volume</div>
+                    <div class="admin-stat-growth positive">
+                        <i class="fas fa-arrow-up"></i> <span id="volume-growth">0%</span> this week
+                    </div>
+                    <i class="fas fa-money-bill-wave admin-stat-icon"></i>
+                </div>
             </div>
-            <div class="admin-badge">
-                <i class="fas fa-user-shield"></i>
-                <span>Admin</span>
+            
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">Recent Transactions</div>
+                    <button class="action-btn view" onclick="showSection('transactions')">
+                        <i class="fas fa-eye"></i> View All
+                    </button>
+                </div>
+                <div id="recent-transactions">
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">Latest Activities</div>
+                </div>
+                <div id="latest-activities">
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <!-- Dashboard Stats -->
-        <div class="dashboard-stats">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-title">အသုံးပြုသူအရေအတွက်</div>
-                    <div class="stat-icon icon-users"><i class="fas fa-users"></i></div>
+
+        <!-- Users Section -->
+        <div id="users" class="admin-section">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">All Users</div>
                 </div>
-                <div class="stat-value" id="total-users">0</div>
-                <div class="stat-footer">စုစုပေါင်းအသုံးပြုသူ</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-title">အတည်ပြုရန်စောင့်ဆိုင်းနေသော</div>
-                    <div class="stat-icon icon-pending"><i class="fas fa-clock"></i></div>
+                
+                <div class="admin-search-bar">
+                    <input type="text" class="admin-search-input" id="users-search" placeholder="Search by User ID, Email, Phone...">
+                    <button class="admin-search-btn" onclick="searchUsers()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
                 </div>
-                <div class="stat-value" id="pending-users">0</div>
-                <div class="stat-footer">အတည်မပြုရသေးသော အသုံးပြုသူများ</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-title">ငွေလွှဲအကြိမ်အရေအတွက်</div>
-                    <div class="stat-icon icon-transactions"><i class="fas fa-exchange-alt"></i></div>
+                
+                <div class="admin-filters">
+                    <div class="admin-filter-group">
+                        <div class="admin-filter-label">Status:</div>
+                        <select class="admin-filter-select" id="status-filter" onchange="filterUsers()">
+                            <option value="all">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    
+                    <div class="admin-filter-group">
+                        <div class="admin-filter-label">Sort By:</div>
+                        <select class="admin-filter-select" id="sort-users" onchange="sortUsers()">
+                            <option value="created_at_desc">Newest First</option>
+                            <option value="created_at_asc">Oldest First</option>
+                            <option value="balance_desc">Balance (High to Low)</option>
+                            <option value="balance_asc">Balance (Low to High)</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="stat-value" id="total-transactions">0</div>
-                <div class="stat-footer">စုစုပေါင်းငွေလွှဲမှုများ</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-title">စုစုပေါင်းငွေပမာဏ</div>
-                    <div class="stat-icon icon-balance"><i class="fas fa-wallet"></i></div>
+                
+                <div id="users-table-container">
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
                 </div>
-                <div class="stat-value" id="total-balance">0 Ks</div>
-                <div class="stat-footer">စနစ်အတွင်းရှိ ငွေပမာဏ</div>
+                
+                <div class="admin-pagination" id="users-pagination"></div>
             </div>
         </div>
-        
-        <!-- Control Panel -->
-        <div class="card">
-            <h2><i class="fas fa-sliders-h"></i> ထိန်းချုပ်မှုစနစ်</h2>
-            <div class="button-grid">
-                <button class="control-btn enable-btn" onclick="enableTransfers()">
-                    <i class="fas fa-check-circle"></i>
-                    ငွေလွှဲခြင်းဝန်ဆောင်မှု ဖွင့်မည်
-                </button>
-                <button class="control-btn disable-btn" onclick="disableTransfers()">
-                    <i class="fas fa-ban"></i>
-                    ငွေလွှဲခြင်းဝန်ဆောင်မှု ပိတ်မည်
-                </button>
-                <button class="control-btn system-btn" onclick="openMaintenanceModal()">
-                    <i class="fas fa-tools"></i>
-                    ပြုပြင်ထိန်းသိမ်းမှုမုဒ်
-                </button>
-                <button class="control-btn system-btn" onClick="openSystemSettingsModal()">
-                    <i class="fas fa-cog"></i>
-                    စနစ်ဆက်တင်များ
-                </button>
+
+        <!-- Transactions Section -->
+        <div id="transactions" class="admin-section">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">All Transactions</div>
+                </div>
+                
+                <div class="admin-search-bar">
+                    <input type="text" class="admin-search-input" id="transactions-search" placeholder="Search by Transaction ID, User ID, Phone...">
+                    <button class="admin-search-btn" onclick="searchTransactions()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                
+                <div class="admin-filters">
+                    <div class="admin-filter-group">
+                        <div class="admin-filter-label">Date Range:</div>
+                        <select class="admin-filter-select" id="date-filter" onchange="filterTransactions()">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    
+                    <div class="admin-filter-group">
+                        <div class="admin-filter-label">Amount:</div>
+                        <select class="admin-filter-select" id="amount-filter" onchange="filterTransactions()">
+                            <option value="all">All</option>
+                            <option value="small">Small (< 10,000)</option>
+                            <option value="medium">Medium (10,000 - 100,000)</option>
+                            <option value="large">Large (> 100,000)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="admin-filter-group">
+                        <div class="admin-filter-label">Sort By:</div>
+                        <select class="admin-filter-select" id="sort-transactions" onchange="sortTransactions()">
+                            <option value="created_at_desc">Newest First</option>
+                            <option value="created_at_asc">Oldest First</option>
+                            <option value="amount_desc">Amount (High to Low)</option>
+                            <option value="amount_asc">Amount (Low to High)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="transactions-table-container">
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                </div>
+                
+                <div class="admin-pagination" id="transactions-pagination"></div>
             </div>
         </div>
-        
-        <!-- Bulk Deposit -->
-        <div class="card">
-            <h2><i class="fas fa-money-bill-wave"></i> ငွေဖြည့်ခြင်း</h2>
-            
-            <div id="bulk-deposit-message" class="hidden"></div>
-            
-            <div class="deposit-form">
-                <div class="form-field">
-                    <label for="deposit-type">ငွေဖြည့်ပုံစံ</label>
-                    <select id="deposit-type" onchange="toggleDepositFields()">
-                        <option value="single">တစ်ဦးချင်းစီ</option>
-                        <option value="bulk">အတည်ပြုပြီးသူအားလုံး</option>
-                    </select>
+
+        <!-- Verification Section -->
+        <div id="verification" class="admin-section">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">Pending Verifications</div>
                 </div>
                 
-                <div class="form-field" id="user-id-field">
-                    <label for="user-id">အသုံးပြုသူ ID</label>
-                    <input type="text" id="user-id" placeholder="အသုံးပြုသူ ID ထည့်ပါ">
+                <div id="verification-table-container">
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
                 </div>
                 
-                <div class="form-field">
-                    <label for="deposit-amount">ငွေပမာဏ (ကျပ်)</label>
-                    <input type="number" id="deposit-amount" placeholder="ဖြည့်မည့်ပမာဏထည့်ပါ" required>
-                </div>
-                
-                <div class="form-field">
-                    <label for="deposit-note">မှတ်ချက်</label>
-                    <input type="text" id="deposit-note" placeholder="မှတ်ချက် (မဖြစ်မနေမဟုတ်)">
-                </div>
-                
-                <button onclick="processDeposit()" id="deposit-btn">
-                    <i class="fas fa-paper-plane" style="margin-right: 8px;"></i>
-                    ငွေဖြည့်မည်
-                </button>
+                <div class="admin-pagination" id="verification-pagination"></div>
             </div>
         </div>
-        
-        <!-- User Search and List -->
-        <div class="card">
-            <h2><i class="fas fa-users"></i> အသုံးပြုသူများ</h2>
-            
-            <div class="search-form">
-                <input type="text" id="search-input" placeholder="အသုံးပြုသူ ID သို့မဟုတ် ဖုန်းနံပါတ်ထည့်ပါ" oninput="searchUser()">
-                <button onclick="searchUser()">
-                    <i class="fas fa-search" style="margin-right: 5px;"></i>
-                    ရှာမည်
-                </button>
-            </div>
-            
-            <div class="user-list">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>ဖုန်းနံပါတ်</th>
-                            <th>လက်ကျန်ငွေ</th>
-                            <th>အခြေအနေ</th>
-                            <th>သက်သေခံကတ်</th>
-                            <th>ဓာတ်ပုံ</th>
-                            <th>လုပ်ဆောင်ချက်များ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-table"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Image Preview Container -->
-    <div class="img-preview-container" id="img-preview-container">
-        <img src="" alt="Preview" class="img-preview" id="img-preview">
-        <button class="img-preview-close" onclick="closeImagePreview()">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-    
-    <!-- Deposit Modal -->
-    <div class="modal-overlay" id="deposit-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">ငွေဖြည့်ရန် အတည်ပြုပါ</h3>
-                <button class="modal-close" onclick="closeModal('deposit-modal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <p style="margin-bottom: 15px;">အောက်ပါ အသုံးပြုသူအား ငွေဖြည့်မှာ သေချာပါသလား?</p>
-                
-                <div class="form-field">
-                    <label>အသုံးပြုသူ:</label>
-                    <div style="font-weight: 600; color: var(--light);" id="confirm-user-id"></div>
+
+        <!-- Settings Section -->
+        <div id="settings" class="admin-section">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">System Settings</div>
                 </div>
                 
-                <div class="form-field">
-                    <label>ဖုန်းနံပါတ်:</label>
-                    <div style="font-weight: 600; color: var(--light);" id="confirm-user-phone"></div>
-                </div>
-                
-                <div class="form-field">
-                    <label>ငွေပမာဏ:</label>
-                    <div style="font-weight: 600; color: var(--primary); font-size: 1.2rem;" id="confirm-amount"></div>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="modal-btn btn-cancel" onclick="closeModal('deposit-modal')">မလုပ်တော့ပါ</button>
-                <button class="modal-btn" onclick="confirmDeposit()" id="confirm-deposit-btn">အတည်ပြုသည်</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Maintenance Mode Modal -->
-    <div class="modal-overlay" id="maintenance-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">ပြုပြင်ထိန်းသိမ်းမှုမုဒ်</h3>
-                <button class="modal-close" onclick="closeModal('maintenance-modal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <p style="margin-bottom: 15px; color: var(--warning);">
-                    <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
-                    သတိပြုရန်: ပြုပြင်ထိန်းသိမ်းမှုမုဒ်ကို ဖွင့်လိုက်ပါက အသုံးပြုသူများအနေဖြင့် ဝန်ဆောင်မှုကို အသုံးပြု၍ မရတော့ပါ။
-                </p>
-                
-                <div class="form-field">
-                    <label for="maintenance-message">ပြသမည့်မက်ဆေ့ချ်</label>
-                    <input type="text" id="maintenance-message" placeholder="ဝန်ဆောင်မှုအား ပြုပြင်ထိန်းသိမ်းနေပါသည်">
-                </div>
-                
-                <div class="form-field">
-                    <label for="maintenance-duration">ကြာမြင့်မည့်အချိန် (မိနစ်)</label>
-                    <input type="number" id="maintenance-duration" placeholder="30" value="30">
+                <div class="admin-settings-form">
+                    <div class="admin-form-group">
+                        <div class="admin-form-switch-label">
+                            <span>Allow Money Transfers</span>
+                            <label class="admin-form-switch">
+                                <input type="checkbox" id="allow-transfers" checked>
+                                <span class="admin-form-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Transfer Fee Percentage (%)</label>
+                        <input type="number" class="admin-form-input" id="fee-percentage" min="0" max="10" value="0">
+                    </div>
+                    
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Minimum Transfer Amount (Ks)</label>
+                        <input type="number" class="admin-form-input" id="min-transfer" value="1000">
+                    </div>
+                    
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Maximum Transfer Amount (Ks)</label>
+                        <input type="number" class="admin-form-input" id="max-transfer" value="1000000">
+                    </div>
+                    
+                    <button class="action-btn" onclick="saveSettings()">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
                 </div>
             </div>
             
-            <div class="modal-footer">
-                <button class="modal-btn btn-cancel" onclick="closeModal('maintenance-modal')">မလုပ်တော့ပါ</button>
-                <button class="modal-btn" onclick="setMaintenanceMode(true)" id="start-maintenance-btn">စတင်မည်</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- System Settings Modal -->
-    <div class="modal-overlay" id="system-settings-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">စနစ်ဆက်တင်များ</h3>
-                <button class="modal-close" onclick="closeModal('system-settings-modal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="form-field">
-                    <label for="min-transfer">အနည်းဆုံးလွှဲငွေပမာဏ (ကျပ်)</label>
-                    <input type="number" id="min-transfer" placeholder="1000">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">Activity Log</div>
                 </div>
                 
-                <div class="form-field">
-                    <label for="max-transfer">အများဆုံးလွှဲငွေပမာဏ (ကျပ်)</label>
-                    <input type="number" id="max-transfer" placeholder="1000000">
+                <div id="activity-log-container">
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
                 </div>
                 
-                <div class="form-field">
-                    <label for="transfer-fee">ငွေလွှဲကြေး (%)</label>
-                    <input type="number" id="transfer-fee" placeholder="0" step="0.1" min="0" max="10">
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="modal-btn btn-cancel" onclick="closeModal('system-settings-modal')">မလုပ်တော့ပါ</button>
-                <button class="modal-btn" onclick="saveSystemSettings()" id="save-settings-btn">သိမ်းဆည်းမည်</button>
+                <div class="admin-pagination" id="activity-pagination"></div>
             </div>
         </div>
     </div>
 
+    <!-- User Detail Modal -->
+    <div class="admin-modal" id="user-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <div class="admin-modal-title">User Details</div>
+                <button class="admin-modal-close" onclick="closeUserModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="admin-modal-body" id="user-modal-body">
+                <div class="admin-loader">
+                    <div class="admin-loader-spinner"></div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="cancel-btn" onclick="closeUserModal()">Close</button>
+                <button class="approve-btn" id="approve-user-btn" onclick="approveUser()">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="reject-btn" id="reject-user-btn" onclick="rejectUser()">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Detail Modal -->
+    <div class="admin-modal" id="transaction-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <div class="admin-modal-title">Transaction Details</div>
+                <button class="admin-modal-close" onclick="closeTransactionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="admin-modal-body" id="transaction-modal-body">
+                <div class="admin-loader">
+                    <div class="admin-loader-spinner"></div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="cancel-btn" onclick="closeTransactionModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Notifications -->
+    <div class="admin-notifications" id="admin-notifications"></div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
         // Initialize Supabase Client
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ._Jl-xGTucb9JVIENi33RqKv6SD8FyWqcwABqvU0xtzc';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
         
-        // Admin credentials (normally should be stored more securely)
-        const ADMIN_EMAIL = 'crakb68@gmail.com';
-        const ADMIN_PIN = '155872';
-        
         // Global variables
-        let selectedUserId = null;
-        let selectedUserPhone = null;
-        let systemSettings = {
-            allowTransfers: true,
-            maintenanceMode: false,
-            minTransferAmount: 1000,
-            maxTransferAmount: 1000000,
-            transferFeePercent: 0
-        };
-        
-        // Create background particles
-        function createParticles() {
-            const container = document.getElementById('particles-container');
-            const particleCount = 20;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                // Random size between 5px and 20px
-                const size = Math.random() * 15 + 5;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                
-                // Random position
-                const posX = Math.random() * 100;
-                particle.style.left = `${posX}%`;
-                particle.style.bottom = `-${size}px`;
-                
-                // Random speed between 30s and 60s
-                const duration = Math.random() * 30 + 30;
-                particle.style.animationDuration = `${duration}s`;
-                
-                // Add to container
-                container.appendChild(particle);
-            }
-        }
+        let currentUser = null;
+        let currentSection = 'dashboard';
+        let selectedUserId = '';
+        let selectedTransactionId = '';
+        let usersPage = 1;
+        let transactionsPage = 1;
+        let verificationPage = 1;
+        let activityPage = 1;
+        const itemsPerPage = 10;
         
         // Format currency
         function formatCurrency(amount) {
@@ -1239,710 +1123,1251 @@
             });
         }
         
-        // Show message
-        function showMessage(containerId, message, type = 'success') {
-            const container = document.getElementById(containerId);
-            container.className = `message message-${type}`;
+        // Show notification
+        function showNotification(title, message, type = 'info') {
+            const notificationsContainer = document.getElementById('admin-notifications');
+            
+            const notification = document.createElement('div');
+            notification.className = `admin-notification ${type}`;
             
             let icon = '';
             switch(type) {
                 case 'success':
-                    icon = '<i class="fas fa-check-circle"></i>';
+                    icon = '<i class="fas fa-check-circle admin-notification-icon"></i>';
                     break;
                 case 'error':
-                    icon = '<i class="fas fa-exclamation-circle"></i>';
-                    break;
-                case 'info':
-                    icon = '<i class="fas fa-info-circle"></i>';
+                    icon = '<i class="fas fa-exclamation-circle admin-notification-icon"></i>';
                     break;
                 case 'warning':
-                    icon = '<i class="fas fa-exclamation-triangle"></i>';
+                    icon = '<i class="fas fa-exclamation-triangle admin-notification-icon"></i>';
+                    break;
+                case 'info':
+                default:
+                    icon = '<i class="fas fa-info-circle admin-notification-icon"></i>';
                     break;
             }
             
-            container.innerHTML = `${icon} ${message}`;
-            container.classList.remove('hidden');
+            notification.innerHTML = `
+                ${icon}
+                <div class="admin-notification-content">
+                    <div class="admin-notification-title">${title}</div>
+                    <div class="admin-notification-message">${message}</div>
+                </div>
+            `;
+            
+            notificationsContainer.appendChild(notification);
             
             setTimeout(() => {
-                container.classList.add('hidden');
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
             }, 5000);
         }
         
-        // Retry operation with backoff
-        async function retryOperation(operation, maxRetries = 3, delay = 1000) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    console.warn(`Retry ${i + 1}/${maxRetries} failed: ${error.message}`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
+        // Show section
+        function showSection(sectionId) {
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.admin-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelector(`.admin-nav-item[onclick="showSection('${sectionId}')"]`).classList.add('active');
+            
+            currentSection = sectionId;
+            
+            // Load data for the section
+            switch(sectionId) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'transactions':
+                    loadTransactions();
+                    break;
+                case 'verification':
+                    loadVerifications();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    loadActivityLog();
+                    break;
             }
         }
         
-        // Admin login
-        function adminLogin() {
-            const email = document.getElementById('admin-email').value;
-            const pin = document.getElementById('admin-pin').value;
-            const errorMessage = document.getElementById('login-error');
-            
-            if (!email || !pin) {
-                errorMessage.textContent = 'အီးမေးလ်နှင့် PIN ထည့်သွင်းပေးပါ';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-            
-            if (email === ADMIN_EMAIL && pin === ADMIN_PIN) {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('dashboard-container').classList.remove('hidden');
-                
-                loadDashboard();
-                loadUsers();
-                getSystemSettings();
-            } else {
-                errorMessage.textContent = 'အီးမေးလ် သို့မဟုတ် PIN မှားယွင်းနေပါသည်';
-                errorMessage.classList.remove('hidden');
-            }
-        }
-        
-        // Load dashboard stats
-        async function loadDashboard() {
+        // Load dashboard data
+        async function loadDashboardData() {
             try {
-                // Get total users
-                const { count: totalUsers, error: userError } = await supabase
+                // Load total users
+                const { data: users, error: usersError } = await supabase
                     .from('users')
-                    .select('*', { count: 'exact', head: true });
+                    .select('count', { count: 'exact' });
                 
-                if (userError) throw new Error(`Fetch Users Error: ${userError.message}`);
-                document.getElementById('total-users').textContent = totalUsers;
+                if (usersError) throw new Error(`Users Error: ${usersError.message}`);
                 
-                // Get pending users
-                const { count: pendingUsers, error: pendingError } = await supabase
+                document.getElementById('total-users').textContent = users[0].count;
+                
+                // Load total transactions
+                const { data: transactions, error: transactionsError } = await supabase
+                    .from('transactions')
+                    .select('count', { count: 'exact' });
+                
+                if (transactionsError) throw new Error(`Transactions Error: ${transactionsError.message}`);
+                
+                document.getElementById('total-transactions').textContent = transactions[0].count;
+                
+                // Load pending verifications
+                const { data: verifications, error: verificationsError } = await supabase
                     .from('users')
-                    .select('*', { count: 'exact', head: true })
+                    .select('count', { count: 'exact' })
                     .eq('passport_status', 'pending');
                 
-                if (pendingError) throw new Error(`Fetch Pending Users Error: ${pendingError.message}`);
-                document.getElementById('pending-users').textContent = pendingUsers;
+                if (verificationsError) throw new Error(`Verifications Error: ${verificationsError.message}`);
                 
-                // Get total transactions
-                const { count: totalTransactions, error: transactionError } = await supabase
+                document.getElementById('pending-verifications').textContent = verifications[0].count;
+                
+                // Load total transaction volume
+                const { data: volume, error: volumeError } = await supabase
                     .from('transactions')
-                    .select('*', { count: 'exact', head: true });
+                    .select('amount');
                 
-                if (transactionError) throw new Error(`Fetch Transactions Error: ${transactionError.message}`);
-                document.getElementById('total-transactions').textContent = totalTransactions;
+                if (volumeError) throw new Error(`Volume Error: ${volumeError.message}`);
                 
-                // Get total balance
-                const { data: balanceData, error: balanceError } = await supabase
-                    .from('users')
-                    .select('balance');
+                const totalVolume = volume.reduce((sum, transaction) => sum + transaction.amount, 0);
+                document.getElementById('total-volume').textContent = formatCurrency(totalVolume);
                 
-                if (balanceError) throw new Error(`Fetch Balance Error: ${balanceError.message}`);
+                // Random growth percentages for demo
+                document.getElementById('users-growth').textContent = Math.floor(Math.random() * 20) + '%';
+                document.getElementById('transactions-growth').textContent = Math.floor(Math.random() * 30) + '%';
+                document.getElementById('volume-growth').textContent = Math.floor(Math.random() * 25) + '%';
                 
-                const totalBalance = balanceData.reduce((sum, user) => sum + user.balance, 0);
-                document.getElementById('total-balance').textContent = `${formatCurrency(totalBalance)} Ks`;
-                
-            } catch (error) {
-                console.error('Load Dashboard Error:', error.message);
-                alert(`စနစ်အချက်အလက်များ ရယူရာတွင် အမှားရှိပါသည်: ${error.message}`);
-            }
-        }
-        
-        // Get system settings
-        async function getSystemSettings() {
-            try {
-                const { data, error } = await supabase
-                    .from('settings')
+                // Load recent transactions
+                const { data: recentTransactions, error: recentError } = await supabase
+                    .from('transactions')
                     .select('*')
-                    .single();
+                    .order('created_at', { ascending: false })
+                    .limit(5);
                 
-                if (error) throw new Error(`Fetch Settings Error: ${error.message}`);
+                if (recentError) throw new Error(`Recent Transactions Error: ${recentError.message}`);
                 
-                systemSettings = {
-                    allowTransfers: data.allow_transfers,
-                    maintenanceMode: data.maintenance_mode,
-                    minTransferAmount: data.min_transfer_amount,
-                    maxTransferAmount: data.max_transfer_amount,
-                    transferFeePercent: data.transfer_fee_percent
-                };
+                // Display recent transactions
+                const recentTransactionsContainer = document.getElementById('recent-transactions');
                 
-                // Update settings form
-                document.getElementById('min-transfer').value = systemSettings.minTransferAmount;
-                document.getElementById('max-transfer').value = systemSettings.maxTransferAmount;
-                document.getElementById('transfer-fee').value = systemSettings.transferFeePercent;
+                if (!recentTransactions || recentTransactions.length === 0) {
+                    recentTransactionsContainer.innerHTML = `<p style="text-align: center; padding: 20px;">No recent transactions found.</p>`;
+                } else {
+                    let tableHtml = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    recentTransactions.forEach(transaction => {
+                        tableHtml += `
+                            <tr>
+                                <td>${transaction.transaction_id}</td>
+                                <td>${transaction.from_phone || 'Unknown'}</td>
+                                <td>${transaction.to_phone || 'Unknown'}</td>
+                                <td>${formatCurrency(transaction.amount)} Ks</td>
+                                <td>${formatDate(transaction.created_at)}</td>
+                                <td>
+                                    <button class="action-btn view" onclick="viewTransaction('${transaction.transaction_id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    recentTransactionsContainer.innerHTML = tableHtml;
+                }
+                
+                // Load latest activities
+                const { data: activities, error: activitiesError } = await supabase
+                    .from('activity_logs')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                if (activitiesError) throw new Error(`Activities Error: ${activitiesError.message}`);
+                
+                // Display latest activities
+                const activitiesContainer = document.getElementById('latest-activities');
+                
+                if (!activities || activities.length === 0) {
+                    activitiesContainer.innerHTML = `<p style="text-align: center; padding: 20px;">No recent activities found.</p>`;
+                } else {
+                    let tableHtml = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Action</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    activities.forEach(activity => {
+                        tableHtml += `
+                            <tr>
+                                <td>${activity.user_id}</td>
+                                <td>${activity.action}</td>
+                                <td>${formatDate(activity.created_at)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    activitiesContainer.innerHTML = tableHtml;
+                }
                 
             } catch (error) {
-                console.error('Get Settings Error:', error.message);
+                console.error('Dashboard Data Error:', error.message);
+                showNotification('Error', `Failed to load dashboard data: ${error.message}`, 'error');
             }
         }
         
         // Load users
-        async function loadUsers(searchQuery = '') {
+        async function loadUsers() {
             try {
-                document.getElementById('user-table').innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align: center;">
-                            <div class="loading"></div> အသုံးပြုသူများကို ရယူနေပါသည်...
-                        </td>
-                    </tr>
+                const usersContainer = document.getElementById('users-table-container');
+                usersContainer.innerHTML = `
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
                 `;
                 
+                // Get filter values
+                const statusFilter = document.getElementById('status-filter').value;
+                const sortBy = document.getElementById('sort-users').value;
+                const searchQuery = document.getElementById('users-search').value;
+                
+                // Build query
                 let query = supabase.from('users').select('*');
+                
+                // Apply status filter
+                if (statusFilter !== 'all') {
+                    query = query.eq('passport_status', statusFilter);
+                }
+                
+                // Apply search
                 if (searchQuery) {
-                    query = query.or(`user_id.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
+                    query = query.or(
+                        `user_id.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`
+                    );
                 }
                 
-                const { data: users, error } = await query;
-                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
+                // Apply sorting
+                const [sortField, sortOrder] = sortBy.split('_');
+                query = query.order(sortField, { ascending: sortOrder === 'asc' });
                 
-                const userTable = document.getElementById('user-table');
-                userTable.innerHTML = '';
+                // Get total count for pagination
+                const { count: totalUsers, error: countError } = await query.select('count', { count: 'exact' });
                 
-                if (users.length === 0) {
-                    userTable.innerHTML = `
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 20px;">
-                                <i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 10px; color: var(--gray);"></i>
-                                <p>အသုံးပြုသူများ မရှိသေးပါ</p>
-                            </td>
-                        </tr>
+                if (countError) throw new Error(`Count Error: ${countError.message}`);
+                
+                // Apply pagination
+                const from = (usersPage - 1) * itemsPerPage;
+                const to = from + itemsPerPage - 1;
+                
+                const { data: users, error } = await query
+                    .range(from, to);
+                
+                if (error) throw new Error(`Users Error: ${error.message}`);
+                
+                // Display users
+                if (!users || users.length === 0) {
+                    usersContainer.innerHTML = `<p style="text-align: center; padding: 20px;">No users found.</p>`;
+                } else {
+                    let tableHtml = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                     `;
-                    return;
+                    
+                    users.forEach(user => {
+                        tableHtml += `
+                            <tr>
+                                <td>${user.user_id}</td>
+                                <td>${user.email}</td>
+                                <td>${user.phone || 'Not set'}</td>
+                                <td>${formatCurrency(user.balance)} Ks</td>
+                                <td>
+                                    <span class="status-badge ${user.passport_status}">
+                                        ${user.passport_status}
+                                    </span>
+                                </td>
+                                <td>${formatDate(user.created_at)}</td>
+                                <td>
+                                    <button class="action-btn view" onclick="viewUser('${user.user_id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    usersContainer.innerHTML = tableHtml;
                 }
                 
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    
-                    let statusClass = '';
-                    let statusText = '';
-                    
-                    switch(user.passport_status) {
-                        case 'pending':
-                            statusClass = 'status-pending';
-                            statusText = 'စစ်ဆေးဆဲ';
-                            break;
-                        case 'approved':
-                            statusClass = 'status-approved';
-                            statusText = 'အတည်ပြုပြီး';
-                            break;
-                        case 'rejected':
-                            statusClass = 'status-rejected';
-                            statusText = 'ငြင်းပယ်ထားသည်';
-                            break;
-                    }
-                    
-                    row.innerHTML = `
-                        <td>${user.user_id}</td>
-                        <td>${user.phone || 'N/A'}</td>
-                        <td>${formatCurrency(user.balance)} Ks</td>
-                        <td><span class="user-status ${statusClass}">${statusText}</span></td>
-                        <td>
-                            ${user.passport_image 
-                                ? `<img src="${user.passport_image}" alt="Passport" onclick="previewImage('${user.passport_image}')">`
-                                : '<span style="color: var(--gray);">မရှိသေးပါ</span>'}
-                        </td>
-                        <td>
-                            ${user.selfie_image 
-                                ? `<img src="${user.selfie_image}" alt="Selfie" onclick="previewImage('${user.selfie_image}')">`
-                                : '<span style="color: var(--gray);">မရှိသေးပါ</span>'}
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                ${user.passport_status === 'pending' ? `
-                                    <button class="action-btn approve-btn" onclick="updateStatus('${user.user_id}', 'approved')">
-                                        <i class="fas fa-check"></i> အတည်ပြုမည်
-                                    </button>
-                                    <button class="action-btn reject-btn" onclick="updateStatus('${user.user_id}', 'rejected')">
-                                        <i class="fas fa-times"></i> ငြင်းပယ်မည်
-                                    </button>
-                                ` : ''}
-                                <button class="action-btn deposit-btn" onclick="showDepositModal('${user.user_id}', '${user.phone || 'N/A'}')">
-                                    <i class="fas fa-money-bill-wave"></i> ငွေဖြည့်မည်
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    
-                    userTable.appendChild(row);
+                // Update pagination
+                const totalPages = Math.ceil(totalUsers / itemsPerPage);
+                updatePagination('users-pagination', totalPages, usersPage, (page) => {
+                    usersPage = page;
+                    loadUsers();
                 });
                 
             } catch (error) {
                 console.error('Load Users Error:', error.message);
-                document.getElementById('user-table').innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 20px; color: var(--error);">
-                            <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                            <p>အသုံးပြုသူများ ရယူရာတွင် အမှားရှိပါသည်</p>
-                        </td>
-                    </tr>
-                `;
+                showNotification('Error', `Failed to load users: ${error.message}`, 'error');
             }
         }
         
-        // Search user
-        function searchUser() {
-            const searchQuery = document.getElementById('search-input').value;
-            loadUsers(searchQuery);
-        }
-        
-        // Update user status
-        async function updateStatus(userId, status) {
+        // Load transactions
+        async function loadTransactions() {
             try {
-                const confirmMessage = status === 'approved' 
-                    ? `${userId} ကို အတည်ပြုမှာ သေချာပါသလား?`
-                    : `${userId} ကို ငြင်းပယ်မှာ သေချာပါသလား?`;
+                const transactionsContainer = document.getElementById('transactions-table-container');
+                transactionsContainer.innerHTML = `
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                `;
                 
-                if (!confirm(confirmMessage)) return;
+                // Get filter values
+                const dateFilter = document.getElementById('date-filter').value;
+                const amountFilter = document.getElementById('amount-filter').value;
+                const sortBy = document.getElementById('sort-transactions').value;
+                const searchQuery = document.getElementById('transactions-search').value;
                 
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('users')
-                        .update({ passport_status: status })
-                        .eq('user_id', userId);
+                // Build query
+                let query = supabase.from('transactions').select('*');
+                
+                // Apply date filter
+                if (dateFilter !== 'all') {
+                    const now = new Date();
+                    let startDate;
                     
-                    if (error) throw new Error(`Update Status Error: ${error.message}`);
+                    switch(dateFilter) {
+                        case 'today':
+                            startDate = new Date(now.setHours(0, 0, 0, 0));
+                            break;
+                        case 'week':
+                            startDate = new Date(now.setDate(now.getDate() - 7));
+                            break;
+                        case 'month':
+                            startDate = new Date(now.setMonth(now.getMonth() - 1));
+                            break;
+                    }
+                    
+                    query = query.gte('created_at', startDate.toISOString());
+                }
+                
+                // Apply amount filter
+                if (amountFilter !== 'all') {
+                    switch(amountFilter) {
+                        case 'small':
+                            query = query.lt('amount', 10000);
+                            break;
+                        case 'medium':
+                            query = query.gte('amount', 10000).lt('amount', 100000);
+                            break;
+                        case 'large':
+                            query = query.gte('amount', 100000);
+                            break;
+                    }
+                }
+                
+                // Apply search
+                if (searchQuery) {
+                    query = query.or(
+                        `transaction_id.ilike.%${searchQuery}%,from_user_id.ilike.%${searchQuery}%,to_user_id.ilike.%${searchQuery}%,from_phone.ilike.%${searchQuery}%,to_phone.ilike.%${searchQuery}%`
+                    );
+                }
+                
+                // Apply sorting
+                const [sortField, sortOrder] = sortBy.split('_');
+                query = query.order(sortField, { ascending: sortOrder === 'asc' });
+                
+                // Get total count for pagination
+                const { count: totalTransactions, error: countError } = await query.select('count', { count: 'exact' });
+                
+                if (countError) throw new Error(`Count Error: ${countError.message}`);
+                
+                // Apply pagination
+                const from = (transactionsPage - 1) * itemsPerPage;
+                const to = from + itemsPerPage - 1;
+                
+                const { data: transactions, error } = await query
+                    .range(from, to);
+                
+                if (error) throw new Error(`Transactions Error: ${error.message}`);
+                
+                // Display transactions
+                if (!transactions || transactions.length === 0) {
+                    transactionsContainer.innerHTML = `<p style="text-align: center; padding: 20px;">No transactions found.</p>`;
+                } else {
+                    let tableHtml = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Amount</th>
+                                    <th>Fee</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    transactions.forEach(transaction => {
+                        tableHtml += `
+                            <tr>
+                                <td>${transaction.transaction_id}</td>
+                                <td>${transaction.from_phone || 'Unknown'}</td>
+                                <td>${transaction.to_phone || 'Unknown'}</td>
+                                <td>${formatCurrency(transaction.amount)} Ks</td>
+                                <td>${formatCurrency(transaction.fee)} Ks</td>
+                                <td>${formatDate(transaction.created_at)}</td>
+                                <td>
+                                    <button class="action-btn view" onclick="viewTransaction('${transaction.transaction_id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    transactionsContainer.innerHTML = tableHtml;
+                }
+                
+                // Update pagination
+                const totalPages = Math.ceil(totalTransactions / itemsPerPage);
+                updatePagination('transactions-pagination', totalPages, transactionsPage, (page) => {
+                    transactionsPage = page;
+                    loadTransactions();
                 });
                 
-                alert(`အသုံးပြုသူကို ${status === 'approved' ? 'အတည်ပြု' : 'ငြင်းပယ်'}ပြီးပါပြီ`);
-                loadUsers();
-                loadDashboard();
+            } catch (error) {
+                console.error('Load Transactions Error:', error.message);
+                showNotification('Error', `Failed to load transactions: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load verifications
+        async function loadVerifications() {
+            try {
+                const verificationsContainer = document.getElementById('verification-table-container');
+                verificationsContainer.innerHTML = `
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                `;
+                
+                // Build query for pending verifications
+                let query = supabase
+                    .from('users')
+                    .select('*')
+                    .eq('passport_status', 'pending');
+                
+                // Get total count for pagination
+                const { count: totalVerifications, error: countError } = await query.select('count', { count: 'exact' });
+                
+                if (countError) throw new Error(`Count Error: ${countError.message}`);
+                
+                // Apply pagination
+                const from = (verificationPage - 1) * itemsPerPage;
+                const to = from + itemsPerPage - 1;
+                
+                const { data: verifications, error } = await query
+                    .range(from, to)
+                    .order('updated_at', { ascending: false });
+                
+                if (error) throw new Error(`Verifications Error: ${error.message}`);
+                
+                // Display verifications
+                if (!verifications || verifications.length === 0) {
+                    verificationsContainer.innerHTML = `<p style="text-align: center; padding: 20px;">No pending verifications found.</p>`;
+                } else {
+                    let tableHtml = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Passport No.</th>
+                                    <th>Updated At</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    verifications.forEach(user => {
+                        tableHtml += `
+                            <tr>
+                                <td>${user.user_id}</td>
+                                <td>${user.email}</td>
+                                <td>${user.phone || 'Not set'}</td>
+                                <td>${user.passport_number || 'Not set'}</td>
+                                <td>${formatDate(user.updated_at)}</td>
+                                <td>
+                                    <button class="action-btn view" onclick="viewUser('${user.user_id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn approve" onclick="approveUserDirect('${user.user_id}')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="action-btn reject" onclick="rejectUserDirect('${user.user_id}')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    verificationsContainer.innerHTML = tableHtml;
+                }
+                
+                // Update pagination
+                const totalPages = Math.ceil(totalVerifications / itemsPerPage);
+                updatePagination('verification-pagination', totalPages, verificationPage, (page) => {
+                    verificationPage = page;
+                    loadVerifications();
+                });
                 
             } catch (error) {
-                console.error('Update Status Error:', error.message);
-                alert(`အသုံးပြုသူအခြေအနေ ပြောင်းလဲရာတွင် အမှားရှိပါသည်: ${error.message}`);
+                console.error('Load Verifications Error:', error.message);
+                showNotification('Error', `Failed to load verifications: ${error.message}`, 'error');
             }
         }
         
-        // Show deposit modal
-        function showDepositModal(userId, phone) {
-            selectedUserId = userId;
-            selectedUserPhone = phone;
-            
-            document.getElementById('confirm-user-id').textContent = userId;
-            document.getElementById('confirm-user-phone').textContent = phone;
-            
-            const amount = document.getElementById('deposit-amount').value;
-            if (!amount || isNaN(amount) || amount <= 0) {
-                alert('ကျေးဇူးပြု၍ မှန်ကန်သော ငွေပမာဏထည့်ပါ');
-                return;
-            }
-            
-            document.getElementById('confirm-amount').textContent = `${formatCurrency(amount)} ကျပ်`;
-            document.getElementById('deposit-modal').style.display = 'flex';
-        }
-        
-        // Toggle deposit fields
-        function toggleDepositFields() {
-            const depositType = document.getElementById('deposit-type').value;
-            const userIdField = document.getElementById('user-id-field');
-            
-            if (depositType === 'bulk') {
-                userIdField.classList.add('hidden');
-            } else {
-                userIdField.classList.remove('hidden');
-            }
-        }
-        
-        // Process deposit
-        function processDeposit() {
-            const depositType = document.getElementById('deposit-type').value;
-            const amount = document.getElementById('deposit-amount').value;
-            
-            if (!amount || isNaN(amount) || amount <= 0) {
-                alert('ကျေးဇူးပြု၍ မှန်ကန်သော ငွေပမာဏထည့်ပါ');
-                return;
-            }
-            
-            if (depositType === 'single') {
-                const userId = document.getElementById('user-id').value;
-                if (!userId) {
-                    alert('ကျေးဇူးပြု၍ အသုံးပြုသူ ID ထည့်ပါ');
-                    return;
+        // Load settings
+        async function loadSettings() {
+            try {
+                // Get settings
+                const { data: settings, error } = await supabase
+                    .from('settings')
+                    .select('*');
+                
+                if (error) throw new Error(`Settings Error: ${error.message}`);
+                
+                // Update form
+                if (settings && settings.length > 0) {
+                    // Allow transfers
+                    const allowTransfersSetting = settings.find(setting => setting.name === 'allow_transfers');
+                    if (allowTransfersSetting) {
+                        document.getElementById('allow-transfers').checked = allowTransfersSetting.value === 'true';
+                    }
+                    
+                    // Fee percentage
+                    const feePercentageSetting = settings.find(setting => setting.name === 'transfer_fee_percentage');
+                    if (feePercentageSetting) {
+                        document.getElementById('fee-percentage').value = feePercentageSetting.value;
+                    }
+                    
+                    // Min transfer
+                    const minTransferSetting = settings.find(setting => setting.name === 'minimum_transfer_amount');
+                    if (minTransferSetting) {
+                        document.getElementById('min-transfer').value = minTransferSetting.value;
+                    }
+                    
+                    // Max transfer
+                    const maxTransferSetting = settings.find(setting => setting.name === 'maximum_transfer_amount');
+                    if (maxTransferSetting) {
+                        document.getElementById('max-transfer').value = maxTransferSetting.value;
+                    }
                 }
                 
-                // Find the user first
-                getUserByIdAsync(userId)
-                    .then(user => {
-                        if (user) {
-                            showDepositModal(userId, user.phone || 'N/A');
-                        } else {
-                            alert('အသုံးပြုသူရှာမတွေ့ပါ');
-                        }
-                    })
-                    .catch(error => {
-                        alert(`အသုံးပြုသူရှာဖွေရာတွင် အမှားရှိပါသည်: ${error.message}`);
-                    });
-            } else {
-                if (confirm(`အတည်ပြုပြီးသူအားလုံးထံသို့ ${formatCurrency(amount)} ကျပ်စီ ဖြည့်မှာ သေချာပါသလား?`)) {
-                    processBulkDeposit(amount);
-                }
+            } catch (error) {
+                console.error('Load Settings Error:', error.message);
+                showNotification('Error', `Failed to load settings: ${error.message}`, 'error');
             }
         }
         
-        // Get user by ID
-        async function getUserByIdAsync(userId) {
+        // Save settings
+        async function saveSettings() {
             try {
-                const { data, error } = await supabase
+                const allowTransfers = document.getElementById('allow-transfers').checked;
+                const feePercentage = document.getElementById('fee-percentage').value;
+                const minTransfer = document.getElementById('min-transfer').value;
+                const maxTransfer = document.getElementById('max-transfer').value;
+                
+                // Update settings
+                const { error: allowError } = await supabase
+                    .from('settings')
+                    .update({ value: allowTransfers.toString() })
+                    .eq('name', 'allow_transfers');
+                
+                if (allowError) throw new Error(`Allow Error: ${allowError.message}`);
+                
+                const { error: feeError } = await supabase
+                    .from('settings')
+                    .update({ value: feePercentage })
+                    .eq('name', 'transfer_fee_percentage');
+                
+                if (feeError) throw new Error(`Fee Error: ${feeError.message}`);
+                
+                const { error: minError } = await supabase
+                    .from('settings')
+                    .update({ value: minTransfer })
+                    .eq('name', 'minimum_transfer_amount');
+                
+                if (minError) throw new Error(`Min Error: ${minError.message}`);
+                
+                const { error: maxError } = await supabase
+                    .from('settings')
+                    .update({ value: maxTransfer })
+                    .eq('name', 'maximum_transfer_amount');
+                
+                if (maxError) throw new Error(`Max Error: ${maxError.message}`);
+                
+                // Log activity
+                await supabase.from('activity_logs').insert({
+                    user_id: 'ADMIN',
+                    action: 'update_settings',
+                    details: {
+                        allow_transfers: allowTransfers,
+                        fee_percentage: feePercentage,
+                        min_transfer: minTransfer,
+                        max_transfer: maxTransfer
+                    },
+                    ip_address: 'admin-ip'
+                });
+                
+                showNotification('Success', 'Settings updated successfully.', 'success');
+                
+            } catch (error) {
+                console.error('Save Settings Error:', error.message);
+                showNotification('Error', `Failed to save settings: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load activity log
+        async function loadActivityLog() {
+            try {
+                const activityContainer = document.getElementById('activity-log-container');
+                activityContainer.innerHTML = `
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                `;
+                
+                // Build query
+                let query = supabase
+                    .from('activity_logs')
+                    .select('*');
+                
+                // Get total count for pagination
+                const { count: totalActivities, error: countError } = await query.select('count', { count: 'exact' });
+                
+                if (countError) throw new Error(`Count Error: ${countError.message}`);
+                
+                // Apply pagination
+                const from = (activityPage - 1) * itemsPerPage;
+                const to = from + itemsPerPage - 1;
+                
+                const { data: activities, error } = await query
+                    .range(from, to)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw new Error(`Activities Error: ${error.message}`);
+                
+                // Display activities
+                if (!activities || activities.length === 0) {
+                    activityContainer.innerHTML = `<p style="text-align: center; padding: 20px;">No activities found.</p>`;
+                } else {
+                    let tableHtml = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Action</th>
+                                    <th>IP Address</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    activities.forEach(activity => {
+                        tableHtml += `
+                            <tr>
+                                <td>${activity.user_id}</td>
+                                <td>${activity.action}</td>
+                                <td>${activity.ip_address || 'Unknown'}</td>
+                                <td>${formatDate(activity.created_at)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    activityContainer.innerHTML = tableHtml;
+                }
+                
+                // Update pagination
+                const totalPages = Math.ceil(totalActivities / itemsPerPage);
+                updatePagination('activity-pagination', totalPages, activityPage, (page) => {
+                    activityPage = page;
+                    loadActivityLog();
+                });
+                
+            } catch (error) {
+                console.error('Load Activity Error:', error.message);
+                showNotification('Error', `Failed to load activity log: ${error.message}`, 'error');
+            }
+        }
+        
+        // Update pagination
+        function updatePagination(containerId, totalPages, currentPage, callback) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                return;
+            }
+            
+            // Previous button
+            const prevButton = document.createElement('div');
+            prevButton.className = `admin-pagination-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            if (currentPage > 1) {
+                prevButton.addEventListener('click', () => callback(currentPage - 1));
+            }
+            container.appendChild(prevButton);
+            
+            // Page numbers
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            if (endPage - startPage < 4 && startPage > 1) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('div');
+                pageButton.className = `admin-pagination-item ${i === currentPage ? 'active' : ''}`;
+                pageButton.textContent = i;
+                if (i !== currentPage) {
+                    pageButton.addEventListener('click', () => callback(i));
+                }
+                container.appendChild(pageButton);
+            }
+            
+            // Next button
+            const nextButton = document.createElement('div');
+            nextButton.className = `admin-pagination-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            if (currentPage < totalPages) {
+                nextButton.addEventListener('click', () => callback(currentPage + 1));
+            }
+            container.appendChild(nextButton);
+        }
+        
+        // View user details
+        async function viewUser(userId) {
+            try {
+                selectedUserId = userId;
+                
+                const userModalBody = document.getElementById('user-modal-body');
+                userModalBody.innerHTML = `
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                `;
+                
+                // Show modal
+                document.getElementById('user-modal').classList.add('show');
+                
+                // Get user details
+                const { data: user, error } = await supabase
                     .from('users')
                     .select('*')
                     .eq('user_id', userId)
                     .single();
                 
-                if (error && error.code !== 'PGRST116') throw error;
-                return data;
+                if (error) throw new Error(`User Error: ${error.message}`);
+                
+                if (!user) {
+                    userModalBody.innerHTML = `<p style="text-align: center; padding: 20px;">User not found.</p>`;
+                    return;
+                }
+                
+                // Show/hide action buttons based on status
+                document.getElementById('approve-user-btn').style.display = user.passport_status === 'pending' ? 'block' : 'none';
+                document.getElementById('reject-user-btn').style.display = user.passport_status === 'pending' ? 'block' : 'none';
+                
+                // Display user details
+                let html = `
+                    <div class="admin-modal-section">
+                        <div class="admin-modal-section-title">Basic Information</div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">User ID</div>
+                            <div class="admin-modal-value">${user.user_id}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Email</div>
+                            <div class="admin-modal-value">${user.email}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Phone</div>
+                            <div class="admin-modal-value">${user.phone || 'Not set'}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Balance</div>
+                            <div class="admin-modal-value">${formatCurrency(user.balance)} Ks</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Status</div>
+                            <div class="admin-modal-value">
+                                <span class="status-badge ${user.passport_status}">
+                                    ${user.passport_status}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Created At</div>
+                            <div class="admin-modal-value">${formatDate(user.created_at)}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Last Login</div>
+                            <div class="admin-modal-value">${user.last_login ? formatDate(user.last_login) : 'Never'}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Verification details if any
+                if (user.passport_number || user.address) {
+                    html += `
+                        <div class="admin-modal-section">
+                            <div class="admin-modal-section-title">Verification Information</div>
+                            <div class="admin-modal-field">
+                                <div class="admin-modal-label">Passport No.</div>
+                                <div class="admin-modal-value">${user.passport_number || 'Not set'}</div>
+                            </div>
+                            <div class="admin-modal-field">
+                                <div class="admin-modal-label">Address</div>
+                                <div class="admin-modal-value">${user.address || 'Not set'}</div>
+                            </div>
+                            <div class="admin-modal-field">
+                                <div class="admin-modal-label">Payment PIN</div>
+                                <div class="admin-modal-value">${user.payment_pin ? '******' : 'Not set'}</div>
+                            </div>
+                            <div class="admin-modal-field">
+                                <div class="admin-modal-label">Updated At</div>
+                                <div class="admin-modal-value">${formatDate(user.updated_at)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Verification documents if any
+                if (user.passport_image || user.selfie_image) {
+                    html += `
+                        <div class="admin-modal-section">
+                            <div class="admin-modal-section-title">Verification Documents</div>
+                            <div class="admin-modal-gallery">
+                    `;
+                    
+                    if (user.passport_image) {
+                        html += `
+                            <div class="admin-modal-image">
+                                <img src="${user.passport_image}" alt="Passport Image">
+                                <div class="admin-modal-image-caption">Passport Image</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (user.selfie_image) {
+                        html += `
+                            <div class="admin-modal-image">
+                                <img src="${user.selfie_image}" alt="Selfie Image">
+                                <div class="admin-modal-image-caption">Selfie with ID</div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                userModalBody.innerHTML = html;
+                
             } catch (error) {
-                console.error('Get User Error:', error.message);
-                throw error;
+                console.error('View User Error:', error.message);
+                showNotification('Error', `Failed to load user details: ${error.message}`, 'error');
             }
         }
         
-        // Confirm deposit
-        async function confirmDeposit() {
+        // Close user modal
+        function closeUserModal() {
+            document.getElementById('user-modal').classList.remove('show');
+            selectedUserId = '';
+        }
+        
+        // Approve user
+        async function approveUser() {
             try {
-                // Show loading state
-                const confirmBtn = document.getElementById('confirm-deposit-btn');
-                const originalText = confirmBtn.textContent;
-                confirmBtn.innerHTML = '<div class="loading"></div> စောင့်ဆိုင်းပေးပါ...';
-                confirmBtn.disabled = true;
+                if (!selectedUserId) return;
                 
-                const amount = parseInt(document.getElementById('deposit-amount').value);
-                const note = document.getElementById('deposit-note').value || 'Admin မှငွေဖြည့်ပေးခြင်း';
-                
-                // Get current balance
-                const { data: user, error: fetchError } = await supabase
+                // Update user status
+                const { error } = await supabase
                     .from('users')
-                    .select('balance')
-                    .eq('user_id', selectedUserId)
-                    .single();
-                
-                if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
-                
-                const newBalance = user.balance + parseInt(amount);
-                
-                // Update balance
-                const { error: updateError } = await supabase
-                    .from('users')
-                    .update({ balance: newBalance })
+                    .update({ passport_status: 'approved', updated_at: new Date().toISOString() })
                     .eq('user_id', selectedUserId);
                 
-                if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+                if (error) throw new Error(`Approve Error: ${error.message}`);
                 
-                // Create transaction record
-                const transactionId = 'ADMIN' + Date.now() + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                // Create notification for the user
+                await supabase.from('notifications').insert({
+                    user_id: selectedUserId,
+                    title: 'Account Verified',
+                    message: 'Your account has been verified successfully. You can now use all features.',
+                    read: false
+                });
                 
-                const { error: transactionError } = await supabase
-                    .from('transactions')
-                    .insert({
-                        transaction_id: transactionId,
-                        from_user_id: 'ADMIN',
-                        to_user_id: selectedUserId,
-                        from_phone: 'ADMIN',
-                        to_phone: selectedUserPhone,
-                        amount: amount,
-                        fee: 0,
-                        note: note,
-                        created_at: new Date().toISOString()
-                    });
+                // Log activity
+                await supabase.from('activity_logs').insert({
+                    user_id: 'ADMIN',
+                    action: 'approve_user',
+                    details: { user_id: selectedUserId },
+                    ip_address: 'admin-ip'
+                });
                 
-                if (transactionError) throw new Error(`Transaction Error: ${transactionError.message}`);
-                
-                // Close modal and show success
-                closeModal('deposit-modal');
-                showMessage('bulk-deposit-message', `${selectedUserId} သို့ ${formatCurrency(amount)} ကျပ် ဖြည့်ပြီးပါပြီ`, 'success');
-                
-                // Reset form
-                document.getElementById('user-id').value = '';
-                document.getElementById('deposit-amount').value = '';
-                document.getElementById('deposit-note').value = '';
-                
-                // Refresh users list and dashboard
-                loadUsers();
-                loadDashboard();
-                
-            } catch (error) {
-                console.error('Deposit Error:', error.message);
-                alert(`ငွေဖြည့်ရာတွင် အမှားရှိပါသည်: ${error.message}`);
-            } finally {
-                // Reset button
-                const confirmBtn = document.getElementById('confirm-deposit-btn');
-                confirmBtn.textContent = 'အတည်ပြုသည်';
-                confirmBtn.disabled = false;
+                showNotification('Success', 'User approved successfully.', 'success');
                 
                 // Close modal
-                closeModal('deposit-modal');
+                closeUserModal();
+                
+                // Reload current section
+                if (currentSection === 'users') {
+                    loadUsers();
+                } else if (currentSection === 'verification') {
+                    loadVerifications();
+                } else if (currentSection === 'dashboard') {
+                    loadDashboardData();
+                }
+                
+            } catch (error) {
+                console.error('Approve User Error:', error.message);
+                showNotification('Error', `Failed to approve user: ${error.message}`, 'error');
             }
         }
         
-        // Process bulk deposit
-        async function processBulkDeposit(amount) {
+        // Reject user
+        async function rejectUser() {
             try {
-                // Show loading message
-                showMessage('bulk-deposit-message', '<div class="loading"></div> ငွေဖြည့်ခြင်းလုပ်ငန်းစဥ် ဆောင်ရွက်နေပါသည်...', 'info');
+                if (!selectedUserId) return;
                 
-                // Disable deposit button
-                const depositBtn = document.getElementById('deposit-btn');
-                depositBtn.disabled = true;
-                
-                const { data: users, error: fetchError } = await supabase
+                // Update user status
+                const { error } = await supabase
                     .from('users')
-                    .select('user_id, balance, phone')
-                    .eq('passport_status', 'approved');
+                    .update({ passport_status: 'rejected', updated_at: new Date().toISOString() })
+                    .eq('user_id', selectedUserId);
                 
-                if (fetchError) throw new Error(`Fetch Users Error: ${fetchError.message}`);
+                if (error) throw new Error(`Reject Error: ${error.message}`);
                 
-                if (users.length === 0) {
-                    showMessage('bulk-deposit-message', 'အတည်ပြုပြီးသော အသုံးပြုသူများ မရှိသေးပါ', 'warning');
+                // Create notification for the user
+                await supabase.from('notifications').insert({
+                    user_id: selectedUserId,
+                    title: 'Verification Rejected',
+                    message: 'Your account verification has been rejected. Please update your information and try again.',
+                    read: false
+                });
+                
+                // Log activity
+                await supabase.from('activity_logs').insert({
+                    user_id: 'ADMIN',
+                    action: 'reject_user',
+                    details: { user_id: selectedUserId },
+                    ip_address: 'admin-ip'
+                });
+                
+                showNotification('Success', 'User rejected successfully.', 'success');
+                
+                // Close modal
+                closeUserModal();
+                
+                // Reload current section
+                if (currentSection === 'users') {
+                    loadUsers();
+                } else if (currentSection === 'verification') {
+                    loadVerifications();
+                } else if (currentSection === 'dashboard') {
+                    loadDashboardData();
+                }
+                
+            } catch (error) {
+                console.error('Reject User Error:', error.message);
+                showNotification('Error', `Failed to reject user: ${error.message}`, 'error');
+            }
+        }
+        
+        // Approve user directly from verifications table
+        async function approveUserDirect(userId) {
+            selectedUserId = userId;
+            await approveUser();
+        }
+        
+        // Reject user directly from verifications table
+        async function rejectUserDirect(userId) {
+            selectedUserId = userId;
+            await rejectUser();
+        }
+        
+        // View transaction details
+        async function viewTransaction(transactionId) {
+            try {
+                selectedTransactionId = transactionId;
+                
+                const transactionModalBody = document.getElementById('transaction-modal-body');
+                transactionModalBody.innerHTML = `
+                    <div class="admin-loader">
+                        <div class="admin-loader-spinner"></div>
+                    </div>
+                `;
+                
+                // Show modal
+                document.getElementById('transaction-modal').classList.add('show');
+                
+                // Get transaction details
+                const { data: transaction, error } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .eq('transaction_id', transactionId)
+                    .single();
+                
+                if (error) throw new Error(`Transaction Error: ${error.message}`);
+                
+                if (!transaction) {
+                    transactionModalBody.innerHTML = `<p style="text-align: center; padding: 20px;">Transaction not found.</p>`;
                     return;
                 }
                 
-                // Process each user
-                let successCount = 0;
-                let errorCount = 0;
+                // Get sender and receiver details
+                const { data: sender, error: senderError } = await supabase
+                    .from('users')
+                    .select('email, phone')
+                    .eq('user_id', transaction.from_user_id)
+                    .single();
                 
-                for (const user of users) {
-                    try {
-                        // Update balance
-                        const newBalance = user.balance + parseInt(amount);
-                        const { error: updateError } = await supabase
-                            .from('users')
-                            .update({ balance: newBalance })
-                            .eq('user_id', user.user_id);
-                        
-                        if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
-                        
-                        // Create transaction record
-                        const transactionId = 'BULK' + Date.now() + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-                        
-                        const { error: transactionError } = await supabase
-                            .from('transactions')
-                            .insert({
-                                transaction_id: transactionId,
-                                from_user_id: 'ADMIN',
-                                to_user_id: user.user_id,
-                                from_phone: 'ADMIN',
-                                to_phone: user.phone || 'N/A',
-                                amount: parseInt(amount),
-                                fee: 0,
-                                note: 'Admin မှအုပ်စုလိုက်ငွေဖြည့်ပေးခြင်း',
-                                created_at: new Date().toISOString()
-                            });
-                        
-                        if (transactionError) throw new Error(`Transaction Error: ${transactionError.message}`);
-                        
-                        successCount++;
-                    } catch (error) {
-                        console.error(`Error processing user ${user.user_id}:`, error.message);
-                        errorCount++;
+                if (senderError && senderError.code !== 'PGRST116') {
+                    console.error('Sender Error:', senderError.message);
+                }
+                
+                const { data: receiver, error: receiverError } = await supabase
+                    .from('users')
+                    .select('email, phone')
+                    .eq('user_id', transaction.to_user_id)
+                    .single();
+                
+                if (receiverError && receiverError.code !== 'PGRST116') {
+                    console.error('Receiver Error:', receiverError.message);
+                }
+                
+                // Display transaction details
+                let html = `
+                    <div class="admin-modal-section">
+                        <div class="admin-modal-section-title">Transaction Information</div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Transaction ID</div>
+                            <div class="admin-modal-value">${transaction.transaction_id}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Date</div>
+                            <div class="admin-modal-value">${formatDate(transaction.created_at)}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Amount</div>
+                            <div class="admin-modal-value" style="font-size: 1.2rem; font-weight: 700; color: var(--admin-success);">${formatCurrency(transaction.amount)} Ks</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Fee</div>
+                            <div class="admin-modal-value">${formatCurrency(transaction.fee)} Ks</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Note</div>
+                            <div class="admin-modal-value">${transaction.note || 'No note provided'}</div>
+                        </div>
+                    </div>
+
+                    <div class="admin-modal-section">
+                        <div class="admin-modal-section-title">Sender Information</div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">User ID</div>
+                            <div class="admin-modal-value">${transaction.from_user_id}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Phone</div>
+                            <div class="admin-modal-value">${transaction.from_phone || (sender ? sender.phone : 'Unknown')}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Email</div>
+                            <div class="admin-modal-value">${sender ? sender.email : 'Unknown'}</div>
+                        </div>
+                    </div>
+
+                    <div class="admin-modal-section">
+                        <div class="admin-modal-section-title">Receiver Information</div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">User ID</div>
+                            <div class="admin-modal-value">${transaction.to_user_id}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Phone</div>
+                            <div class="admin-modal-value">${transaction.to_phone || (receiver ? receiver.phone : 'Unknown')}</div>
+                        </div>
+                        <div class="admin-modal-field">
+                            <div class="admin-modal-label">Email</div>
+                            <div class="admin-modal-value">${receiver ? receiver.email : 'Unknown'}</div>
+                        </div>
+                    </div>
+                `;
+                
+                transactionModalBody.innerHTML = html;
+                
+            } catch (error) {
+                console.error('View Transaction Error:', error.message);
+                showNotification('Error', `Failed to load transaction details: ${error.message}`, 'error');
+            }
+        }
+        
+        // Close transaction modal
+        function closeTransactionModal() {
+            document.getElementById('transaction-modal').classList.remove('show');
+            selectedTransactionId = '';
+        }
+        
+        // Search users
+        function searchUsers() {
+            usersPage = 1;
+            loadUsers();
+        }
+        
+        // Filter users
+        function filterUsers() {
+            usersPage = 1;
+            loadUsers();
+        }
+        
+        // Sort users
+        function sortUsers() {
+            usersPage = 1;
+            loadUsers();
+        }
+        
+        // Search transactions
+        function searchTransactions() {
+            transactionsPage = 1;
+            loadTransactions();
+        }
+        
+        // Filter transactions
+        function filterTransactions() {
+            transactionsPage = 1;
+            loadTransactions();
+        }
+        
+        // Sort transactions
+        function sortTransactions() {
+            transactionsPage = 1;
+            loadTransactions();
+        }
+        
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const nav = document.querySelector('.admin-nav');
+            nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+        }
+        
+        // Initialize admin panel
+        window.onload = function() {
+            // Set up realtime subscriptions
+            supabase.channel('public:transactions')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, payload => {
+                    showNotification('New Transaction', 'A new transaction has been processed.', 'info');
+                    if (currentSection === 'dashboard') {
+                        loadDashboardData();
+                    } else if (currentSection === 'transactions') {
+                        loadTransactions();
                     }
-                }
+                })
+                .subscribe();
                 
-                // Show results
-                showMessage('bulk-deposit-message', `အတည်ပြုပြီးသော အသုံးပြုသူ ${successCount} ယောက်ထံသို့ ${formatCurrency(amount)} ကျပ်စီ ဖြည့်ပြီးပါပြီ ${errorCount > 0 ? `(${errorCount} ယောက်တွင် အမှားရှိပါသည်)` : ''}`, 'success');
-                
-                // Reset form
-                document.getElementById('deposit-amount').value = '';
-                document.getElementById('deposit-note').value = '';
-                
-                // Refresh users list and dashboard
-                loadUsers();
-                loadDashboard();
-                
-            } catch (error) {
-                console.error('Bulk Deposit Error:', error.message);
-                showMessage('bulk-deposit-message', `အုပ်စုလိုက်ငွေဖြည့်ရာတွင် အမှားရှိပါသည်: ${error.message}`, 'error');
-            } finally {
-                // Enable deposit button
-                document.getElementById('deposit-btn').disabled = false;
-            }
-        }
-        
-        // Enable transfers
-        async function enableTransfers() {
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: true })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
-                });
-                
-                systemSettings.allowTransfers = true;
-                alert('ငွေလွှဲခြင်းဝန်ဆောင်မှု အောင်မြင်စွာဖွင့်ပြီးပါပြီ');
-            } catch (error) {
-                console.error('Enable Transfers Error:', error.message);
-                alert(`ငွေလွှဲခြင်းဝန်ဆောင်မှု ဖွင့်ရာတွင် အမှားရှိပါသည်: ${error.message}`);
-            }
-        }
-        
-        // Disable transfers
-        async function disableTransfers() {
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: false })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
-                });
-                
-                systemSettings.allowTransfers = false;
-                alert('ငွေလွှဲခြင်းဝန်ဆောင်မှု အောင်မြင်စွာပိတ်ပြီးပါပြီ');
-            } catch (error) {
-                console.error('Disable Transfers Error:', error.message);
-                alert(`ငွေလွှဲခြင်းဝန်ဆောင်မှု ပိတ်ရာတွင် အမှားရှိပါသည်: ${error.message}`);
-            }
-        }
-        
-        // Open maintenance mode modal
-        function openMaintenanceModal() {
-            document.getElementById('maintenance-modal').style.display = 'flex';
-        }
-        
-        // Open system settings modal
-        function openSystemSettingsModal() {
-            document.getElementById('system-settings-modal').style.display = 'flex';
-        }
-        
-        // Set maintenance mode
-        async function setMaintenanceMode(enabled) {
-            try {
-                const message = document.getElementById('maintenance-message').value || 'ဝန်ဆောင်မှုအား ပြုပြင်ထိန်းသိမ်းနေပါသည်';
-                const duration = parseInt(document.getElementById('maintenance-duration').value) || 30;
-                
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ 
-                            maintenance_mode: enabled,
-                            maintenance_message: message,
-                            maintenance_end_time: new Date(Date.now() + duration * 60000).toISOString()
-                        })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Maintenance Mode Error: ${error.message}`);
-                });
-                
-                systemSettings.maintenanceMode = enabled;
-                closeModal('maintenance-modal');
-                
-                if (enabled) {
-                    alert(`ပြုပြင်ထိန်းသိမ်းမှုမုဒ် စတင်ပြီးပါပြီ (${duration} မိနစ်ကြာမည်)`);
-                    
-                    // Auto-disable after duration
-                    setTimeout(async () => {
-                        try {
-                            await retryOperation(async () => {
-                                const { error } = await supabase
-                                    .from('settings')
-                                    .update({ maintenance_mode: false })
-                                    .eq('id', 1);
-                                
-                                if (error) throw new Error(`Disable Maintenance Error: ${error.message}`);
-                            });
-                            
-                            alert('ပြုပြင်ထိန်းသိမ်းမှုမုဒ် အလိုအလျောက်ပိတ်ပြီးပါပြီ');
-                        } catch (error) {
-                            console.error('Auto-disable Maintenance Error:', error.message);
-                        }
-                    }, duration * 60000);
-                } else {
-                    alert('ပြုပြင်ထိန်းသိမ်းမှုမုဒ် ပိတ်ပြီးပါပြီ');
-                }
-            } catch (error) {
-                console.error('Maintenance Mode Error:', error.message);
-                alert(`ပြုပြင်ထိန်းသိမ်းမှုမုဒ် ပြောင်းလဲရာတွင် အမှားရှိပါသည်: ${error.message}`);
-            }
-        }
-        
-        // Save system settings
-        async function saveSystemSettings() {
-            try {
-                const minTransfer = parseInt(document.getElementById('min-transfer').value) || 1000;
-                const maxTransfer = parseInt(document.getElementById('max-transfer').value) || 1000000;
-                const transferFee = parseFloat(document.getElementById('transfer-fee').value) || 0;
-                
-                if (minTransfer <= 0 || maxTransfer <= 0 || transferFee < 0) {
-                    alert('ကျေးဇူးပြု၍ မှန်ကန်သော တန်ဖိုးများထည့်ပါ');
-                    return;
-                }
-                
-                if (minTransfer >= maxTransfer) {
-                    alert('အနည်းဆုံးလွှဲငွေပမာဏသည် အများဆုံးလွှဲငွေပမာဏထက် နည်းရပါမည်');
-                    return;
-                }
-                
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({
-                            min_transfer_amount: minTransfer,
-                            max_transfer_amount: maxTransfer,
-                            transfer_fee_percent: transferFee
-                        })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Update Settings Error: ${error.message}`);
-                });
-                
-                systemSettings.minTransferAmount = minTransfer;
-                systemSettings.maxTransferAmount = maxTransfer;
-                systemSettings.transferFeePercent = transferFee;
-                
-                closeModal('system-settings-modal');
-                alert('စနစ်ဆက်တင်များ အောင်မြင်စွာသိမ်းဆည်းပြီးပါပြီ');
-            } catch (error) {
-                console.error('Save Settings Error:', error.message);
-                alert(`စနစ်ဆက်တင်များ သိမ်းဆည်းရာတွင် အမှားရှိပါသည်: ${error.message}`);
-            }
-        }
-        
-        // Preview image
-        function previewImage(url) {
-            document.getElementById('img-preview').src = url;
-            document.getElementById('img-preview-container').style.display = 'flex';
-        }
-        
-        // Close image preview
-        function closeImagePreview() {
-            document.getElementById('img-preview-container').style.display = 'none';
-        }
-        
-        // Close modal
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-        
-        // Initialize
-        window.onload = () => {
-            createParticles();
+            supabase.channel('public:users')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: 'passport_status=eq.pending' }, payload => {
+                    showNotification('Verification Request', 'A new verification request has been submitted.', 'info');
+                    if (currentSection === 'dashboard') {
+                        loadDashboardData();
+                    } else if (currentSection === 'verification') {
+                        loadVerifications();
+                    }
+                })
+                .subscribe();
             
-            // Add event listeners for Enter key in login
-            document.getElementById('admin-email').addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    document.getElementById('admin-pin').focus();
-                }
-            });
-            
-            document.getElementById('admin-pin').addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    adminLogin();
-                }
-            });
-            
-            // Close image preview on ESC key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closeImagePreview();
-                    closeModal('deposit-modal');
-                    closeModal('maintenance-modal');
-                    closeModal('system-settings-modal');
-                }
-            });
+            // Load initial data
+            loadDashboardData();
         };
     </script>
 </body>
