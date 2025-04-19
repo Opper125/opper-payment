@@ -1,404 +1,413 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KPAY+ Premium Payment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPPER+ Payment</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0A8FDC">
 </head>
 <body>
-    <!-- Intro Animation -->
-    <div class="intro-container" id="intro-container">
-        <div class="intro-logo-wrapper">
-            <div class="intro-logo-circle"></div>
-            <img class="intro-logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER+ Logo">
-        </div>
-        <div class="intro-text">
-            <span class="primary">KPAY+</span> Premium
-        </div>
-        <div class="intro-tagline">ဘယ်နေရာမှာမဆို ငွေပေးချေနိုင်သော စနစ်</div>
-    </div>
-
-    <!-- Download APK Bar -->
-    <div class="download-bar" id="download-bar">
-        <p>KPAY+ App ကိုရယူပြီး အကောင်းဆုံးအတွေ့အကြုံကို ခံစားလိုက်ပါ။</p>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <button onclick="downloadApk()">ဒေါင်းလုပ်ဆွဲမည်</button>
-            <button class="close-btn" onclick="hideDownloadBar()"><i class="fas fa-times"></i></button>
-        </div>
-    </div>
-
-    <!-- Background Particles -->
-    <div class="particles-container" id="particles-container"></div>
-
-    <!-- Logo and ID Badge -->
-    <div class="logo-header">
-        <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER+ Logo">
-        <div class="id-badge" id="id-badge">ID: ဖော်ပြထားခြင်းမရှိသေးပါ</div>
-    </div>
-
-    <!-- Login/Register Container -->
-    <div id="login-container" class="container active">
-        <h2>KPAY+ Premium အကောင့်</h2>
-        
-        <!-- Login Form -->
-        <div id="login-form" class="form-group">
-            <h3 style="text-align: center; margin-bottom: 20px;">အကောင့်ဝင်ရန်</h3>
-            
-            <label>အီးမေးလ်</label>
-            <div class="icon-input">
-                <i class="fas fa-envelope icon"></i>
-                <input type="email" id="login-email" placeholder="သင့်အီးမေးလ်ထည့်ပါ" required>
+    <div class="app-container">
+        <!-- ဟေဒါ -->
+        <header class="app-header">
+            <div class="logo">
+                <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER+ Logo">
+                <h1>OPPER+</h1>
             </div>
-            
-            <label class="mt-15">စကားဝှက်</label>
-            <div class="icon-input">
-                <i class="fas fa-lock icon"></i>
-                <input type="password" id="login-password" placeholder="စကားဝှက်ထည့်ပါ" required>
-            </div>
-            
-            <div class="mt-20">
-                <button id="login-btn">အကောင့်ဝင်မည်</button>
-            </div>
-        </div>
-        
-        <!-- Register Form -->
-        <div id="register-form" class="form-group hidden">
-            <h3 style="text-align: center; margin-bottom: 20px;">အကောင့်သစ်ဖွင့်ရန်</h3>
-            
-            <label>အီးမေးလ်</label>
-            <div class="icon-input">
-                <i class="fas fa-envelope icon"></i>
-                <input type="email" id="register-email" placeholder="သင့်အီးမေးလ်ထည့်ပါ" required>
-            </div>
-            
-            <label class="mt-15">ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
-            <div class="icon-input">
-                <i class="fas fa-phone icon"></i>
-                <input type="tel" id="register-phone" placeholder="09xxxxxxxxx" required>
-            </div>
-            
-            <label class="mt-15">စကားဝှက်</label>
-            <div class="icon-input">
-                <i class="fas fa-lock icon"></i>
-                <input type="password" id="register-password" placeholder="စကားဝှက်ထည့်ပါ" required>
-            </div>
-            
-            <label class="mt-15">စကားဝှက် အတည်ပြုရန်</label>
-            <div class="icon-input">
-                <i class="fas fa-lock icon"></i>
-                <input type="password" id="register-confirm-password" placeholder="စကားဝှက်ကို ထပ်မံ ထည့်သွင်းပါ" required>
-            </div>
-            
-            <div class="mt-20">
-                <button id="register-btn">အကောင့်ဖွင့်မည်</button>
-            </div>
-        </div>
-        
-        <div class="mt-15" style="text-align: center;">
-            <button id="auth-toggle-btn" style="background: transparent; color: var(--primary); box-shadow: none; text-decoration: underline; width: auto; padding: 5px;">အကောင့်သစ်ဖွင့်ရန်</button>
-        </div>
-    </div>
-
-    <!-- Wallet Section -->
-    <div id="wallet" class="container">
-        <h2>ငွေအိတ်</h2>
-        
-        <div class="balance-card">
-            <div class="balance-display">
-                <div class="balance-card-pattern"></div>
-                <div class="balance-label">လက်ကျန်ငွေ</div>
-                <div class="balance-amount">
-                    <span class="currency">Ks</span>
-                    <span id="balance">0</span>
-                </div>
-                <div class="balance-actions">
-                    <button class="balance-action-btn" onclick="showTopupOptions()">ငွေဖြည့်မည်</button>
-                    <button class="balance-action-btn" id="transfer-btn" onclick="toggleTransfer()">ငွေလွှဲမည်</button>
+            <div class="user-info" id="userInfo">
+                <span id="userBalance">0.00 MMK</span>
+                <div class="avatar" id="userAvatar">
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User">
                 </div>
             </div>
-            <div id="wallet-status-container" class="mt-5" style="text-align: center;">
-                <span id="wallet-status" class="status pending">အကောင့်အတည်ပြုရန်လိုအပ်နေသည်</span>
-            </div>
-        </div>
-        
-        <div id="transfer" class="form-group hidden">
-            <h3 style="text-align: center; margin-bottom: 20px;">ငွေလွှဲခြင်း</h3>
-            
-            <label>လက်ခံမည့်ဖုန်းနံပါတ်</label>
-            <div class="icon-input">
-                <i class="fas fa-phone icon"></i>
-                <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
-            </div>
-            <p id="receiver-name" class="mt-5" style="font-weight: 600;"></p>
-            
-            <label class="mt-15">ငွေပမာဏ (ကျပ်)</label>
-            <div class="icon-input">
-                <i class="fas fa-money-bill-wave icon"></i>
-                <input type="number" id="transfer-amount" placeholder="1,000,000 ကျပ်အထိ" required>
-            </div>
-            
-            <label class="mt-15">မှတ်ချက်</label>
-            <div class="icon-input">
-                <i class="fas fa-sticky-note icon"></i>
-                <input type="text" id="transfer-note" placeholder="မှတ်ချက် (ထည့်လိုက မထည့်လိုက ရပါသည်)">
-            </div>
-            
-            <label class="mt-15">လုံခြုံရေးပင်နံပါတ် (၆ လုံး)</label>
-            <div class="icon-input">
-                <i class="fas fa-lock icon"></i>
-                <input type="password" id="transfer-pin" maxlength="6" placeholder="၆ လုံးပင်နံပါတ်ထည့်ပါ" required>
-            </div>
-            
-            <div class="mt-20">
-                <button id="confirm-transfer-btn">ငွေလွှဲမည်</button>
-            </div>
-            <button class="mt-10" style="background: var(--gray-dark);" onclick="toggleTransfer()">နောက်သို့</button>
-            <p id="transfer-error" class="error-message hidden"></p>
-        </div>
-    </div>
+        </header>
 
-    <!-- Transaction History Section -->
-    <div id="history" class="container">
-        <h2>ငွေသွင်း/ထုတ် မှတ်တမ်း</h2>
-        
-        <div class="history-header">
-            <select id="month-filter" onchange="loadHistory()">
-                <option value="current">လက်ရှိလ</option>
-                <option value="previous">ပြီးခဲ့သောလ</option>
-                <option value="all">အားလုံး</option>
-            </select>
-            
-            <div class="history-summary">
-                <div class="summary-row">
-                    <span class="summary-label">ရရှိခဲ့သော စုစုပေါင်း</span>
-                    <span class="summary-value value-in" id="total-in">0 ကျပ်</span>
+        <!-- အကောင့်ဝင်ရန် ဖန်သားပြင် -->
+        <div class="auth-container" id="authScreen">
+            <div class="auth-card">
+                <div class="tabs">
+                    <button class="tab active" id="loginTab">အကောင့်ဝင်ရန်</button>
+                    <button class="tab" id="registerTab">အကောင့်အသစ်ဖွင့်ရန်</button>
                 </div>
-                <div class="summary-row">
-                    <span class="summary-label">ပို့ခဲ့သော စုစုပေါင်း</span>
-                    <span class="summary-value value-out" id="total-out">0 ကျပ်</span>
-                </div>
-            </div>
-        </div>
-        
-        <div id="history-list" style="overflow-y: auto;"></div>
-    </div>
-
-    <!-- Profile Section -->
-    <div id="profile" class="container">
-        <h2>ကိုယ်ရေးအချက်အလက်</h2>
-        
-        <div class="form-group">
-            <p style="margin-bottom: 10px;">သင့်အိုင်ဒီ: <span id="profile-id" style="font-weight: 600;"></span></p>
-            <p id="profile-status-container" style="margin-bottom: 20px; text-align: center;">
-                <span id="profile-status" class="status pending">အကောင့်အတည်ပြုရန်လိုအပ်နေသည်</span>
-            </p>
-            
-            <div id="passport-form" class="form-group">
-                <h3 style="text-align: center; margin-bottom: 20px;">အကောင့်အတည်ပြုရန် အချက်အလက်များ</h3>
                 
-                <!-- Location Information -->
-                <div class="address-section">
-                    <div class="address-row">
-                        <div class="location-icon">
-                            <i class="fas fa-map-marker-alt"></i>
+                <div class="auth-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">အီးမေးလ်</label>
+                        <input type="email" id="loginEmail" placeholder="သင့်အီးမေးလ်ထည့်ပါ">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">စကားဝှက်</label>
+                        <input type="password" id="loginPassword" placeholder="သင့်စကားဝှက်ထည့်ပါ">
+                    </div>
+                    <button class="btn btn-primary" id="loginButton">အကောင့်ဝင်ရန်</button>
+                </div>
+                
+                <div class="auth-form hidden" id="registerForm">
+                    <div class="form-group">
+                        <label for="registerEmail">အီးမေးလ်</label>
+                        <input type="email" id="registerEmail" placeholder="အီးမေးလ်ထည့်ပါ">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">စကားဝှက်</label>
+                        <input type="password" id="registerPassword" placeholder="စကားဝှက်ထည့်ပါ">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPhone">ဖုန်းနံပါတ်</label>
+                        <input type="tel" id="registerPhone" placeholder="09xxxxxxxxx">
+                    </div>
+                    <button class="btn btn-primary" id="registerButton">အကောင့်ဖွင့်ရန်</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- အဓိက ဖန်သားပြင် -->
+        <main class="main-container hidden" id="mainScreen">
+            <!-- အမြန်လွှဲခလုပ်များ -->
+            <div class="quick-actions">
+                <div class="action-card" id="topupButton">
+                    <div class="icon">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png" alt="ငွေဖြည့်">
+                    </div>
+                    <span>ငွေဖြည့်</span>
+                </div>
+                <div class="action-card" id="transferButton">
+                    <div class="icon">
+                        <img src="https://cdn-icons-png.flaticon.com/512/5454/5454292.png" alt="ငွေလွှဲ">
+                    </div>
+                    <span>ငွေလွှဲ</span>
+                </div>
+                <div class="action-card" id="historyButton">
+                    <div class="icon">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2356/2356780.png" alt="မှတ်တမ်း">
+                    </div>
+                    <span>မှတ်တမ်း</span>
+                </div>
+                <div class="action-card" id="profileButton">
+                    <div class="icon">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="ပရိုဖိုင်">
+                    </div>
+                    <span>ပရိုဖိုင်</span>
+                </div>
+            </div>
+
+            <!-- ငွေလွှဲမှု အကျဉ်းချုပ် -->
+            <div class="transaction-summary">
+                <h3>လတ်တလော ငွေလွှဲမှုများ</h3>
+                <div class="transaction-list" id="transactionList">
+                    <!-- ငွေလွှဲမှုများကို JavaScript ဖြင့် ဖော်ပြမည် -->
+                    <div class="empty-state">လတ်တလော ငွေလွှဲမှုမရှိသေးပါ</div>
+                </div>
+            </div>
+
+            <!-- ဝန်ဆောင်မှုများ -->
+            <div class="services-section">
+                <h3>ဝန်ဆောင်မှုများ</h3>
+                <div class="services-grid">
+                    <div class="service-card" onclick="showService('internet')">
+                        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/3028/3028582.png" alt="အင်တာနက်"></div>
+                        <span>အင်တာနက်</span>
+                    </div>
+                    <div class="service-card" onclick="showService('electricity')">
+                        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/1598/1598673.png" alt="လျှပ်စစ်"></div>
+                        <span>လျှပ်စစ်</span>
+                    </div>
+                    <div class="service-card" onclick="showService('water')">
+                        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/1748/1748687.png" alt="ရေ"></div>
+                        <span>ရေဖိုး</span>
+                    </div>
+                    <div class="service-card" onclick="showService('donation')">
+                        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/3349/3349234.png" alt="အလှူငွေ"></div>
+                        <span>အလှူပြုရန်</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ငွေလွှဲ ဖန်သားပြင် -->
+        <div class="overlay-screen hidden" id="transferScreen">
+            <div class="overlay-header">
+                <button class="back-button" onclick="hideSection('transferScreen')">←</button>
+                <h2>ငွေလွှဲရန်</h2>
+            </div>
+            <div class="overlay-content">
+                <div class="form-group">
+                    <label for="receiverPhone">လက်ခံမည့်ဖုန်းနံပါတ်</label>
+                    <input type="tel" id="receiverPhone" placeholder="09xxxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label for="transferAmount">ငွေပမာဏ (MMK)</label>
+                    <input type="number" id="transferAmount" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="transferNote">မှတ်ချက်</label>
+                    <input type="text" id="transferNote" placeholder="မှတ်ချက်ရေးရန် (မဖြစ်မနေမဟုတ်ပါ)">
+                </div>
+                <button class="btn btn-primary" id="confirmTransferButton">ငွေလွှဲမည်</button>
+            </div>
+        </div>
+
+        <!-- မှတ်တမ်း ဖန်သားပြင် -->
+        <div class="overlay-screen hidden" id="historyScreen">
+            <div class="overlay-header">
+                <button class="back-button" onclick="hideSection('historyScreen')">←</button>
+                <h2>ငွေလွှဲမှုမှတ်တမ်း</h2>
+            </div>
+            <div class="overlay-content">
+                <div class="history-filter">
+                    <button class="filter-btn active" data-filter="all">အားလုံး</button>
+                    <button class="filter-btn" data-filter="in">ဝင်ငွေ</button>
+                    <button class="filter-btn" data-filter="out">ထွက်ငွေ</button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- ငွေလွှဲမှုမှတ်တမ်းများကို JavaScript ဖြင့် ဖော်ပြမည် -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ပရိုဖိုင် ဖန်သားပြင် -->
+        <div class="overlay-screen hidden" id="profileScreen">
+            <div class="overlay-header">
+                <button class="back-button" onclick="hideSection('profileScreen')">←</button>
+                <h2>ပရိုဖိုင်</h2>
+            </div>
+            <div class="overlay-content">
+                <div class="profile-summary">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User">
+                    </div>
+                    <h3 id="profileName">အမည်</h3>
+                    <p id="profilePhone">09xxxxxxxxx</p>
+                    <p id="profileEmail">email@example.com</p>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="btn btn-outline" id="verifyIdButton">အိုင်ဒီအတည်ပြုရန်</button>
+                    <button class="btn btn-outline" id="changePasswordButton">စကားဝှက်ပြောင်းရန်</button>
+                    <button class="btn btn-outline danger" id="logoutButton">အကောင့်ထွက်ရန်</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ငွေဖြည့် ဖန်သားပြင် -->
+        <div class="overlay-screen hidden" id="topupScreen">
+            <div class="overlay-header">
+                <button class="back-button" onclick="hideSection('topupScreen')">←</button>
+                <h2>ငွေဖြည့်ရန်</h2>
+            </div>
+            <div class="overlay-content">
+                <div class="topup-options">
+                    <div class="topup-option" data-method="kbz">
+                        <img src="https://play-lh.googleusercontent.com/lR5R7jCwIdKlm5CcPs6mSCQXQZmPiBGQ8yHHJsStNxp18Y6W7oLq7MOKQJ4ZlQwKEQ" alt="KBZ Pay">
+                        <span>KBZ Pay</span>
+                    </div>
+                    <div class="topup-option" data-method="wave">
+                        <img src="https://play-lh.googleusercontent.com/A7eI9K1nvMyliYWnjnX9L4bRdvnBL0H6Lj3CifTv38D5nyQKPlAxpZe-hHLCyDQm6g" alt="Wave Pay">
+                        <span>Wave Money</span>
+                    </div>
+                    <div class="topup-option" data-method="aya">
+                        <img src="https://play-lh.googleusercontent.com/RHfyZ-CMfJrHBTEzxUR_-KjCRDOvJR-tQK1Y5cMYqDy0linBkYBsQmNrOWxTXPAT6V4" alt="AYA Pay">
+                        <span>AYA Pay</span>
+                    </div>
+                    <div class="topup-option" data-method="mpt">
+                        <img src="https://play-lh.googleusercontent.com/_ZKgIz-4o2a0mnj1lbCGLvzsMi6Z8v75bXvTeG38KrNFXFd1WUn94RSBaQsRjfo_nSo" alt="MPT Money">
+                        <span>MPT Money</span>
+                    </div>
+                </div>
+                
+                <div class="topup-form hidden" id="topupForm">
+                    <div class="form-group">
+                        <label for="topupAmount">ငွေပမာဏ (MMK)</label>
+                        <input type="number" id="topupAmount" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="topupPhone">သင့်ဖုန်းနံပါတ်</label>
+                        <input type="tel" id="topupPhone" placeholder="09xxxxxxxxx">
+                    </div>
+                    <button class="btn btn-primary" id="confirmTopupButton">ဆက်လုပ်ရန်</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ပြေစာပြသည့် ဖန်သားပြင် -->
+        <div class="overlay-screen hidden" id="receiptScreen">
+            <div class="overlay-header">
+                <button class="back-button" onclick="closeReceipt()">×</button>
+                <h2>ငွေလွှဲဖြတ်ပိုင်း</h2>
+            </div>
+            <div class="overlay-content">
+                <div class="receipt-container" id="receiptContainer">
+                    <div class="receipt-header">
+                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER+ Logo">
+                        <h2>OPPER+</h2>
+                    </div>
+                    <div class="receipt-details">
+                        <div class="receipt-row">
+                            <span class="label">အမျိုးအစား:</span>
+                            <span class="value" id="receiptType">ငွေလွှဲမှု</span>
                         </div>
-                        <div class="address-content">
-                            <div class="address-label">တည်နေရာ</div>
-                            <div class="address-value" id="location-display">ရန်ကုန်တိုင်း ဒေါပုံမြို့နယ် Dawbon No 1</div>
+                        <div class="receipt-row">
+                            <span class="label">ရက်စွဲ:</span>
+                            <span class="value" id="receiptDate">2023-10-10 12:30</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="label">လုပ်ငန်းစဉ်နံပါတ်:</span>
+                            <span class="value" id="receiptId">TXN123456789</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="label">ပို့သူ:</span>
+                            <span class="value" id="receiptSender">09123456789</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="label">လက်ခံသူ:</span>
+                            <span class="value" id="receiptReceiver">09987654321</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="label">ပမာဏ:</span>
+                            <span class="value" id="receiptAmount">10,000 MMK</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="label">မှတ်ချက်:</span>
+                            <span class="value" id="receiptNote">-</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="label">အခြေအနေ:</span>
+                            <span class="value" id="receiptStatus">အောင်မြင်သည်</span>
                         </div>
                     </div>
-                </div>
-                
-                <label>သက်သေခံကတ်ပြားအမှတ်</label>
-                <div class="icon-input">
-                    <i class="fas fa-id-card icon"></i>
-                    <input type="text" id="passport-number" placeholder="သက်သေခံကတ်ပြားအမှတ်ထည့်ပါ" required>
-                </div>
-                
-                <label class="mt-15">နေရပ်လိပ်စာ</label>
-                <div class="icon-input">
-                    <i class="fas fa-home icon"></i>
-                    <input type="text" id="address" placeholder="နေရပ်လိပ်စာထည့်ပါ" required>
-                </div>
-                
-                <label class="mt-15">ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
-                <div class="icon-input">
-                    <i class="fas fa-phone icon"></i>
-                    <input type="tel" id="phone" placeholder="09xxxxxxxxx" required>
-                </div>
-                
-                <label class="mt-15">လုံခြုံရေးပင်နံပါတ် (၆ လုံး)</label>
-                <div class="icon-input">
-                    <i class="fas fa-lock icon"></i>
-                    <input type="password" id="payment-pin" maxlength="6" placeholder="၆ လုံးပင်နံပါတ်ထည့်ပါ" required>
-                </div>
-                
-                <label class="mt-15">သက်သေခံကတ်ပြား ဓာတ်ပုံ</label>
-                <div class="file-upload-container">
-                    <input type="file" id="passport-image" accept="image/*" onchange="previewFile('passport-image')">
-                    <div class="file-upload-label">
-                        <i class="fas fa-upload file-upload-icon"></i>
-                        <span>ဓာတ်ပုံရွေးချယ်ရန် နှိပ်ပါ</span>
+                    <div class="receipt-footer">
+                        <p>OPPER+ မှ ကျေးဇူးတင်ရှိပါသည်</p>
+                        <button class="btn btn-sm" id="downloadReceiptButton" onclick="downloadReceipt()">ပြေစာဒေါင်းလုဒ်လုပ်ရန်</button>
                     </div>
-                    <div id="passport-image-name" class="file-name"></div>
-                    <img id="passport-image-preview" class="file-preview">
                 </div>
-                
-                <label class="mt-15">သက်သေခံကတ်ပြားနှင့်အတူ ကိုယ်တိုင်ဓာတ်ပုံ</label>
-                <div class="file-upload-container">
-                    <input type="file" id="selfie-image" accept="image/*" onchange="previewFile('selfie-image')">
-                    <div class="file-upload-label">
-                        <i class="fas fa-upload file-upload-icon"></i>
-                        <span>ဓာတ်ပုံရွေးချယ်ရန် နှိပ်ပါ</span>
-                    </div>
-                    <div id="selfie-image-name" class="file-name"></div>
-                    <img id="selfie-image-preview" class="file-preview">
-                </div>
-                
-                <button id="submit-passport-btn" class="mt-20">တင်သွင်းမည်</button>
-            </div>
-            
-            <div id="passport-submitted" class="hidden" style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: var(--radius-md); margin-top: 20px;">
-                <h3 style="text-align: center; margin-bottom: 15px;">တင်သွင်းပြီးပါပြီ</h3>
-                <p style="margin-bottom: 10px;">ဖုန်းနံပါတ်: <span id="submitted-phone" style="font-weight: 600;"></span></p>
-                <p style="margin-bottom: 10px;">သက်သေခံကတ်ပြားအမှတ်: <span id="submitted-passport" style="font-weight: 600;"></span></p>
-                <p style="margin-bottom: 10px;">နေရပ်လိပ်စာ: <span id="submitted-address" style="font-weight: 600;"></span></p>
-                <p>တင်သွင်းသည့်အချိန်: <span id="submitted-time" style="font-weight: 600;"></span></p>
-            </div>
-            
-            <div class="mt-20">
-                <button id="logout-btn" style="background: var(--error);">
-                    <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i> အကောင့်မှထွက်ရန်
-                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Services Section -->
-    <div id="services" class="container">
-        <h2>ဝန်ဆောင်မှုများ</h2>
+        <!-- အိုင်ဒီအတည်ပြုသည့် ဖန်သားပြင် -->
+        <div class="overlay-screen hidden" id="verifyIdScreen">
+            <div class="overlay-header">
+                <button class="back-button" onclick="hideSection('verifyIdScreen')">←</button>
+                <h2>အိုင်ဒီအတည်ပြုရန်</h2>
+            </div>
+            <div class="overlay-content">
+                <div class="verify-info">
+                    <p>သင်၏ အိုင်ဒီကတ် (မှတ်ပုံတင်) နှင့် ကိုယ်တိုင်ဓာတ်ပုံကို ပေးပို့ရန် လိုအပ်ပါသည်။</p>
+                </div>
+                
+                <div class="verify-form">
+                    <div class="form-group">
+                        <label for="idCardFile">အိုင်ဒီကတ် (မှတ်ပုံတင်) ဓာတ်ပုံ</label>
+                        <input type="file" id="idCardFile" accept="image/*" onchange="previewFile('idCardFile')">
+                        <div class="file-preview" id="idCardPreview"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="selfieFile">ကိုယ်တိုင်ဓာတ်ပုံ</label>
+                        <input type="file" id="selfieFile" accept="image/*" onchange="previewFile('selfieFile')">
+                        <div class="file-preview" id="selfiePreview"></div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="submitVerificationButton">ပေးပို့ရန်</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ဝန်ဆောင်မှုအသေးစိတ် ဖန်သားပြင် -->
+        <div class="overlay-screen hidden" id="serviceDetailScreen">
+            <div class="overlay-header">
+                <button class="back-button" onclick="hideServiceDetails()">←</button>
+                <h2 id="serviceDetailTitle">ဝန်ဆောင်မှု</h2>
+            </div>
+            <div class="overlay-content">
+                <div id="internetService" class="service-detail-content hidden">
+                    <div class="form-group">
+                        <label for="internetProvider">အင်တာနက်ပေးသွင်းသူ</label>
+                        <select id="internetProvider">
+                            <option value="">ရွေးချယ်ပါ</option>
+                            <option value="mpt">MPT</option>
+                            <option value="ooredoo">Ooredoo</option>
+                            <option value="mytel">Mytel</option>
+                            <option value="atom">Atom</option>
+                            <option value="fiber">Myanmar Net</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="internetPhone">ဖုန်းနံပါတ် / အကောင့်နံပါတ်</label>
+                        <input type="text" id="internetPhone" placeholder="ဖုန်းနံပါတ် သို့မဟုတ် အကောင့်နံပါတ်ထည့်ပါ">
+                    </div>
+                    <div class="form-group">
+                        <label for="internetAmount">ငွေပမာဏ (MMK)</label>
+                        <input type="number" id="internetAmount" placeholder="0">
+                    </div>
+                    <button class="btn btn-primary">ပေးဆောင်ရန်</button>
+                </div>
+                
+                <div id="electricityService" class="service-detail-content hidden">
+                    <div class="form-group">
+                        <label for="electricityMeter">မီတာနံပါတ်</label>
+                        <input type="text" id="electricityMeter" placeholder="မီတာနံပါတ်ထည့်ပါ">
+                    </div>
+                    <div class="form-group">
+                        <label for="electricityAmount">ငွေပမာဏ (MMK)</label>
+                        <input type="number" id="electricityAmount" placeholder="0">
+                    </div>
+                    <button class="btn btn-primary">ပေးဆောင်ရန်</button>
+                </div>
+                
+                <div id="waterService" class="service-detail-content hidden">
+                    <div class="form-group">
+                        <label for="waterMeter">မီတာနံပါတ်</label>
+                        <input type="text" id="waterMeter" placeholder="မီတာနံပါတ်ထည့်ပါ">
+                    </div>
+                    <div class="form-group">
+                        <label for="waterAmount">ငွေပမာဏ (MMK)</label>
+                        <input type="number" id="waterAmount" placeholder="0">
+                    </div>
+                    <button class="btn btn-primary">ပေးဆောင်ရန်</button>
+                </div>
+                
+                <div id="donationService" class="service-detail-content hidden">
+                    <div class="form-group">
+                        <label for="donationOrg">အဖွဲ့အစည်းရွေးချယ်ပါ</label>
+                        <select id="donationOrg">
+                            <option value="">ရွေးချယ်ပါ</option>
+                            <option value="redcross">ကြက်ခြေနီအသင်း</option>
+                            <option value="orphans">မိဘမဲ့ကလေးများရိပ်မွန်</option>
+                            <option value="monks">သံဃာဒါန</option>
+                            <option value="disaster">သဘာဝဘေးအတွက်ကူညီရန်</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="donationAmount">အလှူငွေပမာဏ (MMK)</label>
+                        <input type="number" id="donationAmount" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="donationNote">မှတ်ချက်</label>
+                        <input type="text" id="donationNote" placeholder="မှတ်ချက်ရေးရန်">
+                    </div>
+                    <button class="btn btn-primary">အလှူပြုရန်</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ပြဿနာ အကြောင်းကြားချက်များ -->
+        <div class="alert hidden" id="alertBox">
+            <div class="alert-content">
+                <p id="alertMessage"></p>
+            </div>
+            <button class="alert-close" onclick="closeErrorAlert()">×</button>
+        </div>
         
-        <div class="services-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
-            <button style="display: flex; flex-direction: column; align-items: center; height: 120px; justify-content: center;" onclick="showService('mobile-topup')">
-                <i class="fas fa-mobile-alt" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                ဖုန်းငွေဖြည့်ရန်
-            </button>
-            
-            <button style="display: flex; flex-direction: column; align-items: center; height: 120px; justify-content: center;" onclick="showService('bill-payment')">
-                <i class="fas fa-file-invoice" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                ဘေလ်ပေးချေရန်
-            </button>
-            
-            <button style="display: flex; flex-direction: column; align-items: center; height: 120px; justify-content: center;" onclick="showService('game-topup')">
-                <i class="fas fa-gamepad" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                ဂိမ်းငွေဖြည့်ရန်
-            </button>
-            
-            <button style="display: flex; flex-direction: column; align-items: center; height: 120px; justify-content: center;" onclick="showService('merchant')">
-                <i class="fas fa-store" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                ဆိုင်များ
-            </button>
-        </div>
-        
-        <div id="service-details" class="hidden" style="margin-top: 25px;">
-            <h3 id="service-title" style="text-align: center; margin-bottom: 20px;"></h3>
-            <div id="service-content"></div>
-            <button style="background: var(--gray-dark); margin-top: 20px;" onclick="hideServiceDetails()">နောက်သို့</button>
+        <!-- ဒေါင်းလုဒ် သတိပေးချက် -->
+        <div class="download-bar" id="downloadBar">
+            <p>ပိုမိုကောင်းမွန်စွာအသုံးပြုရန် OPPER+ အက်ပ်ကို ဒေါင်းလုဒ်လုပ်ပါ။</p>
+            <button class="btn btn-sm" onclick="downloadApk()">ဒေါင်းလုဒ်</button>
+            <button class="download-close" onclick="hideDownloadBar()">×</button>
         </div>
     </div>
-
-    <!-- Receipt Overlay -->
-    <div class="receipt-overlay" id="receipt-overlay">
-        <div class="receipt-content">
-            <div class="receipt" id="receipt-container">
-                <div class="receipt-header">
-                    <div class="receipt-logo">
-                        <img src="https://i.imgur.com/Yt7QeLf.png" alt="KPAY+ Logo">
-                    </div>
-                    <div class="receipt-title">ငွေလွှဲပြေစာ</div>
-                    <div class="receipt-subtitle">အတည်ပြုပြီး</div>
-                </div>
-                
-                <div class="receipt-body" id="receipt-details">
-                    <!-- Content will be dynamically filled -->
-                </div>
-                
-                <div class="receipt-footer">
-                    <div class="receipt-note">ဤငွေလွှဲပြေစာသည် တရားဝင်အတည်ပြုပြီးဖြစ်ပါသည်</div>
-                    <div class="receipt-qr">
-                        <img id="receipt-qr-code" src="https://api.qrserver.com/v1/create-qr-code/?data=placeholder&size=150x150" alt="QR Code">
-                    </div>
-                    <div class="receipt-watermark">KPAY+ Premium Payment System</div>
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button class="download-btn" onclick="downloadReceipt()">
-                    <i class="fas fa-download" style="margin-right: 8px;"></i> ဒေါင်းလုပ်ဆွဲမည်
-                </button>
-                <button class="close-btn" onclick="closeReceipt()">
-                    <i class="fas fa-times" style="margin-right: 8px;"></i> ပိတ်မည်
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Error Alert -->
-    <div id="error-alert-container" class="alert-container hidden">
-        <div class="error-alert">
-            <div class="error-alert-header">
-                သတိပြုရန်
-            </div>
-            <div class="error-alert-body">
-                <div class="error-alert-icon">
-                    <i class="fas fa-exclamation-circle"></i>
-                </div>
-                <div class="error-alert-message" id="error-alert-message">
-                    အမှားအယွင်းတစ်ခု ဖြစ်ပွားခဲ့ပါသည်။
-                </div>
-                <button class="error-alert-btn" onclick="closeErrorAlert()">ကောင်းပါပြီ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Menu Bar -->
-    <div class="menu">
-        <button class="menu-button active" onclick="showSection('wallet')" id="wallet-btn">
-            <i class="fas fa-wallet menu-icon"></i>
-            ငွေအိတ်
-        </button>
-        <button class="menu-button" onclick="showSection('history')" id="history-btn">
-            <i class="fas fa-history menu-icon"></i>
-            မှတ်တမ်း
-        </button>
-        <button class="menu-button" onclick="showSection('services')" id="services-btn">
-            <i class="fas fa-th-large menu-icon"></i>
-            ဝန်ဆောင်မှု
-        </button>
-        <button class="menu-button" onclick="showSection('profile')" id="profile-btn">
-            <i class="fas fa-user menu-icon"></i>
-            ပရိုဖိုင်
-        </button>
-    </div>
-
-    <!-- Hidden elements for generation -->
-    <div style="display: none;" id="photo-content"></div>
-
-    <!-- Audio Elements -->
-    <audio id="transfer-sent-sound" src="https://soundbible.com/mp3/accomplished-579.mp3" preload="auto"></audio>
-    <audio id="transfer-received-sound" src="https://soundbible.com/mp3/accomplished-579.mp3" preload="auto"></audio>
-    <audio id="notification-sound" src="https://soundbible.com/mp3/ping-82822.mp3" preload="auto"></audio>
-
-    <!-- Loading Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
-    <!-- Custom Scripts -->
-    <script src="script.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
