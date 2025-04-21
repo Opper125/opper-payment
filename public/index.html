@@ -18,96 +18,7 @@
             overflow-x: hidden;
             color: #f1f5f9;
             position: relative;
-        }
-        .auth-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10002;
-            animation: fadeIn 0.5s ease;
-        }
-        .auth-box {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            animation: slideIn 0.5s ease;
-        }
-        .auth-box h2 {
-            color: #FFD700;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        .auth-box input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #FFD700;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #f1f5f9;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        .auth-box input:focus {
-            border-color: #DAA520;
-            box-shadow: 0 0 8px rgba(218, 165, 32, 0.5);
-        }
-        .auth-box button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #FFD700, #DAA520);
-            border: none;
-            border-radius: 10px;
-            color: #000000;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-        .auth-box button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-        }
-        .auth-box .error-message {
-            color: #f87171;
-            font-size: 0.9rem;
-            margin-top: 10px;
-        }
-        .auth-box .success-message {
-            color: #4ade80;
-            font-size: 0.9rem;
-            margin-top: 10px;
-        }
-        .auth-box .toggle-btn {
-            background: none;
-            border: none;
-            color: #FFD700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideIn {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            touch-action: auto;
         }
         .intro-container {
             position: fixed;
@@ -200,6 +111,65 @@
         @keyframes wave {
             0% { transform: translateX(0); }
             100% { transform: translateX(1200px); }
+        }
+        .download-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #1E3A8A, #FFD700);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+        }
+        .download-bar p {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #000000;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        .download-bar button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #FFD700, #DAA520);
+            border: none;
+            border-radius: 30px;
+            color: #000000;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .download-bar button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 400%;
+            height: 400%;
+            background: radial-gradient(circle, rgba(218, 165, 32, 0.5) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+        }
+        .download-bar button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .download-bar button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+        .download-bar .close-btn {
+            background: transparent;
+            color: #FFD700;
+            font-size: 1.4rem;
+            transition: transform 0.3s ease;
+        }
+        .download-bar .close-btn:hover {
+            transform: scale(1.2);
         }
         .logo {
             position: fixed;
@@ -393,6 +363,10 @@
             margin-bottom: 6px;
             filter: drop-shadow(0 0 10px rgba(218, 165, 32, 0.7));
         }
+        .menu #game-btn img, .menu #telegram-btn img {
+            width: 36px;
+            height: 36px;
+        }
         .history-item {
             padding: 20px;
             border-radius: 15px;
@@ -414,6 +388,13 @@
         .history-item.in {
             color: #4ade80;
             border: 2px solid #4ade80;
+        }
+        .history-item .logo {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 30px;
+            height: 30px;
         }
         .history-item .print-btn {
             position: absolute;
@@ -567,6 +548,29 @@
         .hidden {
             display: none;
         }
+        .game-container {
+            width: 100%;
+            height: 80vh;
+            margin: 30px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+        .game-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .back-btn {
+            width: auto;
+            padding: 14px 28px;
+            margin: 15px auto;
+            display: block;
+            background: linear-gradient(135deg, #f87171, #ef4444);
+        }
+        .back-btn:hover {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+        }
         .receipt-overlay {
             position: fixed;
             top: 0;
@@ -696,16 +700,18 @@
             width: 100%;
             justify-content: center;
         }
-        .close-btn {
+        .download-btn, .close-btn {
             width: 48%;
             padding: 14px;
             margin: 0;
             border-radius: 10px;
             font-family: 'Inter', sans-serif;
             font-weight: 800;
+        }
+        .close-btn {
             background: linear-gradient(135deg, #f87171, #ef4444);
         }
-        .close-btn:hover {
+        .download-btn:hover, .close-btn:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
         }
@@ -731,6 +737,27 @@
                 width: 28px;
                 height: 28px;
             }
+            .menu #game-btn img, .menu #telegram-btn img {
+                width: 32px;
+                height: 32px;
+            }
+            .download-bar p {
+                font-size: 1.1rem;
+            }
+            .download-bar button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+            .game-container {
+                height: 70vh;
+            }
+            .intro-logo {
+                width: 250px;
+                height: 250px;
+            }
+            .intro-text {
+                font-size: 2rem;
+            }
             .ticket-container {
                 max-width: 100%;
                 padding: 20px;
@@ -748,42 +775,25 @@
             .receipt-content {
                 padding: 20px;
             }
-            .auth-box {
-                padding: 20px;
-                width: 95%;
-            }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Playfair+Display:wght@700;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Auth Container -->
-    <div class="auth-container" id="auth-container">
-        <div class="auth-box" id="signup-box">
-            <h2>Sign Up</h2>
-            <input type="email" id="signup-email" placeholder="Enter Gmail" required>
-            <input type="password" id="signup-password" placeholder="Enter Password" required>
-            <button onclick="signup()">Sign Up</button>
-            <p class="error-message" id="signup-error"></p>
-            <p class="success-message" id="signup-success"></p>
-            <button class="toggle-btn" onclick="toggleAuth('login')">Already have an account? Login</button>
-        </div>
-        <div class="auth-box hidden" id="login-box">
-            <h2>Login</h2>
-            <input type="email" id="login-email" placeholder="Enter Gmail" required>
-            <input type="password" id="login-password" placeholder="Enter Password" required>
-            <button onclick="login()">Login</button>
-            <p class="error-message" id="login-error"></p>
-            <p class="success-message" id="login-success"></p>
-            <button class="toggle-btn" onclick="toggleAuth('signup')">Don't have an account? Sign Up</button>
-        </div>
-    </div>
-
     <!-- Intro Animation -->
     <div class="intro-container" id="intro-container">
         <img class="intro-logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
         <div class="intro-text">
             <span>O</span><span>p</span><span>p</span><span>e</span><span>r</span> <span>P</span><span>a</span><span>y</span><span>m</span><span>e</span><span>n</span><span>t</span>
+        </div>
+    </div>
+
+    <!-- Download APK Bar -->
+    <div class="download-bar" id="download-bar">
+        <p>Download the OPPER Payment App for a better experience!</p>
+        <div>
+            <button onclick="downloadApk()">Download</button>
+            <button class="close-btn" onclick="hideDownloadBar()">✖</button>
         </div>
     </div>
 
@@ -841,7 +851,6 @@
         <h2>My Profile</h2>
         <div class="form-group">
             <p>Your ID: <span id="mi-id"></span></p>
-            <p>Your Gmail: <span id="mi-email"></span></p>
             <p id="mi-status" class="status pending">Passport Verification Required</p>
             <div id="passport-form" class="form-group">
                 <h3>Submit Passport Details</h3>
@@ -869,11 +878,21 @@
         </div>
     </div>
 
+    <!-- Game Section -->
+    <div id="game" class="container">
+        <h2>Play Game</h2>
+        <div class="game-container">
+            <iframe id="game-iframe" src="https://thai-fish-prawn-crab.netlify.app/" title="Thai Fish Prawn Crab"></iframe>
+        </div>
+        <button class="back-btn" onclick="showSection('wallet')">Back to Payment</button>
+    </div>
+
     <!-- Receipt Overlay -->
     <div class="receipt-overlay" id="receipt-overlay">
         <div class="receipt-content">
             <div class="ticket-container" id="ticket-content"></div>
             <div class="action-buttons">
+                <button class="download-btn" onclick="downloadReceipt()">Download Photo</button>
                 <button class="close-btn" onclick="closeReceipt()">Close</button>
             </div>
         </div>
@@ -886,6 +905,8 @@
     <div class="menu">
         <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://cdn-icons-png.flaticon.com/512/1250/1250689.png" alt="Home">Wallet</button>
         <button onclick="showSection('host')" id="host-btn"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Host">History</button>
+        <button onclick="showSection('game')" id="game-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/game-icon.png" alt="Game">Game</button>
+        <button onclick="openTelegram()" id="telegram-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/telegram-icon.png" alt="Telegram">Telegram</button>
         <button onclick="showSection('mi')" id="mi-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="MI">Profile</button>
     </div>
 
@@ -909,154 +930,30 @@
         const imgurClientId = '5befa9dd970c7d0';
         const logoUrl = 'https://github.com/Opper125/opper-payment/raw/main/logo.png';
 
-        let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null, email: null };
+        let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
         let allowTransfers = true;
         let currentTransactionId = null;
-
-        // Auth Functions
-        function toggleAuth(mode) {
-            const signupBox = document.getElementById('signup-box');
-            const loginBox = document.getElementById('login-box');
-            if (mode === 'signup') {
-                signupBox.classList.remove('hidden');
-                loginBox.classList.add('hidden');
-            } else {
-                signupBox.classList.add('hidden');
-                loginBox.classList.remove('hidden');
-            }
-        }
-
-        async function signup() {
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const errorMessage = document.getElementById('signup-error');
-            const successMessage = document.getElementById('signup-success');
-
-            errorMessage.textContent = '';
-            successMessage.textContent = '';
-
-            if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                errorMessage.textContent = 'Please enter a valid Gmail address.';
-                return;
-            }
-            if (password.length < 6) {
-                errorMessage.textContent = 'Password must be at least 6 characters.';
-                return;
-            }
-
-            try {
-                // Check if email already exists
-                const { data: existingUser, error: checkError } = await supabase
-                    .from('users')
-                    .select('email')
-                    .eq('email', email)
-                    .single();
-                if (existingUser) {
-                    errorMessage.textContent = 'This Gmail is already registered.';
-                    return;
-                }
-                if (checkError && checkError.code !== 'PGRST116') throw checkError;
-
-                // Generate unique user ID
-                let userId;
-                let isUnique = false;
-                while (!isUnique) {
-                    userId = Math.floor(100000 + Math.random() * 900000).toString();
-                    const { data, error } = await supabase
-                        .from('users')
-                        .select('user_id')
-                        .eq('user_id', userId)
-                        .single();
-                    if (!data) isUnique = true;
-                    if (error && error.code !== 'PGRST116') throw error;
-                }
-
-                // Insert new user
-                const { error: insertError } = await supabase
-                    .from('users')
-                    .insert({
-                        user_id: userId,
-                        email,
-                        password, // Note: In production, hash the password
-                        balance: 0,
-                        passport_status: 'pending'
-                    });
-                if (insertError) throw insertError;
-
-                successMessage.textContent = 'Account created successfully! Logging in...';
-                setTimeout(() => {
-                    localStorage.setItem('userId', userId);
-                    document.getElementById('auth-container').classList.add('hidden');
-                    initializeUser();
-                }, 2000);
-            } catch (error) {
-                console.error('Signup Error:', error.message);
-                errorMessage.textContent = `Error: ${error.message}`;
-            }
-        }
-
-        async function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const errorMessage = document.getElementById('login-error');
-            const successMessage = document.getElementById('login-success');
-
-            errorMessage.textContent = '';
-            successMessage.textContent = '';
-
-            if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                errorMessage.textContent = 'Please enter a valid Gmail address.';
-                return;
-            }
-
-            try {
-                const { data: user, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('email', email)
-                    .eq('password', password)
-                    .single();
-                if (error || !user) {
-                    errorMessage.textContent = 'Invalid Gmail or password.';
-                    return;
-                }
-
-                successMessage.textContent = 'Login successful! Loading...';
-                setTimeout(() => {
-                    localStorage.setItem('userId', user.user_id);
-                    document.getElementById('auth-container').classList.add('hidden');
-                    initializeUser();
-                }, 2000);
-            } catch (error) {
-                console.error('Login Error:', error.message);
-                errorMessage.textContent = `Error: ${error.message}`;
-            }
-        }
 
         // Play Intro Sound
         window.onload = () => {
             const introSound = document.getElementById('intro-sound');
             introSound.play().catch(err => console.error('Intro sound error:', err));
-            const userId = localStorage.getItem('userId');
-            if (userId) {
-                setTimeout(() => {
-                    document.getElementById('intro-container').style.display = 'none';
-                    initializeUser();
-                }, 10000);
-            } else {
-                setTimeout(() => {
-                    document.getElementById('intro-container').style.display = 'none';
-                    document.getElementById('auth-container').classList.remove('hidden');
-                }, 10000);
-            }
+            setTimeout(() => {
+                document.getElementById('intro-container').style.display = 'none';
+                initializeUser();
+            }, 10000);
         };
 
         function showSection(sectionId) {
-            ['wallet', 'host', 'mi'].forEach(id => {
+            ['wallet', 'host', 'mi', 'game'].forEach(id => {
                 document.getElementById(id).classList.toggle('active', id === sectionId);
                 document.getElementById(`${id}-btn`).classList.toggle('active', id === sectionId);
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openTelegram() {
+            window.open('https://t.me/OPPERN', '_blank');
         }
 
         async function retryOperation(operation, maxRetries = 3, delay = 1000) {
@@ -1087,11 +984,32 @@
 
         async function initializeUser() {
             try {
-                const userId = localStorage.getItem('userId');
+                let userId = localStorage.getItem('userId');
                 if (!userId) {
-                    document.getElementById('auth-container').classList.remove('hidden');
-                    return;
+                    userId = Math.floor(100000 + Math.random() * 900000).toString();
+                    await retryOperation(async () => {
+                        const { data: existingUser, error } = await supabase
+                            .from('users')
+                            .select('user_id')
+                            .eq('user_id', userId)
+                            .single();
+                        if (error && error.code !== 'PGRST116') throw new Error(`Check ID Error: ${error.message}`);
+                        if (existingUser) throw new Error('Duplicate ID');
+                    });
+
+                    await retryOperation(async () => {
+                        const { error: insertError } = await supabase
+                            .from('users')
+                            .insert({ user_id: userId, balance: 0, passport_status: 'pending' });
+                        if (insertError) throw new Error(`Insert User Error: ${insertError.message}`);
+                    });
+
+                    localStorage.setItem('userId', userId);
                 }
+                currentUser.user_id = userId;
+
+                document.getElementById('id-badge').textContent = `ID: ${userId}`;
+                document.getElementById('mi-id').textContent = userId;
 
                 await retryOperation(async () => {
                     const { data: user, error } = await supabase
@@ -1103,9 +1021,6 @@
                     if (user) currentUser = user;
                 });
 
-                document.getElementById('id-badge').textContent = `ID: ${userId}`;
-                document.getElementById('mi-id').textContent = userId;
-                document.getElementById('mi-email').textContent = currentUser.email || 'N/A';
                 document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
                 updateStatus(currentUser.passport_status);
 
@@ -1144,8 +1059,6 @@
             } catch (error) {
                 console.error('Initialization Error:', error.message);
                 alert(`An error occurred: ${error.message}. Please try again.`);
-                localStorage.removeItem('userId');
-                document.getElementById('auth-container').classList.remove('hidden');
             }
         }
 
@@ -1219,6 +1132,7 @@
                     const item = document.createElement('div');
                     item.className = `history-item ${t.from_phone === currentUser.phone ? 'out' : 'in'}`;
                     item.innerHTML = `
+                        <img class="logo" src="${logoUrl}" alt="OPPER Logo">
                         ${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>
                         Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
                         Note: ${t.note || 'None'}<br>
@@ -1279,14 +1193,13 @@
                 `;
                 
                 document.getElementById('receipt-overlay').style.display = 'flex';
-                saveReceipt();
             } catch (error) {
                 console.error('Show Receipt Error:', error.message);
                 alert(`Error showing receipt: ${error.message}`);
             }
         }
 
-        async function saveReceipt() {
+        async function downloadReceipt() {
             try {
                 const ticketContent = document.getElementById('ticket-content');
                 const canvas = await html2canvas(ticketContent, {
@@ -1297,30 +1210,13 @@
                     imageTimeout: 15000
                 });
                 
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                const fileName = `Transaction_${currentTransactionId}.png`;
-                
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: false });
-                    stream.getTracks().forEach(track => track.stop());
-                }
-
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] })) {
-                    await navigator.share({
-                        files: [new File([blob], fileName, { type: 'image/png' })],
-                        title: 'OPPER Payment Receipt',
-                        text: 'Your transaction receipt from OPPER Payment'
-                    });
-                } else {
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = fileName;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                }
+                const link = document.createElement('a');
+                link.download = `Transaction_${currentTransactionId}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
             } catch (error) {
-                console.error('Save Receipt Error:', error.message);
-                alert(`Error saving receipt: ${error.message}`);
+                console.error('Download Receipt Error:', error.message);
+                alert(`Error downloading receipt: ${error.message}`);
             }
         }
 
@@ -1400,6 +1296,7 @@
                 ]);
 
                 const updatedData = {
+                    user_id: currentUser.user_id,
                     phone,
                     payment_pin: paymentPin,
                     passport_number: passportNumber,
@@ -1558,7 +1455,6 @@
                     `;
                     currentTransactionId = transactionId;
                     document.getElementById('receipt-overlay').style.display = 'flex';
-                    saveReceipt();
                 }, 3000);
 
                 loadHistory();
@@ -1570,6 +1466,37 @@
                 if (animation) animation.remove();
             }
         });
+
+        function hideDownloadBar() {
+            const downloadBar = document.getElementById('download-bar');
+            downloadBar.style.display = 'none';
+            localStorage.setItem('downloadBarHidden', 'true');
+            localStorage.setItem('downloadBarHiddenTime', Date.now());
+            setTimeout(() => {
+                localStorage.removeItem('downloadBarHidden');
+                localStorage.removeItem('downloadBarHiddenTime');
+                downloadBar.style.display = 'flex';
+            }, 60 * 60 * 1000);
+        }
+
+        function downloadApk() {
+            const apkUrl = 'https://appsgeyser.io/18731061/OPPER-Payment';
+            const a = document.createElement('a');
+            a.href = apkUrl;
+            a.download = 'opper-payment.apk';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Function to update sound files
+        function updateSound(type, newUrl) {
+            const soundElement = document.getElementById(`${type}-sound`);
+            if (soundElement) {
+                soundElement.src = newUrl;
+                soundElement.load();
+            }
+        }
     </script>
 </body>
 </html>
