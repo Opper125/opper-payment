@@ -231,36 +231,51 @@ function handlePinInput(current, index) {
     }
 }
 
+async function uploadReceiptToSupabase(canvas, transactionId) {
+    try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], `Transaction_${transactionId}.png`, { type: 'image/png' });
+        
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('receipts')
+            .upload(`receipts/${currentUser.user_id}/${transactionId}.png`, file, {
+                cacheControl: '3600',
+                upsert: true
+            });
+        if (uploadError) throw new Error(`Storage Upload Error: ${uploadError.message}`);
+
+        const imageUrl = supabase.storage.from('receipts').getPublicUrl(`receipts/${currentUser.user_id}/${transactionId}.png`).data.publicUrl;
+
+        // Insert receipt metadata into receipts table
+        const { error: insertError } = await supabase
+            .from('receipts')
+            .insert({
+                transaction_id: transactionId,
+                user_id: currentUser.user_id,
+                image_url: imageUrl
+            });
+        if (insertError) throw new Error(`Receipt Insert Error: ${insertError.message}`);
+
+        return imageUrl;
+    } catch (error) {
+        console.error('Upload Receipt Error:', error.message);
+        throw error;
+    }
+}
+
 async function saveToAlbum(canvas, transactionId) {
     try {
-        if (navigator.mediaDevices && 'getUserMedia' in navigator.mediaDevices) {
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const file = new File([blob], `Transaction_${transactionId}.png`, { type: 'image/png' });
-            const shareData = {
-                files: [file],
-                title: 'OPPER Payment Receipt',
-                text: `Transaction Receipt ${transactionId}`
-            };
-            if (navigator.canShare && navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-            } else {
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = `Transaction_${transactionId}.png`;
-                link.click();
-            }
-        } else {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = `Transaction_${transactionId}.png`;
-            link.click();
-        }
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `Transaction_${transactionId}.png`;
+        link.click();
 
         const saveMessage = document.createElement('div');
         saveMessage.className = 'save-message';
-        saveMessage.textContent = 'Receipt saved to Albums! Tap to view.';
+        saveMessage.textContent = 'Receipt saved to Downloads! Tap to view.';
         saveMessage.onclick = () => {
-            window.location.href = 'photos://';
+            window.location.href = 'files://';
         };
         document.body.appendChild(saveMessage);
         setTimeout(() => saveMessage.remove(), 3000);
@@ -373,7 +388,7 @@ async function submitTransfer() {
 
         console.log(`Transfer Successful: ${amount} Ks to ${receiver.phone}`);
 
-        setTimeout(async () => {
+        setTimeout(() => {
             successAnimation.remove();
 
             const ticketContent = document.getElementById('ticket-content');
@@ -402,15 +417,6 @@ async function submitTransfer() {
             `;
             currentTransactionId = transactionId;
             document.getElementById('receipt-overlay').style.display = 'flex';
-
-            const canvas = await html2canvas(ticketContent, {
-                scale: 4,
-                useCORS: true,
-                backgroundColor: '#2E2E6B',
-                logging: false,
-                imageTimeout: 15000
-            });
-            await saveToAlbum(canvas, transactionId);
         }, 2500);
 
         loadHistory();
@@ -525,7 +531,18 @@ async function downloadReceipt() {
             logging: false,
             imageTimeout: 15000
         });
+
+        // Save to Supabase
+        const imageUrl = await uploadReceiptToSupabase(canvas, currentTransactionId);
+
+        // Save to device
         await saveToAlbum(canvas, currentTransactionId);
+
+        const saveMessage = document.createElement('div');
+        saveMessage.className = 'save-message';
+        saveMessage.textContent = `Receipt saved! View online: ${imageUrl}`;
+        document.body.appendChild(saveMessage);
+        setTimeout(() => saveMessage.remove(), 5000);
     } catch (error) {
         console.error('Download Receipt Error:', error.message);
         alert(`Error downloading receipt: ${error.message}`);
