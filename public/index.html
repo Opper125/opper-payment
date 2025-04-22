@@ -9,14 +9,14 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
         body {
-            background: linear-gradient(145deg, #1E3A8A, #000000);
+            background: linear-gradient(145deg, #0D1B2A, #1B263B);
             min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
-            color: #f1f5f9;
+            color: #E0E1DD;
             position: relative;
             touch-action: auto;
         }
@@ -26,58 +26,58 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(145deg, #1E3A8A, #000000);
+            background: linear-gradient(145deg, #0D1B2A, #1B263B);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 10001;
-            animation: fadeOut 1s ease 10s forwards;
+            animation: fadeOut 1s ease 8s forwards;
             overflow: hidden;
         }
         .intro-logo {
-            width: 350px;
-            height: 350px;
-            filter: blur(20px) brightness(0.7);
-            animation: focusLogo 4s ease forwards;
-            transform: scale(0.6);
+            width: 300px;
+            height: 300px;
+            filter: blur(15px) brightness(0.6);
+            animation: focusLogo 3s ease forwards;
+            transform: scale(0.7);
         }
         .intro-text {
-            margin-top: 30px;
-            font-size: 2.8rem;
-            font-weight: 900;
-            color: #FFD700;
+            margin-top: 20px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #FFD60A;
             opacity: 0;
-            animation: slideText 2.5s ease 3s forwards;
-            font-family: 'Playfair Display', serif;
-            letter-spacing: 3px;
-            text-shadow: 0 0 20px rgba(218, 165, 32, 0.6);
+            animation: slideText 2s ease 2.5s forwards;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(255, 214, 10, 0.7);
         }
         .intro-text span {
             opacity: 0;
-            animation: letterFade 0.7s ease forwards;
+            animation: letterFade 0.6s ease forwards;
         }
-        .intro-text span:nth-child(1) { animation-delay: 3.5s; }
-        .intro-text span:nth-child(2) { animation-delay: 3.6s; }
-        .intro-text span:nth-child(3) { animation-delay: 3.7s; }
-        .intro-text span:nth-child(4) { animation-delay: 3.8s; }
-        .intro-text span:nth-child(5) { animation-delay: 3.9s; }
-        .intro-text span:nth-child(6) { animation-delay: 4.0s; }
-        .intro-text span:nth-child(7) { animation-delay: 4.1s; }
-        .intro-text span:nth-child(8) { animation-delay: 4.2s; }
-        .intro-text span:nth-child(9) { animation-delay: 4.3s; }
-        .intro-text span:nth-child(10) { animation-delay: 4.4s; }
-        .intro-text span:nth-child(11) { animation-delay: 4.5s; }
+        .intro-text span:nth-child(1) { animation-delay: 3s; }
+        .intro-text span:nth-child(2) { animation-delay: 3.1s; }
+        .intro-text span:nth-child(3) { animation-delay: 3.2s; }
+        .intro-text span:nth-child(4) { animation-delay: 3.3s; }
+        .intro-text span:nth-child(5) { animation-delay: 3.4s; }
+        .intro-text span:nth-child(6) { animation-delay: 3.5s; }
+        .intro-text span:nth-child(7) { animation-delay: 3.6s; }
+        .intro-text span:nth-child(8) { animation-delay: 3.7s; }
+        .intro-text span:nth-child(9) { animation-delay: 3.8s; }
+        .intro-text span:nth-child(10) { animation-delay: 3.9s; }
+        .intro-text span:nth-child(11) { animation-delay: 4s; }
         @keyframes focusLogo {
-            0% { filter: blur(20px) brightness(0.7); transform: scale(0.6); }
+            0% { filter: blur(15px) brightness(0.6); transform: scale(0.7); }
             100% { filter: blur(0) brightness(1); transform: scale(1); }
         }
         @keyframes slideText {
-            0% { opacity: 0; transform: translateY(60px); }
+            0% { opacity: 0; transform: translateY(50px); }
             100% { opacity: 1; transform: translateY(0); }
         }
         @keyframes letterFade {
-            0% { opacity: 0; transform: translateY(30px); }
+            0% { opacity: 0; transform: translateY(20px); }
             100% { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeOut {
@@ -96,17 +96,17 @@
         }
         .wave {
             position: absolute;
-            bottom: -120px;
+            bottom: -100px;
             left: 0;
             width: 100%;
-            height: 120px;
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(218, 165, 32, 0.2)"/></svg>');
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(255, 214, 10, 0.15)"/></svg>');
             background-size: cover;
-            animation: wave 10s linear infinite;
+            animation: wave 12s linear infinite;
         }
         .wave:nth-child(2) {
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(30, 58, 138, 0.15)"/></svg>');
-            animation: wave 15s linear infinite reverse;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(13, 27, 42, 0.2)"/></svg>');
+            animation: wave 18s linear infinite reverse;
         }
         @keyframes wave {
             0% { transform: translateX(0); }
@@ -117,27 +117,28 @@
             top: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(135deg, #1E3A8A, #FFD700);
-            padding: 15px;
+            background: linear-gradient(135deg, #1B263B, #FFD60A);
+            padding: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-            border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid rgba(255, 214, 10, 0.3);
+            backdrop-filter: blur(10px);
         }
         .download-bar p {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #000000;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0D1B2A;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
         .download-bar button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #FFD700, #DAA520);
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #FFD60A, #FFC107);
             border: none;
-            border-radius: 30px;
-            color: #000000;
+            border-radius: 25px;
+            color: #0D1B2A;
             font-weight: 700;
             cursor: pointer;
             position: relative;
@@ -149,9 +150,9 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 400%;
-            height: 400%;
-            background: radial-gradient(circle, rgba(218, 165, 32, 0.5) 0%, transparent 70%);
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 214, 10, 0.4) 0%, transparent 70%);
             transform: translate(-50%, -50%) scale(0);
             transition: transform 0.5s ease;
         }
@@ -159,140 +160,140 @@
             transform: translate(-50%, -50%) scale(1);
         }
         .download-bar button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
         }
         .download-bar .close-btn {
             background: transparent;
-            color: #FFD700;
-            font-size: 1.4rem;
+            color: #FFD60A;
+            font-size: 1.2rem;
             transition: transform 0.3s ease;
         }
         .download-bar .close-btn:hover {
-            transform: scale(1.2);
+            transform: scale(1.1);
         }
         .logo {
             position: fixed;
-            top: 80px;
-            left: 25px;
-            width: 80px;
-            height: 80px;
+            top: 70px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
             z-index: 100;
-            filter: drop-shadow(0 0 15px rgba(218, 165, 32, 0.7));
+            filter: drop-shadow(0 0 12px rgba(255, 214, 10, 0.6));
             transition: transform 0.3s ease;
         }
         .logo:hover {
-            transform: scale(1.2) rotate(8deg);
+            transform: scale(1.15) rotate(10deg);
         }
         .id-badge {
             position: fixed;
-            top: 80px;
-            right: 25px;
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.2), rgba(0, 0, 0, 0.2));
-            border: 2px solid #FFD700;
-            border-radius: 30px;
-            padding: 12px 24px;
-            font-weight: 700;
-            color: #FFD700;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            top: 70px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 214, 10, 0.2), rgba(0, 0, 0, 0.2));
+            border: 2px solid #FFD60A;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: 600;
+            color: #FFD60A;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
             z-index: 100;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(15px);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .id-badge:hover {
-            transform: scale(1.1);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         }
         .container {
             width: 100%;
-            max-width: 500px;
-            padding: 30px;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(30, 58, 138, 0.2));
-            border-radius: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            margin: 120px auto 20px;
+            max-width: 450px;
+            padding: 25px;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.2), rgba(13, 27, 42, 0.3));
+            border-radius: 25px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            margin: 110px auto 20px;
             display: none;
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(218, 165, 32, 0.3);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 214, 10, 0.2);
             transition: transform 0.5s ease, opacity 0.5s ease;
-            min-height: calc(100vh - 240px);
+            min-height: calc(100vh - 220px);
             overflow-y: auto;
         }
         .container.active {
             display: block;
-            transform: scale(1.05);
+            transform: scale(1.03);
             opacity: 1;
         }
         h2 {
             text-align: center;
-            color: #FFD700;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            font-weight: 900;
-            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+            color: #FFD60A;
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
             position: relative;
-            font-family: 'Playfair Display', serif;
-            letter-spacing: 2px;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 3px;
         }
         h2::after {
             content: '';
             position: absolute;
-            bottom: -12px;
+            bottom: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #FFD700, transparent);
+            width: 70px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FFD60A, transparent);
         }
         .form-group {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         label {
             display: block;
-            color: #f1f5f9;
-            margin-bottom: 12px;
-            font-weight: 700;
-            font-size: 1.2rem;
+            color: #E0E1DD;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
         }
         input, select {
             width: 100%;
-            padding: 16px;
-            border: 2px solid #FFD700;
-            border-radius: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #f1f5f9;
+            padding: 14px;
+            border: 2px solid #FFD60A;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            color: #E0E1DD;
             outline: none;
-            font-size: 1.1rem;
+            font-size: 1rem;
             transition: all 0.3s ease;
         }
         input:focus, select:focus {
-            border-color: #DAA520;
-            box-shadow: 0 0 15px rgba(218, 165, 32, 0.7);
-            transform: scale(1.03);
+            border-color: #FFC107;
+            box-shadow: 0 0 12px rgba(255, 214, 10, 0.6);
+            transform: scale(1.02);
         }
         button {
             width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #FFD700, #DAA520);
+            padding: 16px;
+            background: linear-gradient(135deg, #FFD60A, #FFC107);
             border: none;
-            border-radius: 15px;
-            color: #000000;
+            border-radius: 12px;
+            color: #0D1B2A;
             font-weight: 700;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             cursor: pointer;
             position: relative;
             overflow: hidden;
             transition: all 0.4s ease;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         button::before {
             content: '';
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 400%;
-            height: 400%;
-            background: radial-gradient(circle, rgba(218, 165, 32, 0.5) 0%, transparent 70%);
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 214, 10, 0.4) 0%, transparent 70%);
             transform: translate(-50%, -50%) scale(0);
             transition: transform 0.6s ease;
         }
@@ -300,9 +301,9 @@
             transform: translate(-50%, -50%) scale(1);
         }
         button:hover {
-            background: linear-gradient(135deg, #DAA520, #FFD700);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+            background: linear-gradient(135deg, #FFC107, #FFD60A);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
         }
         .menu {
             display: flex;
@@ -311,97 +312,90 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(30, 58, 138, 0.2));
-            padding: 10px;
-            box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.6);
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.2), rgba(13, 27, 42, 0.3));
+            padding: 8px;
+            box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.5);
             z-index: 100;
-            backdrop-filter: blur(20px);
-            border-top: 2px solid rgba(218, 165, 32, 0.3);
+            backdrop-filter: blur(15px);
+            border-top: 2px solid rgba(255, 214, 10, 0.2);
         }
         .menu button {
             flex: 1;
-            margin: 0 5px;
+            margin: 0 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 0.9rem;
-            padding: 8px;
+            font-size: 0.85rem;
+            padding: 6px;
             background: transparent;
             border: none;
-            color: #FFD700;
+            color: #FFD60A;
             position: relative;
             transition: all 0.3s ease;
-            border-radius: 12px;
-            font-family: 'Roboto Condensed', sans-serif;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
             font-weight: 600;
         }
         .menu button.active {
-            background: linear-gradient(135deg, #000000, #FFD700);
-            color: #000000;
-            animation: glowBorder 2s linear infinite;
+            background: linear-gradient(135deg, #0D1B2A, #FFD60A);
+            color: #0D1B2A;
+            animation: glowBorder 1.8s linear infinite;
         }
         @keyframes glowBorder {
-            0% { border: 3px solid #FFD700; box-shadow: 0 0 12px #FFD700; }
-            50% { border: 3px solid #000000; box-shadow: 0 0 6px #000000; }
-            100% { border: 3px solid #FFD700; box-shadow: 0 0 12px #FFD700; }
+            0% { border: 2px solid #FFD60A; box-shadow: 0 0 10px #FFD60A; }
+            50% { border: 2px solid #0D1B2A; box-shadow: 0 0 5px #0D1B2A; }
+            100% { border: 2px solid #FFD60A; box-shadow: 0 0 10px #FFD60A; }
         }
         .menu button::after {
             content: '';
             position: absolute;
-            bottom: -3px;
+            bottom: -2px;
             width: 0;
-            height: 3px;
-            background: #FFD700;
+            height: 2px;
+            background: #FFD60A;
             transition: width 0.4s ease;
         }
         .menu button:hover::after, .menu button.active::after {
-            width: 70%;
+            width: 60%;
         }
         .menu img {
-            width: 30px;
-            height: 30px;
-            margin-bottom: 6px;
-            filter: drop-shadow(0 0 10px rgba(218, 165, 32, 0.7));
+            width: 28px;
+            height: 28px;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 0 8px rgba(255, 214, 10, 0.6));
         }
         .menu #game-btn img, .menu #telegram-btn img {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
         }
         .history-item {
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            font-size: 1rem;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(30, 58, 138, 0.2));
-            border: 2px solid rgba(218, 165, 32, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.2), rgba(13, 27, 42, 0.3));
+            border: 2px solid rgba(255, 214, 10, 0.2);
             position: relative;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .history-item:hover {
-            transform: scale(1.04);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            transform: scale(1.03);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         }
         .history-item.out {
-            color: #f87171;
-            border: 2px solid #f87171;
+            color: #FF6B6B;
+            border: 2px solid #FF6B6B;
         }
         .history-item.in {
-            color: #4ade80;
-            border: 2px solid #4ade80;
-        }
-        .history-item .logo {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            width: 30px;
-            height: 30px;
+            color: #4ADE80;
+            border: 2px solid #4ADE80;
         }
         .history-item .print-btn {
             position: absolute;
-            bottom: 15px;
-            right: 15px;
-            width: 36px;
-            height: 36px;
+            bottom: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
             background: url('https://cdn-icons-png.flaticon.com/512/32/32178.png') no-repeat center;
             background-size: cover;
             border: none;
@@ -409,47 +403,47 @@
             transition: transform 0.3s ease;
         }
         .history-item .print-btn:hover {
-            transform: scale(1.3);
+            transform: scale(1.2);
         }
         .history-header {
-            background: linear-gradient(135deg, #1E3A8A, #FFD700);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 2px solid #DAA520;
-            font-size: 1rem;
-            color: #000000;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, #1B263B, #FFD60A);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #FFC107;
+            font-size: 0.95rem;
+            color: #0D1B2A;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
         }
         .status {
-            padding: 8px 15px;
-            border-radius: 30px;
+            padding: 6px 12px;
+            border-radius: 25px;
             display: inline-block;
-            font-weight: 700;
-            font-size: 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
         }
         .status.pending {
-            background: #FFD700;
-            color: #000000;
+            background: #FFD60A;
+            color: #0D1B2A;
         }
         .status.approved {
-            background: #4ade80;
-            color: #000000;
+            background: #4ADE80;
+            color: #0D1B2A;
         }
         .status.rejected {
-            background: #f87171;
-            color: #000000;
+            background: #FF6B6B;
+            color: #0D1B2A;
         }
         .balance-display {
-            background: linear-gradient(135deg, #1E3A8A, #FFD700);
-            padding: 20px;
-            border-radius: 15px;
-            color: #000000;
-            font-size: 2rem;
-            font-weight: 900;
+            background: linear-gradient(135deg, #1B263B, #FFD60A);
+            padding: 15px;
+            border-radius: 12px;
+            color: #0D1B2A;
+            font-size: 1.8rem;
+            font-weight: 800;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 25px;
             position: relative;
             overflow: hidden;
         }
@@ -460,82 +454,82 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 214, 10, 0.3) 0%, transparent 70%);
             transform: rotate(45deg);
-            animation: shine 4s infinite;
+            animation: shine 3s infinite;
         }
         @keyframes shine {
             0% { transform: translateX(-100%) rotate(45deg); }
             100% { transform: translateX(100%) rotate(45deg); }
         }
         .error-message {
-            color: #f87171;
+            color: #FF6B6B;
             text-align: center;
-            margin-top: 15px;
-            font-weight: 700;
-            font-size: 1rem;
+            margin-top: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
         }
         .transfer-animation {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #1E3A8A, #FFD700);
-            color: #000000;
-            padding: 25px 50px;
-            border-radius: 20px;
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: 700;
-            z-index: 10000;
-            animation: popIn 0.6s ease forwards;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
-        }
-        .success-animation {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #4ade80, #22c55e);
-            color: #000000;
-            padding: 35px;
-            border-radius: 20px;
-            text-align: center;
-            font-size: 1.6rem;
-            font-weight: 900;
-            z-index: 10001;
-            animation: popIn 0.6s ease forwards, fadeOut 1s ease 2.5s forwards;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .success-animation img {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 25px;
-            animation: glow 1.8s ease-in-out infinite;
-        }
-        @keyframes glow {
-            0% { filter: drop-shadow(0 0 8px #FFD700); }
-            50% { filter: drop-shadow(0 0 20px #FFD700); }
-            100% { filter: drop-shadow(0 0 8px #FFD700); }
-        }
-        .receiver-message {
-            position: fixed;
-            top: 25%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #4ade80, #22c55e);
-            color: #000000;
+            background: linear-gradient(135deg, #1B263B, #FFD60A);
+            color: #0D1B2A;
             padding: 20px 40px;
             border-radius: 15px;
             text-align: center;
             font-size: 1.2rem;
             font-weight: 700;
             z-index: 10000;
-            animation: slideIn 0.6s ease forwards, fadeOut 1s ease 4.5s forwards;
+            animation: popIn 0.5s ease forwards;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        }
+        .success-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #4ADE80, #22C55E);
+            color: #0D1B2A;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            z-index: 10001;
+            animation: popIn 0.5s ease forwards, fadeOut 1s ease 2s forwards;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .success-animation img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            animation: glow 1.5s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0% { filter: drop-shadow(0 0 6px #FFD60A); }
+            50% { filter: drop-shadow(0 0 15px #FFD60A); }
+            100% { filter: drop-shadow(0 0 6px #FFD60A); }
+        }
+        .receiver-message {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4ADE80, #22C55E);
+            color: #0D1B2A;
+            padding: 15px 30px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            z-index: 10000;
+            animation: slideIn 0.5s ease forwards, fadeOut 1s ease 4s forwards;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         }
         @keyframes popIn {
             0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
@@ -550,11 +544,11 @@
         }
         .game-container {
             width: 100%;
-            height: 80vh;
-            margin: 30px auto;
-            border-radius: 20px;
+            height: 75vh;
+            margin: 25px auto;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
         }
         .game-container iframe {
             width: 100%;
@@ -563,13 +557,13 @@
         }
         .back-btn {
             width: auto;
-            padding: 14px 28px;
-            margin: 15px auto;
+            padding: 12px 24px;
+            margin: 12px auto;
             display: block;
-            background: linear-gradient(135deg, #f87171, #ef4444);
+            background: linear-gradient(135deg, #FF6B6B, #EF4444);
         }
         .back-btn:hover {
-            background: linear-gradient(135deg, #ef4444, #f87171);
+            background: linear-gradient(135deg, #EF4444, #FF6B6B);
         }
         .receipt-overlay {
             position: fixed;
@@ -577,7 +571,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
@@ -585,29 +579,29 @@
             overflow: auto;
         }
         .receipt-content {
-            background: linear-gradient(145deg, #1E3A8A, #000000);
-            border-radius: 30px;
-            padding: 40px;
+            background: linear-gradient(145deg, #1B263B, #0D1B2A);
+            border-radius: 25px;
+            padding: 30px;
             max-width: 100%;
             width: 100%;
             height: 100vh;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
             position: relative;
             overflow: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: 'Inter', sans-serif;
-            border: 3px solid #FFD700;
+            font-family: 'Poppins', sans-serif;
+            border: 2px solid #FFD60A;
         }
         .ticket-container {
             width: 100%;
-            max-width: 500px;
-            background: #1E3A8A;
-            border-radius: 20px;
+            max-width: 450px;
+            background: #1B263B;
+            border-radius: 15px;
             position: relative;
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            padding: 25px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
             margin: 0 auto;
         }
         .ticket-container::before {
@@ -617,167 +611,226 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 10% 20%, rgba(218, 165, 32, 0.2) 0%, transparent 80%);
+            background: radial-gradient(circle at 10% 20%, rgba(255, 214, 10, 0.15) 0%, transparent 80%);
             z-index: 0;
         }
         .ticket-container .header {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #000000, #FFD700);
-            border-radius: 15px 15px 0 0;
-            margin-bottom: 25px;
+            padding: 15px;
+            background: linear-gradient(135deg, #0D1B2A, #FFD60A);
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 20px;
             position: relative;
             z-index: 1;
         }
         .ticket-container .header img {
-            width: 90px;
-            height: 90px;
-            margin-right: 20px;
-            filter: drop-shadow(0 0 15px rgba(0, 0, 0, 0.5));
+            width: 80px;
+            height: 80px;
+            margin-right: 15px;
+            filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
         }
         .ticket-container .header h1 {
-            font-size: 2.3rem;
-            color: #DAA520;
+            font-size: 2rem;
+            color: #FFC107;
             margin: 0;
-            font-weight: 900;
-            font-family: 'Playfair Display', serif;
-            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+            font-weight: 800;
+            font-family: 'Montserrat', sans-serif;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
         }
         .ticket-container .content {
-            padding: 20px;
-            background: #1E3A8A;
-            border-radius: 0 0 15px 15px;
+            padding: 15px;
+            background: #1B263B;
+            border-radius: 0 0 12px 12px;
             position: relative;
             z-index: 1;
         }
         .ticket-container p {
-            font-size: 1rem;
-            color: #DAA520;
-            margin: 12px 0;
-            line-height: 1.8;
-            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: #FFC107;
+            margin: 10px 0;
+            line-height: 1.6;
+            font-family: 'Poppins', sans-serif;
             font-weight: 600;
         }
         .ticket-container p strong {
-            color: #FFD700;
+            color: #FFD60A;
             font-weight: 800;
-            font-family: 'Inter', sans-serif;
         }
         .ticket-container .footer {
             text-align: center;
-            margin-top: 20px;
-            font-size: 1rem;
-            color: #FFD700;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #FFD60A;
             font-style: italic;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Montserrat', sans-serif;
         }
         .done-ui {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 20px;
-            padding: 10px;
-            background: linear-gradient(135deg, #FFD700, #DAA520);
-            border-radius: 10px;
-            color: #000000;
+            margin-top: 15px;
+            padding: 8px;
+            background: linear-gradient(135deg, #FFD60A, #FFC107);
+            border-radius: 8px;
+            color: #0D1B2A;
             font-weight: 800;
             width: 100%;
             text-align: center;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
         .done-ui img {
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
-            filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.4));
+            width: 28px;
+            height: 28px;
+            margin-right: 8px;
+            filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
         }
         .action-buttons {
             display: flex;
-            gap: 15px;
-            margin-top: 25px;
+            gap: 12px;
+            margin-top: 20px;
             width: 100%;
             justify-content: center;
         }
         .download-btn, .close-btn {
             width: 48%;
-            padding: 14px;
+            padding: 12px;
             margin: 0;
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
             font-weight: 800;
         }
         .close-btn {
-            background: linear-gradient(135deg, #f87171, #ef4444);
+            background: linear-gradient(135deg, #FF6B6B, #EF4444);
         }
         .download-btn:hover, .close-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         }
         .photo-content {
             display: none;
         }
+        .pin-container {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .pin-box {
+            width: 40px;
+            height: 50px;
+            border: 2px solid #FFD60A;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: #E0E1DD;
+            font-size: 1.5rem;
+            text-align: center;
+            line-height: 46px;
+            transition: all 0.3s ease;
+        }
+        .pin-box:focus {
+            border-color: #FFC107;
+            box-shadow: 0 0 10px rgba(255, 214, 10, 0.6);
+        }
+        .pin-submit-btn {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .passport-submitted {
+            position: relative;
+            padding: 20px;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.2), rgba(13, 27, 42, 0.3));
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid transparent;
+            animation: orbitGlow 4s linear infinite;
+            transition: transform 0.3s ease;
+        }
+        .passport-submitted:hover {
+            transform: scale(1.02);
+        }
+        @keyframes orbitGlow {
+            0% { border-color: #FFD60A; box-shadow: 0 0 10px #FFD60A, 0 0 20px #00DDEB; }
+            50% { border-color: #00DDEB; box-shadow: 0 0 10px #00DDEB, 0 0 20px #FFD60A; }
+            100% { border-color: #FFD60A; box-shadow: 0 0 10px #FFD60A, 0 0 20px #00DDEB; }
+        }
+        .passport-submitted p {
+            font-size: 1rem;
+            color: #E0E1DD;
+            margin: 8px 0;
+            background: linear-gradient(90deg, #E0E1DD, #00DDEB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
         @media (max-width: 480px) {
             body {
-                padding: 15px;
+                padding: 12px;
             }
             .container {
-                padding: 20px;
-                margin-top: 140px;
+                padding: 15px;
+                margin-top: 130px;
             }
             h2 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             .menu button {
-                font-size: 0.8rem;
-                padding: 6px;
+                font-size: 0.75rem;
+                padding: 5px;
             }
             .menu img {
-                width: 28px;
-                height: 28px;
+                width: 26px;
+                height: 26px;
             }
             .menu #game-btn img, .menu #telegram-btn img {
-                width: 32px;
-                height: 32px;
+                width: 30px;
+                height: 30px;
             }
             .download-bar p {
-                font-size: 1.1rem;
-            }
-            .download-bar button {
-                padding: 10px 20px;
                 font-size: 1rem;
             }
+            .download-bar button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
             .game-container {
-                height: 70vh;
+                height: 65vh;
             }
             .intro-logo {
-                width: 250px;
-                height: 250px;
+                width: 220px;
+                height: 220px;
             }
             .intro-text {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             .ticket-container {
                 max-width: 100%;
-                padding: 20px;
+                padding: 15px;
             }
             .ticket-container .header img {
-                width: 70px;
-                height: 70px;
+                width: 60px;
+                height: 60px;
             }
             .ticket-container .header h1 {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
             }
             .ticket-container p {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
             .receipt-content {
-                padding: 20px;
+                padding: 15px;
+            }
+            .pin-box {
+                width: 35px;
+                height: 45px;
+                font-size: 1.2rem;
+                line-height: 41px;
             }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Playfair+Display:wght@700;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Intro Animation -->
@@ -812,21 +865,37 @@
         <div class="form-group">
             <label>Balance</label>
             <p class="balance-display"><span id="balance">0 Ks</span></p>
-            <button id="transfer-btn" onclick="toggleTransfer()" disabled>Transfer Money</button>
+            <button id="transfer-btn" onclick="showPhoneInput()">Transfer Money</button>
             <p id="wallet-status" class="status pending">Passport Verification Required</p>
         </div>
-        <div id="transfer" class="form-group hidden">
+        <div id="transfer-phone-section" class="form-group hidden">
             <label>Recipient Phone Number</label>
             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
             <p id="receiver-name" class="account-status"></p>
+            <button id="next-btn" onclick="showTransferDetails()" disabled>Next</button>
+        </div>
+        <div id="transfer-details" class="form-group hidden">
+            <label>Recipient</label>
+            <p id="transfer-receiver"></p>
             <label>Amount (Ks)</label>
             <input type="number" id="transfer-amount" placeholder="Max 1,000,000 Ks" required>
             <label>Note</label>
             <input type="text" id="transfer-note" placeholder="Note (optional)">
-            <label>Payment PIN (6 digits)</label>
-            <input type="password" id="transfer-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
-            <button id="confirm-transfer-btn">Confirm Transfer</button>
+            <button id="confirm-details-btn" onclick="showPinInput()">Confirm</button>
             <p id="transfer-error" class="error-message hidden"></p>
+        </div>
+        <div id="pin-section" class="form-group hidden">
+            <label>Enter Payment PIN</label>
+            <div class="pin-container" id="pin-container">
+                <input type="text" class="pin-box" maxlength="1" oninput="moveToNext(this, 0)">
+                <input type="text" class="pin-box" maxlength="1" oninput="moveToNext(this, 1)">
+                <input type="text" class="pin-box" maxlength="1" oninput="moveToNext(this, 2)">
+                <input type="text" class="pin-box" maxlength="1" oninput="moveToNext(this, 3)">
+                <input type="text" class="pin-box" maxlength="1" oninput="moveToNext(this, 4)">
+                <input type="text" class="pin-box" maxlength="1" oninput="moveToNext(this, 5)">
+            </div>
+            <button class="pin-submit-btn" onclick="submitTransfer()">Submit PIN</button>
+            <p id="pin-error" class="error-message hidden"></p>
         </div>
     </div>
 
@@ -869,7 +938,7 @@
                 <button id="submit-passport-btn">Submit</button>
             </div>
             <div id="passport-submitted" class="passport-submitted hidden">
-                <h3>Submitted</h3>
+                <h3>Submitted Details</h3>
                 <p>Phone Number: <span id="submitted-phone"></span></p>
                 <p>Passport Number: <span id="submitted-passport"></span></p>
                 <p>Address: <span id="submitted-address"></span></p>
@@ -933,6 +1002,7 @@
         let currentUser = { user_id: null, balance: 0, passport_status: 'pending', phone: null };
         let allowTransfers = true;
         let currentTransactionId = null;
+        let receiverData = null;
 
         // Play Intro Sound
         window.onload = () => {
@@ -941,7 +1011,7 @@
             setTimeout(() => {
                 document.getElementById('intro-container').style.display = 'none';
                 initializeUser();
-            }, 10000);
+            }, 8000);
         };
 
         function showSection(sectionId) {
@@ -1043,7 +1113,7 @@
                             message.innerHTML = `Received ${transaction.amount} Ks<br>From: ${transaction.from_phone}`;
                             document.body.appendChild(message);
                             document.getElementById('transfer-received-sound').play().catch(err => console.error('Received sound error:', err));
-                            setTimeout(() => message.remove(), 5000);
+                            setTimeout(() => message.remove(), 4000);
                         }
                         loadHistory();
                     })
@@ -1062,7 +1132,7 @@
             }
         }
 
-        function toggleTransfer() {
+        function showPhoneInput() {
             if (currentUser.passport_status !== 'approved') {
                 alert('Passport must be approved to transfer money.');
                 return;
@@ -1071,14 +1141,18 @@
                 alert('Transfer functionality is currently disabled by the server.');
                 return;
             }
-            document.getElementById('transfer').classList.toggle('hidden');
+            document.getElementById('transfer-phone-section').classList.remove('hidden');
+            document.getElementById('transfer-details').classList.add('hidden');
+            document.getElementById('pin-section').classList.add('hidden');
         }
 
         async function checkPhone() {
             try {
                 const phone = document.getElementById('transfer-phone').value;
                 const receiverName = document.getElementById('receiver-name');
+                const nextBtn = document.getElementById('next-btn');
                 receiverName.textContent = '';
+                nextBtn.disabled = true;
                 if (phone.match(/^09\d{9}$/)) {
                     if (phone === currentUser.phone) {
                         receiverName.className = 'account-status not-found';
@@ -1095,6 +1169,8 @@
                     if (receiver && receiver.passport_status === 'approved') {
                         receiverName.className = 'account-status found';
                         receiverName.textContent = `Account Found: ${receiver.phone} (ID: ${receiver.user_id})`;
+                        nextBtn.disabled = false;
+                        receiverData = receiver;
                     } else {
                         receiverName.className = 'account-status not-found';
                         receiverName.textContent = 'Account not found or passport not approved.';
@@ -1103,6 +1179,175 @@
             } catch (error) {
                 console.error('Check Phone Error:', error.message);
                 document.getElementById('receiver-name').textContent = 'An error occurred.';
+            }
+        }
+
+        function showTransferDetails() {
+            if (!receiverData) return;
+            document.getElementById('transfer-phone-section').classList.add('hidden');
+            document.getElementById('transfer-details').classList.remove('hidden');
+            document.getElementById('transfer-receiver').textContent = `${receiverData.phone} (ID: ${receiverData.user_id})`;
+        }
+
+        function showPinInput() {
+            const amount = parseInt(document.getElementById('transfer-amount').value);
+            if (!amount || amount <= 0 || amount > 1000000) {
+                document.getElementById('transfer-error').textContent = 'Invalid amount. Max 1,000,000 Ks.';
+                document.getElementById('transfer-error').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('transfer-details').classList.add('hidden');
+            document.getElementById('pin-section').classList.remove('hidden');
+            document.querySelectorAll('.pin-box').forEach(box => box.value = '');
+            document.querySelector('.pin-box').focus();
+        }
+
+        function moveToNext(current, index) {
+            if (current.value.length === 1 && index < 5) {
+                document.querySelectorAll('.pin-box')[index + 1].focus();
+            }
+        }
+
+        async function submitTransfer() {
+            try {
+                if (!allowTransfers) {
+                    document.getElementById('pin-error').textContent = 'Transfer functionality is currently disabled by the server.';
+                    document.getElementById('pin-error').classList.remove('hidden');
+                    return;
+                }
+
+                const pin = Array.from(document.querySelectorAll('.pin-box')).map(box => box.value).join('');
+                const phone = receiverData.phone;
+                const amount = parseInt(document.getElementById('transfer-amount').value);
+                const note = document.getElementById('transfer-note').value;
+
+                if (pin.length !== 6) {
+                    document.getElementById('pin-error').textContent = 'PIN must be 6 digits.';
+                    document.getElementById('pin-error').classList.remove('hidden');
+                    return;
+                }
+
+                const animation = document.createElement('div');
+                animation.className = 'transfer-animation';
+                animation.textContent = 'Processing Transfer...';
+                document.body.appendChild(animation);
+
+                const isOnline = navigator.onLine;
+                animation.style.animationDuration = isOnline ? '1s' : '3s';
+
+                const { data: sender, error: senderError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('user_id', currentUser.user_id)
+                    .eq('payment_pin', pin)
+                    .single();
+                if (senderError) throw new Error(`Sender Fetch Error: ${senderError.message}`);
+                const { data: receiver, error: receiverError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('phone', phone)
+                    .single();
+                if (receiverError) throw new Error(`Receiver Fetch Error: ${receiverError.message}`);
+
+                if (!sender || !receiver || sender.balance < amount || receiver.passport_status !== 'approved') {
+                    document.getElementById('pin-error').textContent = !sender ? 'Incorrect PIN.' : !receiver ? 'Recipient account not found.' : sender.balance < amount ? 'Insufficient balance.' : 'Recipient passport not approved.';
+                    document.getElementById('pin-error').classList.remove('hidden');
+                    animation.remove();
+                    return;
+                }
+
+                const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
+
+                await retryOperation(async () => {
+                    const { error: updateSenderError } = await supabase
+                        .from('users')
+                        .update({ balance: sender.balance - amount })
+                        .eq('user_id', sender.user_id);
+                    if (updateSenderError) throw new Error(`Update Sender Error: ${updateSenderError.message}`);
+                });
+
+                await retryOperation(async () => {
+                    const { error: updateReceiverError } = await supabase
+                        .from('users')
+                        .update({ balance: receiver.balance + amount })
+                        .eq('user_id', receiver.user_id);
+                    if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`);
+                });
+
+                let transactionId;
+                await retryOperation(async () => {
+                    const { data, error: insertError } = await supabase
+                        .from('transactions')
+                        .insert({
+                            from_phone: sender.phone,
+                            to_phone: receiver.phone,
+                            amount: amount,
+                            note: note || null,
+                            timestamp: now
+                        })
+                        .select('id')
+                        .single();
+                    if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`);
+                    transactionId = data.id;
+                });
+
+                currentUser.balance = sender.balance - amount;
+                document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
+                document.getElementById('pin-error').classList.add('hidden');
+                document.getElementById('pin-section').classList.add('hidden');
+
+                animation.remove();
+
+                document.getElementById('transfer-sent-sound').play().catch(err => console.error('Sent sound error:', err));
+
+                const successAnimation = document.createElement('div');
+                successAnimation.className = 'success-animation';
+                successAnimation.innerHTML = `
+                    <img src="${logoUrl}" alt="OPPER Logo">
+                    Transfer Successful
+                `;
+                document.body.appendChild(successAnimation);
+
+                console.log(`Transfer Successful: ${amount} Ks to ${receiver.phone}`);
+
+                setTimeout(() => {
+                    successAnimation.remove();
+
+                    const ticketContent = document.getElementById('ticket-content');
+                    ticketContent.innerHTML = `
+                        <div class="header">
+                            <img src="${logoUrl}" alt="OPPER Logo">
+                            <h1>OPPER Payment</h1>
+                        </div>
+                        <div class="content">
+                            <p><strong>Transaction Receipt</strong></p>
+                            <p><strong>Amount:</strong> ${amount} Ks</p>
+                            <p><strong>From:</strong> ${sender.phone}</p>
+                            <p><strong>To:</strong> ${receiver.phone}</p>
+                            <p><strong>To ID:</strong> ${receiver.user_id}</p>
+                            <p><strong>Note:</strong> ${note || 'None'}</p>
+                            <p><strong>Time:</strong> ${now}</p>
+                            <p><strong>Status:</strong> Sent</p>
+                            <div class="done-ui">
+                                <img src="${logoUrl}" alt="Done Icon">
+                                Transaction Completed
+                            </div>
+                            <div class="footer">
+                                Powered by OPPER Payment
+                            </div>
+                        </div>
+                    `;
+                    currentTransactionId = transactionId;
+                    document.getElementById('receipt-overlay').style.display = 'flex';
+                }, 2500);
+
+                loadHistory();
+            } catch (error) {
+                console.error('Transfer Error:', error.message);
+                document.getElementById('pin-error').textContent = `An error occurred during transfer: ${error.message}`;
+                document.getElementById('pin-error').classList.remove('hidden');
+                const animation = document.querySelector('.transfer-animation');
+                if (animation) animation.remove();
             }
         }
 
@@ -1132,7 +1377,6 @@
                     const item = document.createElement('div');
                     item.className = `history-item ${t.from_phone === currentUser.phone ? 'out' : 'in'}`;
                     item.innerHTML = `
-                        <img class="logo" src="${logoUrl}" alt="OPPER Logo">
                         ${t.from_phone === currentUser.phone ? '-' : '+'}${t.amount} Ks<br>
                         Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
                         Note: ${t.note || 'None'}<br>
@@ -1205,7 +1449,7 @@
                 const canvas = await html2canvas(ticketContent, {
                     scale: 4,
                     useCORS: true,
-                    backgroundColor: '#1E3A8A',
+                    backgroundColor: '#1B263B',
                     logging: false,
                     imageTimeout: 15000
                 });
@@ -1320,153 +1564,6 @@
             }
         });
 
-        document.getElementById('confirm-transfer-btn').addEventListener('click', async () => {
-            try {
-                if (!allowTransfers) {
-                    document.getElementById('transfer-error').textContent = 'Transfer functionality is currently disabled by the server.';
-                    document.getElementById('transfer-error').classList.remove('hidden');
-                    return;
-                }
-
-                const phone = document.getElementById('transfer-phone').value;
-                const amount = parseInt(document.getElementById('transfer-amount').value);
-                const note = document.getElementById('transfer-note').value;
-                const pin = document.getElementById('transfer-pin').value;
-
-                if (!phone.match(/^09\d{9}$/) || amount > 1000000 || amount <= 0 || pin.length !== 6) {
-                    document.getElementById('transfer-error').textContent = 'Invalid input. Max 1,000,000 Ks, PIN must be 6 digits.';
-                    document.getElementById('transfer-error').classList.remove('hidden');
-                    return;
-                }
-
-                if (phone === currentUser.phone) {
-                    document.getElementById('transfer-error').textContent = 'You cannot transfer money to your own phone number.';
-                    document.getElementById('transfer-error').classList.remove('hidden');
-                    return;
-                }
-
-                const animation = document.createElement('div');
-                animation.className = 'transfer-animation';
-                animation.textContent = 'Processing Transfer...';
-                document.body.appendChild(animation);
-
-                const isOnline = navigator.onLine;
-                animation.style.animationDuration = isOnline ? '1s' : '3s';
-
-                const { data: sender, error: senderError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('user_id', currentUser.user_id)
-                    .eq('payment_pin', pin)
-                    .single();
-                if (senderError) throw new Error(`Sender Fetch Error: ${senderError.message}`);
-                const { data: receiver, error: receiverError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('phone', phone)
-                    .single();
-                if (receiverError) throw new Error(`Receiver Fetch Error: ${receiverError.message}`);
-
-                if (!sender || !receiver || sender.balance < amount || receiver.passport_status !== 'approved') {
-                    document.getElementById('transfer-error').textContent = !sender ? 'Incorrect PIN.' : !receiver ? 'Recipient account not found.' : sender.balance < amount ? 'Insufficient balance.' : 'Recipient passport not approved.';
-                    document.getElementById('transfer-error').classList.remove('hidden');
-                    animation.remove();
-                    return;
-                }
-
-                const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Yangon' });
-
-                await retryOperation(async () => {
-                    const { error: updateSenderError } = await supabase
-                        .from('users')
-                        .update({ balance: sender.balance - amount })
-                        .eq('user_id', sender.user_id);
-                    if (updateSenderError) throw new Error(`Update Sender Error: ${updateSenderError.message}`);
-                });
-
-                await retryOperation(async () => {
-                    const { error: updateReceiverError } = await supabase
-                        .from('users')
-                        .update({ balance: receiver.balance + amount })
-                        .eq('user_id', receiver.user_id);
-                    if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`);
-                });
-
-                let transactionId;
-                await retryOperation(async () => {
-                    const { data, error: insertError } = await supabase
-                        .from('transactions')
-                        .insert({
-                            from_phone: sender.phone,
-                            to_phone: receiver.phone,
-                            amount: amount,
-                            note: note || null,
-                            timestamp: now
-                        })
-                        .select('id')
-                        .single();
-                    if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`);
-                    transactionId = data.id;
-                });
-
-                currentUser.balance = sender.balance - amount;
-                document.getElementById('balance').textContent = `${currentUser.balance} Ks`;
-                document.getElementById('transfer-error').classList.add('hidden');
-                document.getElementById('transfer').classList.add('hidden');
-
-                animation.remove();
-
-                document.getElementById('transfer-sent-sound').play().catch(err => console.error('Sent sound error:', err));
-
-                const successAnimation = document.createElement('div');
-                successAnimation.className = 'success-animation';
-                successAnimation.innerHTML = `
-                    <img src="${logoUrl}" alt="OPPER Logo">
-                    Transfer Successful
-                `;
-                document.body.appendChild(successAnimation);
-
-                setTimeout(() => {
-                    successAnimation.remove();
-
-                    const ticketContent = document.getElementById('ticket-content');
-                    ticketContent.innerHTML = `
-                        <div class="header">
-                            <img src="${logoUrl}" alt="OPPER Logo">
-                            <h1>OPPER Payment</h1>
-                        </div>
-                        <div class="content">
-                            <p><strong>Transaction Receipt</strong></p>
-                            <p><strong>Amount:</strong> ${amount} Ks</p>
-                            <p><strong>From:</strong> ${sender.phone}</p>
-                            <p><strong>To:</strong> ${receiver.phone}</p>
-                            <p><strong>To ID:</strong> ${receiver.user_id}</p>
-                            <p><strong>Note:</strong> ${note || 'None'}</p>
-                            <p><strong>Time:</strong> ${now}</p>
-                            <p><strong>Status:</strong> Sent</p>
-                            <div class="done-ui">
-                                <img src="${logoUrl}" alt="Done Icon">
-                                Transaction Completed
-                            </div>
-                            <div class="footer">
-                                Powered by OPPER Payment
-                            </div>
-                        </div>
-                    `;
-                    currentTransactionId = transactionId;
-                    document.getElementById('receipt-overlay').style.display = 'flex';
-                }, 3000);
-
-                loadHistory();
-            } catch (error) {
-                console.error('Transfer Error:', error.message);
-                document.getElementById('transfer-error').textContent = `An error occurred during transfer: ${error.message}`;
-                document.getElementById('transfer-error').classList.remove('hidden');
-                const animation = document.querySelector('.transfer-animation');
-                if (animation) animation.remove();
-            }
-        });
-
         function hideDownloadBar() {
             const downloadBar = document.getElementById('download-bar');
             downloadBar.style.display = 'none';
@@ -1498,5 +1595,6 @@
             }
         }
     </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9345f96b199672e9',t:'MTc0NTMzMzg1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
