@@ -110,10 +110,6 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
             touch-action: manipulation;
         }
-        .login-box button:disabled {
-            background: #6b7280;
-            cursor: not-allowed;
-        }
         .login-box button::before {
             content: '';
             position: absolute;
@@ -125,10 +121,10 @@
             transform: translate(-50%, -50%) scale(0);
             transition: transform 0.5s ease;
         }
-        .login-box button:not(:disabled):hover::before {
+        .login-box button:hover::before {
             transform: translate(-50%, -50%) scale(1);
         }
-        .login-box button:not(:disabled):hover {
+        .login-box button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
@@ -485,8 +481,8 @@
         <div class="login-box">
             <h2>Admin Login</h2>
             <input type="email" id="admin-email" placeholder="Enter Email" required>
-            <input type="password" id="admin-password" placeholder="Enter Password" required>
-            <button id="login-btn" onclick="adminLogin()">Login</button>
+            <input type="password" id="admin-pin" placeholder="Enter PIN" required>
+            <button onclick="adminLogin()">Login</button>
             <p class="error-message" id="login-error"></p>
         </div>
     </div>
@@ -543,41 +539,22 @@
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
 
-        async function adminLogin() {
+        const ADMIN_EMAIL = 'crakb68@gmail.com';
+        const ADMIN_PIN = '155872';
+
+        function adminLogin() {
             const email = document.getElementById('admin-email').value;
-            const password = document.getElementById('admin-password').value;
-            const loginButton = document.getElementById('login-btn');
+            const pin = document.getElementById('admin-pin').value;
             const errorMessage = document.getElementById('login-error');
 
-            loginButton.disabled = true;
-            loginButton.textContent = 'Logging in...';
-            errorMessage.textContent = '';
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-                if (error) throw new Error(`Login Error: ${error.message}`);
-
-                // Check if user has admin role
-                const { data: userData, error: userError } = await supabase
-                    .from('users')
-                    .select('role')
-                    .eq('user_id', data.user.id)
-                    .single();
-                if (userError) throw new Error(`Fetch User Error: ${userError.message}`);
-                if (userData.role !== 'admin') throw new Error('Access Denied: Admin role required.');
-
+            if (email === ADMIN_EMAIL && pin === ADMIN_PIN) {
                 document.getElementById('login-container').classList.add('hidden');
                 loadUsers();
-            } catch (error) {
-                errorMessage.textContent = error.message;
-            } finally {
-                loginButton.disabled = false;
-                loginButton.textContent = 'Login';
+            } else {
+                errorMessage.textContent = 'Invalid email or PIN.';
+                errorMessage.style.display = 'block';
             }
         }
 
