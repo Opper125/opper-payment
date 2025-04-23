@@ -2,164 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🅾PPER🅿YMENT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPPER Payment</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://github.com/Opper125/opper-payment/raw/main/logo.png" type="image/png">
 </head>
 <body>
-    <!-- Intro Animation -->
-    <div class="intro-container" id="intro-container">
-        <img class="intro-logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-        <div class="intro-text">
-            <span>O</span><span>p</span><span>p</span><span>e</span><span>r</span> <span>P</span><span>a</span><span>y</span><span>m</span><span>e</span><span>n</span><span>t</span>
-        </div>
-    </div>
-
-    <!-- Download APK Bar -->
-    <div class="download-bar" id="download-bar">
-        <p>Download the OPPER Payment App for a better experience!</p>
-        <div>
-            <button onclick="downloadApk()">Download</button>
-            <button class="close-btn" onclick="hideDownloadBar()">✖</button>
-        </div>
-    </div>
-
-    <!-- Background Waves -->
-    <div class="background-waves">
-        <div class="wave"></div>
-        <div class="wave"></div>
-    </div>
-
-    <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-    <div class="id-badge" id="id-badge">ID: </div>
-
-    <!-- Wallet Section -->
-    <div id="wallet" class="container active">
-        <h2>My Wallet</h2>
-        <div class="form-group">
-            <label>Balance</label>
-            <p class="balance-display"><span id="balance">0 Ks</span></p>
-            <button id="transfer-btn" onclick="showPhoneInput()">Transfer Money</button>
-            <p id="wallet-status" class="status pending">Passport Verification Required</p>
-        </div>
-        <div id="transfer-phone-section" class="form-group hidden">
-            <label>Recipient Phone Number</label>
-            <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
-            <p id="receiver-name" class="account-status"></p>
-            <button id="next-btn" onclick="showTransferDetails()" disabled>Next</button>
-        </div>
-        <div id="transfer-details" class="form-group hidden">
-            <label>Recipient</label>
-            <p id="transfer-receiver"></p>
-            <label>Amount (Ks)</label>
-            <input type="number" id="transfer-amount" placeholder="Max 1,000,000 Ks" required>
-            <label>Note</label>
-            <input type="text" id="transfer-note" placeholder="Note (optional)">
-            <button id="confirm-details-btn" onclick="showPinOverlay()">Confirm</button>
-            <p id="transfer-error" class="error-message hidden"></p>
-        </div>
-    </div>
-
-    <!-- PIN Overlay -->
-    <div class="pin-overlay" id="pin-overlay">
-        <div class="pin-content">
-            <h3>Enter Payment PIN</h3>
-            <div class="pin-container" id="pin-container">
-                <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 0)">
-                <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 1)">
-                <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 2)">
-                <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 3)">
-                <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 4)">
-                <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 5)">
-            </div>
-            <button class="pin-submit-btn" onclick="submitTransfer()">Submit PIN</button>
-            <button class="close-btn" onclick="closePinOverlay()">Cancel</button>
-            <p id="pin-error" class="error-message hidden"></p>
-        </div>
-    </div>
-
-    <!-- Host Section (Transaction History) -->
-    <div id="host" class="container">
-        <h2>Transaction History</h2>
-        <div class="form-group">
-            <div class="history-header">
-                <select id="month-filter" onchange="loadHistory()">
-                    <option value="current">Current Month</option>
-                    <option value="previous">Previous Month</option>
-                </select>
-                <p>Total Received: <span id="total-in">0 Ks</span></p>
-                <p>Total Sent: <span id="total-out">0 Ks</span></p>
-            </div>
-            <div id="history-list" style="overflow-y: auto;"></div>
-        </div>
-    </div>
-
-    <!-- MI Section (Profile) -->
-    <div id="mi" class="container">
-        <h2>My Profile</h2>
-        <div class="form-group">
-            <p>Your ID: <span id="mi-id"></span></p>
-            <p id="mi-status" class="status pending">Passport Verification Required</p>
-            <div id="passport-form" class="form-group">
-                <h3>Submit Passport Details</h3>
-                <label>Passport Number</label>
-                <input type="text" id="passport-number" placeholder="Enter Passport Number" required>
-                <label>Address</label>
-                <input type="text" id="address" placeholder="Enter Address" required>
-                <label>Phone Number (09xxxxxxxxx)</label>
-                <input type="tel" id="phone" placeholder="09xxxxxxxxx" required>
-                <label>Payment PIN (6 digits)</label>
-                <input type="password" id="payment-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
-                <label>Passport Image</label>
-                <input type="file" id="passport-image" accept="image/*" required>
-                <label>Selfie with Passport</label>
-                <input type="file" id="selfie-image" accept="image/*" required>
-                <button id="submit-passport-btn">Submit</button>
-            </div>
-            <div id="passport-submitted" class="passport-submitted hidden">
-                <h3>Submitted Details</h3>
-                <p>Phone Number: <span id="submitted-phone"></span></p>
-                <p>Passport Number: <span id="submitted-passport"></span></p>
-                <p>Address: <span id="submitted-address"></span></p>
-                <p>Submitted At: <span id="submitted-time"></span></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Game Section -->
-    <div id="game" class="container">
-        <h2>Play Game</h2>
-        <div class="game-container">
-            <iframe id="game-iframe" src="https://thai-fish-prawn-crab.netlify.app/" title="Thai Fish Prawn Crab"></iframe>
-        </div>
-        <button class="back-btn" onclick="showSection('wallet')">Back to Payment</button>
-    </div>
-
-    <!-- Receipt Overlay -->
-    <div class="receipt-overlay" id="receipt-overlay">
-        <div class="receipt-content">
-            <div class="ticket-container" id="ticket-content"></div>
-            <div class="action-buttons">
-                <button class="download-btn" onclick="downloadReceipt()">Download Receipt</button>
-                <button class="print-btn" onclick="printReceipt()">Print Receipt</button>
-                <button class="close-btn" onclick="closeReceipt()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Photo Content for Download -->
-    <div class="photo-content" id="photo-content"></div>
-
-    <!-- Menu Bar -->
-    <div class="menu">
-        <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/wallet.png" alt="Home">Wallet</button>
-        <button onclick="showSection('host')" id="host-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/history.png" alt="Host">History</button>
-        <button onclick="showSection('game')" id="game-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/game-icon.png" alt="Game">Game</button>
-        <button onclick="openTelegram()" id="telegram-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/telegram-icon.png" alt="Telegram">Telegram</button>
-        <button onclick="showSection('mi')" id="mi-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/mi.png" alt="MI">Profile</button>
-    </div>
-
     <!-- Audio Elements -->
     <audio id="intro-sound" preload="auto">
         <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/intro-soung.mp3" type="audio/mpeg">
@@ -170,9 +19,217 @@
     <audio id="transfer-received-sound" preload="auto">
         <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_received.mp3" type="audio/mpeg">
     </audio>
+    <audio id="click-sound" preload="auto">
+        <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/click.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Intro Animation -->
+    <div class="intro-container" id="intro-container">
+        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="intro-logo">
+        <div class="intro-text">
+            <span>O</span>
+            <span>p</span>
+            <span>p</span>
+            <span>e</span>
+            <span>r</span>
+            <span> </span>
+            <span>P</span>
+            <span>a</span>
+            <span>y</span>
+            <span>m</span>
+            <span>e</span>
+            <span>n</span>
+            <span>t</span>
+        </div>
+        <button id="play-sound-btn" class="play-sound-btn">Play Sound</button>
+    </div>
+
+    <!-- Background Waves -->
+    <div class="background-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <!-- Download APK Bar -->
+    <div class="download-bar" id="download-bar">
+        <p>Download the OPPER Payment App for a better experience!</p>
+        <div>
+            <button id="download-apk-btn">Download</button>
+            <button id="close-download-bar" class="close-btn">✕</button>
+        </div>
+    </div>
+
+    <!-- Logo and ID Badge -->
+    <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="logo">
+    <div class="id-badge" id="id-badge">ID: <span id="user-id">Loading...</span></div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Wallet Section -->
+        <div class="container" id="wallet-container">
+            <h2>My Wallet</h2>
+            <div class="form-group">
+                <label>Balance</label>
+                <div class="balance-display" id="balance-display">0 Ks</div>
+                <button id="transfer-money-btn">Transfer Money</button>
+                <div id="passport-status" class="status pending">Passport Verification Required</div>
+            </div>
+
+            <!-- Transfer Phone Section -->
+            <div class="form-group hidden" id="transfer-phone-section">
+                <label for="transfer-phone">Recipient Phone Number</label>
+                <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx">
+                <p id="receiver-status" class="error-message hidden"></p>
+                <button id="transfer-next-btn" disabled>Next</button>
+            </div>
+
+            <!-- Transfer Details Section -->
+            <div class="form-group hidden" id="transfer-details-section">
+                <label>Recipient</label>
+                <p id="recipient-info" class="balance-display"></p>
+                <label for="transfer-amount">Amount (Ks)</label>
+                <input type="number" id="transfer-amount" placeholder="Max 1,000,000 Ks">
+                <label for="transfer-note">Note</label>
+                <input type="text" id="transfer-note" placeholder="Note (optional)">
+                <button id="transfer-confirm-btn">Confirm</button>
+                <p id="transfer-error" class="error-message hidden"></p>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="container" id="history-container">
+            <h2>Transaction History</h2>
+            <div class="history-header">
+                <select id="history-filter">
+                    <option value="current">Current Month</option>
+                    <option value="previous">Previous Month</option>
+                </select>
+                <p>Total Received: <span id="total-in">0</span> Ks</p>
+                <p>Total Sent: <span id="total-out">0</span> Ks</p>
+            </div>
+            <div id="history-list" class="history-list"></div>
+        </div>
+
+        <!-- Profile Section -->
+        <div class="container" id="profile-container">
+            <h2>My Profile</h2>
+            <p>Your ID: <span id="profile-user-id">Loading...</span></p>
+            <div id="profile-passport-status" class="status pending">Passport Verification Required</div>
+
+            <!-- Passport Form -->
+            <div id="passport-form" class="form-group">
+                <h3>Submit Passport Details</h3>
+                <div class="form-group">
+                    <label for="passport-number">Passport Number</label>
+                    <input type="text" id="passport-number" placeholder="Enter Passport Number">
+                </div>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" placeholder="Enter Address">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number (09xxxxxxxxx)</label>
+                    <input type="tel" id="phone" placeholder="09xxxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label for="payment-pin">Payment PIN (6 digits)</label>
+                    <input type="password" id="payment-pin" maxlength="6" placeholder="Enter 6-digit PIN">
+                </div>
+                <div class="form-group">
+                    <label for="passport-image">Passport Image</label>
+                    <input type="file" id="passport-image" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="selfie-image">Selfie with Passport</label>
+                    <input type="file" id="selfie-image" accept="image/*">
+                </div>
+                <button id="submit-passport-btn">Submit</button>
+            </div>
+
+            <!-- Submitted Passport Details -->
+            <div id="passport-submitted" class="passport-submitted hidden">
+                <h3>Submitted Details</h3>
+                <p>Phone Number: <span id="submitted-phone">N/A</span></p>
+                <p>Passport Number: <span id="submitted-passport">N/A</span></p>
+                <p>Address: <span id="submitted-address">N/A</span></p>
+                <p>Submitted At: <span id="submitted-time">N/A</span></p>
+            </div>
+        </div>
+
+        <!-- Game Section -->
+        <div class="container" id="game-container">
+            <h2>Play Game</h2>
+            <div class="game-container">
+                <iframe src="https://thai-fish-prawn-crab.netlify.app/" title="Thai Fish Prawn Crab"></iframe>
+            </div>
+            <button id="back-to-wallet-btn" class="back-btn">← Back to Payment</button>
+        </div>
+    </main>
+
+    <!-- PIN Overlay -->
+    <div class="pin-overlay" id="pin-overlay">
+        <div class="pin-content">
+            <h3>Enter Payment PIN</h3>
+            <div class="pin-container" id="pin-container">
+                <input type="password" class="pin-box" maxlength="1" data-index="0">
+                <input type="password" class="pin-box" maxlength="1" data-index="1">
+                <input type="password" class="pin-box" maxlength="1" data-index="2">
+                <input type="password" class="pin-box" maxlength="1" data-index="3">
+                <input type="password" class="pin-box" maxlength="1" data-index="4">
+                <input type="password" class="pin-box" maxlength="1" data-index="5">
+            </div>
+            <div>
+                <button id="submit-pin-btn" class="pin-submit-btn">Submit PIN</button>
+                <button id="cancel-pin-btn">Cancel</button>
+            </div>
+            <p id="pin-error" class="error-message hidden"></p>
+        </div>
+    </div>
+
+    <!-- Receipt Overlay -->
+    <div class="receipt-overlay" id="receipt-overlay">
+        <div class="receipt-content">
+            <div class="ticket-container" id="ticket-content">
+                <!-- Receipt content will be dynamically inserted here -->
+            </div>
+            <div class="action-buttons">
+                <button id="download-receipt-btn" class="download-btn">Download</button>
+                <button id="print-receipt-btn" class="print-btn">Print</button>
+                <button id="close-receipt-btn" class="close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Bar -->
+    <div class="menu">
+        <button id="wallet-btn" class="active">
+            <img src="https://github.com/Opper125/opper-payment/raw/main/wallet.png" alt="Wallet">
+            Wallet
+        </button>
+        <button id="history-btn">
+            <img src="https://github.com/Opper125/opper-payment/raw/main/history.png" alt="History">
+            History
+        </button>
+        <button id="game-btn">
+            <img src="https://cdn-icons-png.flaticon.com/512/1068/1068778.png" alt="Game">
+            Game
+        </button>
+        <button id="telegram-btn">
+            <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram">
+            Telegram
+        </button>
+        <button id="profile-btn">
+            <img src="https://github.com/Opper125/opper-payment/raw/main/mi.png" alt="Profile">
+            Profile
+        </button>
+    </div>
+
+    <!-- Photo Content for Download (hidden) -->
+    <div id="photo-content" class="hidden"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
