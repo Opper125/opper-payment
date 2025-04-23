@@ -231,42 +231,32 @@ function handlePinInput(current, index) {
     }
 }
 
-async function saveToAlbum(canvas, transactionId) {
+async function downloadReceipt() {
     try {
-        if (navigator.mediaDevices && 'getUserMedia' in navigator.mediaDevices) {
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const file = new File([blob], `Transaction_${transactionId}.png`, { type: 'image/png' });
-            const shareData = {
-                files: [file],
-                title: 'OPPER Payment Receipt',
-                text: `Transaction Receipt ${transactionId}`
-            };
-            if (navigator.canShare && navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-            } else {
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = `Transaction_${transactionId}.png`;
-                link.click();
-            }
-        } else {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = `Transaction_${transactionId}.png`;
-            link.click();
-        }
-
-        const saveMessage = document.createElement('div');
-        saveMessage.className = 'save-message';
-        saveMessage.textContent = 'Receipt saved to Albums! Tap to view.';
-        saveMessage.onclick = () => {
-            window.location.href = 'photos://';
-        };
-        document.body.appendChild(saveMessage);
-        setTimeout(() => saveMessage.remove(), 3000);
+        const ticketContent = document.getElementById('ticket-content');
+        const canvas = await html2canvas(ticketContent, {
+            scale: 4,
+            useCORS: true,
+            backgroundColor: '#FFFFFF',
+            logging: false,
+            imageTimeout: 15000
+        });
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `Transaction_${currentTransactionId}.png`;
+        link.click();
     } catch (error) {
-        console.error('Save to Album Error:', error.message);
-        alert(`Error saving receipt to album: ${error.message}`);
+        console.error('Download Receipt Error:', error.message);
+        alert(`Error downloading receipt: ${error.message}`);
+    }
+}
+
+async function printReceipt() {
+    try {
+        window.print();
+    } catch (error) {
+        console.error('Print Receipt Error:', error.message);
+        alert(`Error printing receipt: ${error.message}`);
     }
 }
 
@@ -402,15 +392,6 @@ async function submitTransfer() {
             `;
             currentTransactionId = transactionId;
             document.getElementById('receipt-overlay').style.display = 'flex';
-
-            const canvas = await html2canvas(ticketContent, {
-                scale: 4,
-                useCORS: true,
-                backgroundColor: '#2E2E6B',
-                logging: false,
-                imageTimeout: 15000
-            });
-            await saveToAlbum(canvas, transactionId);
         }, 2500);
 
         loadHistory();
@@ -515,23 +496,6 @@ async function showReceipt(transactionId) {
     }
 }
 
-async function downloadReceipt() {
-    try {
-        const ticketContent = document.getElementById('ticket-content');
-        const canvas = await html2canvas(ticketContent, {
-            scale: 4,
-            useCORS: true,
-            backgroundColor: '#2E2E6B',
-            logging: false,
-            imageTimeout: 15000
-        });
-        await saveToAlbum(canvas, currentTransactionId);
-    } catch (error) {
-        console.error('Download Receipt Error:', error.message);
-        alert(`Error downloading receipt: ${error.message}`);
-    }
-}
-
 function closeReceipt() {
     document.getElementById('receipt-overlay').style.display = 'none';
     showSection('wallet');
@@ -608,40 +572,42 @@ document.getElementById('submit-passport-btn').addEventListener('click', async (
             .eq('phone', phone)
             .single();
         if (checkError && checkError.code !== 'PGRST116') throw new Error(`Check Phone Error: ${checkError.message}`);
-        if (existingUser) {
-            if (existingUser.passport_status === 'approved') {
-                alert('This phone number is already registered with an approved account.');
-                return;
-            } else if (existingUser.passport_status === 'pending') {
-                alert('This phone number has a pending verification. Please wait for approval.');
-                return;
-            }
+        if (existingUser && existingUser.passport_status === 'approved') {
+            alert('This phone number is already registered and approved.');
+            return;
         }
 
-        const [passportUrl, selfieUrl] = await Promise.all([
-            retryOperation(() => uploadToImgur(passportImage)),
-            retryOperation(() => uploadToImgur(selfieImage))
-        ]);
+        const passportImageUrl = await uploadToImgur(passportImage);
+        const selfieImageUrl = await uploadToImgur(selfieImage);
 
-        const updatedData = {
-            user_id: currentUser.user_id,
-            phone,
-            payment_pin: paymentPin,
+        await retryOperation(async () => {
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({
+                    passport_number: passportNumber,
+                    address: address,
+                    phone: phone,
+                    payment_pin: paymentPin,
+                    passport_image: passportImageUrl,
+                    selfie_image: selfieImageUrl,
+                    passport_status: 'pending',
+                    submitted_at: new Date().toISOString()
+                })
+                .eq('user_id', currentUser.user_id);
+            if (updateError) throw new Error(`Update User Error: ${updateError.message}`);
+        });
+
+        currentUser = {
+            ...currentUser,
             passport_number: passportNumber,
-            address,
-            passport_image: passportUrl,
-            selfie_image: selfieUrl,
+            address: address,
+            phone: phone,
+            passport_status: 'pending',
             submitted_at: new Date().toISOString()
         };
 
-        await retryOperation(async () => {
-            const { error } = await supabase.from('users').update(updatedData).eq('user_id', currentUser.user_id);
-            if (error) throw new Error(`Update User Error: ${error.message}`);
-        });
-
-        currentUser = { ...currentUser, ...updatedData };
         updateStatus('pending');
-        alert('Passport details submitted successfully. Awaiting approval.');
+        alert('Passport details submitted successfully!');
     } catch (error) {
         console.error('Submit Passport Error:', error.message);
         alert(`Error submitting passport details: ${error.message}`);
@@ -649,7 +615,7 @@ document.getElementById('submit-passport-btn').addEventListener('click', async (
 });
 
 function downloadApk() {
-    window.location.href = 'https://appsgeyser.io/18731061/OPPER-Payment';
+    window.open('https://appsgeyser.io/18731061/OPPER-Payment', '_blank');
 }
 
 function hideDownloadBar() {
