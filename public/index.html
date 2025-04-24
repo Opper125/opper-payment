@@ -14,6 +14,44 @@
         <div class="intro-text">
             <span>O</span><span>p</span><span>p</span><span>e</span><span>r</span> <span>P</span><span>a</span><span>y</span><span>m</span><span>e</span><span>n</span><span>t</span>
         </div>
+        <button id="play-sound-btn" class="play-sound-btn">Play Sound</button>
+    </div>
+
+    <!-- Login/Signup Container -->
+    <div class="auth-container" id="auth-container">
+        <div class="auth-box" id="login-box">
+            <h2>အကောင့်ဝင်ရန်</h2>
+            <div class="form-group">
+                <label>အီးမေးလ်</label>
+                <input type="email" id="login-email" placeholder="အီးမေးလ်ထည့်ပါ" required>
+            </div>
+            <div class="form-group">
+                <label>စကားဝှက်</label>
+                <input type="password" id="login-password" placeholder="စကားဝှက်ထည့်ပါ" required>
+            </div>
+            <button id="login-btn">အကောင့်ဝင်ရန်</button>
+            <p class="auth-message" id="login-message"></p>
+            <p class="auth-switch">အကောင့်မရှိသေးဘူးလား? <a href="#" id="show-signup">အကောင့်ဖွင့်ရန်</a></p>
+        </div>
+
+        <div class="auth-box hidden" id="signup-box">
+            <h2>အကောင့်အသစ်ဖွင့်ရန်</h2>
+            <div class="form-group">
+                <label>အီးမေးလ်</label>
+                <input type="email" id="signup-email" placeholder="အီးမေးလ်ထည့်ပါ" required>
+            </div>
+            <div class="form-group">
+                <label>စကားဝှက်</label>
+                <input type="password" id="signup-password" placeholder="စကားဝှက်ထည့်ပါ" required>
+            </div>
+            <div class="form-group">
+                <label>စကားဝှက်အတည်ပြုပါ</label>
+                <input type="password" id="confirm-password" placeholder="စကားဝှက်ပြန်ထည့်ပါ" required>
+            </div>
+            <button id="signup-btn">အကောင့်ဖွင့်ရန်</button>
+            <p class="auth-message" id="signup-message"></p>
+            <p class="auth-switch">အကောင့်ရှိပြီးသားလား? <a href="#" id="show-login">အကောင့်ဝင်ရန်</a></p>
+        </div>
     </div>
 
     <!-- Download APK Bar -->
@@ -36,27 +74,31 @@
 
     <!-- Wallet Section -->
     <div id="wallet" class="container active">
-        <h2>My Wallet</h2>
+        <h2>ငွေအိတ်</h2>
         <div class="form-group">
-            <label>Balance</label>
+            <label>လက်ကျန်ငွေ</label>
             <p class="balance-display"><span id="balance">0 Ks</span></p>
-            <button id="transfer-btn" onclick="showPhoneInput()">Transfer Money</button>
-            <p id="wallet-status" class="status pending">Passport Verification Required</p>
+            <button id="transfer-btn" onclick="showPhoneInput()">ငွေလွှဲရန်</button>
+            <p id="wallet-status" class="status pending">မှတ်ပုံတင်အတည်ပြုရန်လိုအပ်သည်</p>
         </div>
         <div id="transfer-phone-section" class="form-group hidden">
-            <label>Recipient Phone Number</label>
+            <label>လက်ခံမည့်သူ၏ဖုန်းနံပါတ်</label>
             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required oninput="checkPhone()">
             <p id="receiver-name" class="account-status"></p>
-            <button id="next-btn" onclick="showTransferDetails()" disabled>Next</button>
+            <div id="receiver-profile" class="receiver-profile hidden">
+                <img id="receiver-image" src="/placeholder.svg" alt="Profile">
+                <p id="receiver-phone"></p>
+            </div>
+            <button id="next-btn" onclick="showTransferDetails()" disabled>ရှေ့ဆက်ရန်</button>
         </div>
         <div id="transfer-details" class="form-group hidden">
-            <label>Recipient</label>
+            <label>လက်ခံမည့်သူ</label>
             <p id="transfer-receiver"></p>
-            <label>Amount (Ks)</label>
-            <input type="number" id="transfer-amount" placeholder="Max 1,000,000 Ks" required>
-            <label>Note</label>
-            <input type="text" id="transfer-note" placeholder="Note (optional)">
-            <button id="confirm-details-btn" onclick="showPinOverlay()">Confirm</button>
+            <label>ငွေပမာဏ (Ks)</label>
+            <input type="number" id="transfer-amount" placeholder="အများဆုံး 1,000,000 Ks" required>
+            <label>မှတ်ချက်</label>
+            <input type="text" id="transfer-note" placeholder="မှတ်ချက် (ထည့်လိုက မထည့်လည်းရ)" maxlength="100">
+            <button id="confirm-details-btn" onclick="showPinOverlay()">အတည်ပြုရန်</button>
             <p id="transfer-error" class="error-message hidden"></p>
         </div>
     </div>
@@ -64,7 +106,7 @@
     <!-- PIN Overlay -->
     <div class="pin-overlay" id="pin-overlay">
         <div class="pin-content">
-            <h3>Enter Payment PIN</h3>
+            <h3>ငွေပေးချေမှု PIN ထည့်ပါ</h3>
             <div class="pin-container" id="pin-container">
                 <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 0)">
                 <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 1)">
@@ -73,23 +115,23 @@
                 <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 4)">
                 <input type="password" class="pin-box" maxlength="1" oninput="handlePinInput(this, 5)">
             </div>
-            <button class="pin-submit-btn" onclick="submitTransfer()">Submit PIN</button>
-            <button class="close-btn" onclick="closePinOverlay()">Cancel</button>
+            <button class="pin-submit-btn" onclick="submitTransfer()">PIN ထည့်ပြီး</button>
+            <button class="close-btn" onclick="closePinOverlay()">ပယ်ဖျက်ရန်</button>
             <p id="pin-error" class="error-message hidden"></p>
         </div>
     </div>
 
     <!-- Host Section (Transaction History) -->
     <div id="host" class="container">
-        <h2>Transaction History</h2>
+        <h2>ငွေလွှဲမှုမှတ်တမ်း</h2>
         <div class="form-group">
             <div class="history-header">
                 <select id="month-filter" onchange="loadHistory()">
-                    <option value="current">Current Month</option>
-                    <option value="previous">Previous Month</option>
+                    <option value="current">လက်ရှိလ</option>
+                    <option value="previous">ပြီးခဲ့သောလ</option>
                 </select>
-                <p>Total Received: <span id="total-in">0 Ks</span></p>
-                <p>Total Sent: <span id="total-out">0 Ks</span></p>
+                <p>စုစုပေါင်းရရှိငွေ: <span id="total-in">0 Ks</span></p>
+                <p>စုစုပေါင်းပေးပို့ငွေ: <span id="total-out">0 Ks</span></p>
             </div>
             <div id="history-list" style="overflow-y: auto;"></div>
         </div>
@@ -97,43 +139,57 @@
 
     <!-- MI Section (Profile) -->
     <div id="mi" class="container">
-        <h2>My Profile</h2>
+        <h2>ကိုယ်ရေးအချက်အလက်</h2>
         <div class="form-group">
-            <p>Your ID: <span id="mi-id"></span></p>
-            <p id="mi-status" class="status pending">Passport Verification Required</p>
+            <p>သင့် ID: <span id="mi-id"></span></p>
+            <p id="mi-status" class="status pending">မှတ်ပုံတင်အတည်ပြုရန်လိုအပ်သည်</p>
+            
             <div id="passport-form" class="form-group">
-                <h3>Submit Passport Details</h3>
-                <label>Passport Number</label>
-                <input type="text" id="passport-number" placeholder="Enter Passport Number" required>
-                <label>Address</label>
-                <input type="text" id="address" placeholder="Enter Address" required>
-                <label>Phone Number (09xxxxxxxxx)</label>
+                <h3>မှတ်ပုံတင်အချက်အလက်များတင်ရန်</h3>
+                <label>မှတ်ပုံတင်နံပါတ်</label>
+                <input type="text" id="passport-number" placeholder="မှတ်ပုံတင်နံပါတ်ထည့်ပါ" required>
+                <label>နေရပ်လိပ်စာ</label>
+                <input type="text" id="address" placeholder="နေရပ်လိပ်စာထည့်ပါ" required>
+                <label>ဖုန်းနံပါတ် (09xxxxxxxxx)</label>
                 <input type="tel" id="phone" placeholder="09xxxxxxxxx" required>
-                <label>Payment PIN (6 digits)</label>
-                <input type="password" id="payment-pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
-                <label>Passport Image</label>
+                <label>ငွေပေးချေမှု PIN (ဂဏန်း ၆ လုံး)</label>
+                <input type="password" id="payment-pin" maxlength="6" placeholder="ဂဏန်း ၆ လုံးထည့်ပါ" required>
+                <label>မှတ်ပုံတင်ဓာတ်ပုံ</label>
                 <input type="file" id="passport-image" accept="image/*" required>
-                <label>Selfie with Passport</label>
+                <label>မှတ်ပုံတင်နှင့်အတူ ကိုယ်တိုင်ဓာတ်ပုံ</label>
                 <input type="file" id="selfie-image" accept="image/*" required>
-                <button id="submit-passport-btn">Submit</button>
+                <button id="submit-passport-btn">တင်သွင်းရန်</button>
             </div>
+            
             <div id="passport-submitted" class="passport-submitted hidden">
-                <h3>Submitted Details</h3>
-                <p>Phone Number: <span id="submitted-phone"></span></p>
-                <p>Passport Number: <span id="submitted-passport"></span></p>
-                <p>Address: <span id="submitted-address"></span></p>
-                <p>Submitted At: <span id="submitted-time"></span></p>
+                <h3>တင်သွင်းထားသောအချက်အလက်များ</h3>
+                <p>ဖုန်းနံပါတ်: <span id="submitted-phone"></span></p>
+                <p>မှတ်ပုံတင်နံပါတ်: <span id="submitted-passport"></span></p>
+                <p>နေရပ်လိပ်စာ: <span id="submitted-address"></span></p>
+                <p>တင်သွင်းသည့်အချိန်: <span id="submitted-time"></span></p>
             </div>
+            
+            <div id="profile-section" class="form-group hidden">
+                <h3>ပရိုဖိုင်ဓာတ်ပုံတင်ရန်</h3>
+                <div class="profile-image-container">
+                    <img id="current-profile" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="Profile">
+                </div>
+                <input type="file" id="profile-image" accept="image/*">
+                <button id="upload-profile-btn">ဓာတ်ပုံတင်ရန်</button>
+                <p id="profile-message" class="success-message hidden"></p>
+            </div>
+            
+            <button id="logout-btn" class="logout-btn">အကောင့်ထွက်ရန်</button>
         </div>
     </div>
 
     <!-- Game Section -->
     <div id="game" class="container">
-        <h2>Play Game</h2>
+        <h2>ဂိမ်းကစားရန်</h2>
         <div class="game-container">
             <iframe id="game-iframe" src="https://thai-fish-prawn-crab.netlify.app/" title="Thai Fish Prawn Crab"></iframe>
         </div>
-        <button class="back-btn" onclick="showSection('wallet')">Back to Payment</button>
+        <button class="back-btn" onclick="showSection('wallet')">ငွေအိတ်သို့ပြန်သွားရန်</button>
     </div>
 
     <!-- Receipt Overlay -->
@@ -141,9 +197,9 @@
         <div class="receipt-content">
             <div class="ticket-container" id="ticket-content"></div>
             <div class="action-buttons">
-                <button class="download-btn" onclick="downloadReceipt()">Download Receipt</button>
-                <button class="print-btn" onclick="printReceipt()">Print Receipt</button>
-                <button class="close-btn" onclick="closeReceipt()">Close</button>
+                <button class="download-btn" onclick="downloadReceipt()">ပြေစာဒေါင်းလုဒ်ဆွဲရန်</button>
+                <button class="print-btn" onclick="printReceipt()">ပြေစာပရင့်ထုတ်ရန်</button>
+                <button class="close-btn" onclick="closeReceipt()">ပိတ်ရန်</button>
             </div>
         </div>
     </div>
@@ -153,11 +209,11 @@
 
     <!-- Menu Bar -->
     <div class="menu">
-        <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/wallet.png" alt="Home">Wallet</button>
-        <button onclick="showSection('host')" id="host-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/history.png" alt="Host">History</button>
-        <button onclick="showSection('game')" id="game-btn"><img src="https://cdn-icons-png.flaticon.com/512/1068/1068778.png" alt="Game">Game</button>
-        <button onclick="openTelegram()" id="telegram-btn"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram">Telegram</button>
-        <button onclick="showSection('mi')" id="mi-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/mi.png" alt="MI">Profile</button>
+        <button onclick="showSection('wallet')" id="wallet-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/wallet.png" alt="Home">ငွေအိတ်</button>
+        <button onclick="showSection('host')" id="host-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/history.png" alt="Host">မှတ်တမ်း</button>
+        <button onclick="showSection('game')" id="game-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/game-icon.png" alt="Game">ဂိမ်း</button>
+        <button onclick="openTelegram()" id="telegram-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/telegram-icon.png" alt="Telegram">တယ်လီဂရမ်</button>
+        <button onclick="showSection('mi')" id="mi-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/mi.png" alt="MI">ပရိုဖိုင်</button>
     </div>
 
     <!-- Audio Elements -->
@@ -169,6 +225,9 @@
     </audio>
     <audio id="transfer-received-sound" preload="auto">
         <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_received.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="click-sound" preload="auto">
+        <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/click.mp3" type="audio/mpeg">
     </audio>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
