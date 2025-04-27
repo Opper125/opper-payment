@@ -40,7 +40,7 @@ async function initializeApp() {
 
     if (sessionError) {
       console.error("Session Error:", sessionError.message)
-      showNotification("Error checking session. Please try again.", "error")
+      showNotification("ဆက်ရှင်စစ်ဆေးမှု မအောင်မြင်ပါ။ ထပ်မံကြိုးစားပါ။", "error")
       return
     }
 
@@ -54,7 +54,7 @@ async function initializeApp() {
     await checkTransferSettings()
   } catch (error) {
     console.error("Initialization Error:", error.message)
-    showNotification(`An error occurred during initialization: ${error.message}`, "error")
+    showNotification(`စတင်ရန်အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
@@ -90,7 +90,7 @@ async function signupUser() {
 
     // Validate form
     if (!email || !password || !confirmPassword) {
-      messageElement.textContent = "Please fill in all fields"
+      messageElement.textContent = "ကျေးဇူးပြု၍ အကွက်အားလုံးဖြည့်ပါ။"
       messageElement.classList.add("error-message")
       playSound("error")
       return
@@ -99,7 +99,7 @@ async function signupUser() {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      messageElement.textContent = "Please enter a valid email address"
+      messageElement.textContent = "ကျေးဇူးပြု၍ မမှန်ကန်သော အီးမေးလ်လိပ်စာထည့်ပါ။"
       messageElement.classList.add("error-message")
       playSound("error")
       return
@@ -107,7 +107,7 @@ async function signupUser() {
 
     // Check if passwords match
     if (password !== confirmPassword) {
-      messageElement.textContent = "Passwords do not match"
+      messageElement.textContent = "စကားဝှက်များ မကိုက်ညီပါ။"
       messageElement.classList.add("error-message")
       playSound("error")
       return
@@ -115,7 +115,7 @@ async function signupUser() {
 
     // Check if password meets minimum requirements
     if (password.length < 6) {
-      messageElement.textContent = "Password must be at least 6 characters long"
+      messageElement.textContent = "စကားဝှက်သည် အနည်းဆုံး ၆ လုံးရှိရမည်။"
       messageElement.classList.add("error-message")
       playSound("error")
       return
@@ -125,10 +125,12 @@ async function signupUser() {
     const signupBtn = document.getElementById("signup-btn")
     const originalText = signupBtn.textContent
     signupBtn.disabled = true
-    signupBtn.textContent = "Creating Account..."
+    signupBtn.textContent = "အကောင့်ဖွင့်နေသည်..."
+
+    // Generate a unique user ID (6-digit number)
+    const userId = Math.floor(100000 + Math.random() * 900000).toString()
 
     // Create user with Supabase Auth
-    // The handle_auth_user_created trigger will auto-insert the user into the users table
     const {
       data: { user },
       error: signupError,
@@ -138,8 +140,7 @@ async function signupUser() {
     })
 
     if (signupError) {
-      console.error("Signup Error:", signupError.message)
-      messageElement.textContent = `Signup Error: ${signupError.message}`
+      messageElement.textContent = `အကောင့်ဖွင့်မှု မအောင်မြင်ပါ: ${signupError.message}`
       messageElement.classList.add("error-message")
       playSound("error")
       signupBtn.disabled = false
@@ -148,7 +149,7 @@ async function signupUser() {
     }
 
     if (!user) {
-      messageElement.textContent = "An unknown error occurred. Please try again."
+      messageElement.textContent = "မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်။"
       messageElement.classList.add("error-message")
       playSound("error")
       signupBtn.disabled = false
@@ -156,8 +157,47 @@ async function signupUser() {
       return
     }
 
-    // Show success message and switch to login tab
-    messageElement.textContent = "Account created successfully! Please log in."
+    // Insert user record in users table
+    const { error: insertError } = await supabase.from("users").insert({
+      user_id: userId,
+      auth_id: user.id,
+      email: email,
+      balance: 0,
+      passport_status: "pending",
+    })
+
+    if (insertError) {
+      console.error("User Record Creation Error:", insertError.message)
+      messageElement.textContent = `အသုံးပြုသူပရိုဖိုင်ဖန်တီးမှု မအောင်မြင်ပါ: ${insertError.message}`
+      messageElement.classList.add("error-message")
+      playSound("error")
+      // Clean up auth user if insert fails
+      await supabase.auth.admin.deleteUser(user.id)
+      signupBtn.disabled = false
+      signupBtn.textContent = originalText
+      return
+    }
+
+    // Automatically log in the user
+    const { session, error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (loginError) {
+      messageElement.textContent = `အကောင့်ဝင်မှု မအောင်မြင်ပါ: ${loginError.message}`
+      messageElement.classList.add("error-message")
+      playSound("error")
+      // Clean up user record and auth user
+      await supabase.from("users").delete().eq("email", email)
+      await supabase.auth.admin.deleteUser(user.id)
+      signupBtn.disabled = false
+      signupBtn.textContent = originalText
+      return
+    }
+
+    // Show success message and redirect to wallet
+    messageElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ ဝယ်လဒ်သို့ ပြောင်းနေသည်..."
     messageElement.classList.add("success-message")
     playSound("success")
 
@@ -166,20 +206,17 @@ async function signupUser() {
     document.getElementById("signup-password").value = ""
     document.getElementById("confirm-password").value = ""
 
-    // Switch to login tab after a delay
-    setTimeout(() => {
-      switchTab("login")
-    }, 2000)
-
     signupBtn.disabled = false
     signupBtn.textContent = originalText
+
+    // Handle successful authentication
+    await handleSuccessfulAuth(user)
   } catch (error) {
     console.error("Signup Error:", error.message)
     const messageElement = document.getElementById("signup-message")
-    messageElement.textContent = `An unexpected error occurred: ${error.message}`
+    messageElement.textContent = `မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်: ${error.message}`
     messageElement.classList.add("error-message")
     playSound("error")
-
     const signupBtn = document.getElementById("signup-btn")
     signupBtn.disabled = false
     signupBtn.textContent = "Sign Up"
@@ -198,7 +235,7 @@ async function loginUser() {
 
     // Validate form
     if (!email || !password) {
-      messageElement.textContent = "Please enter both email and password"
+      messageElement.textContent = "ကျေးဇူးပြု၍ အီးမေးလ်နှင့် စကားဝှက်ထည့်ပါ။"
       messageElement.classList.add("error-message")
       playSound("error")
       return
@@ -208,7 +245,7 @@ async function loginUser() {
     const loginBtn = document.getElementById("login-btn")
     const originalText = loginBtn.textContent
     loginBtn.disabled = true
-    loginBtn.textContent = "Logging In..."
+    loginBtn.textContent = "ဝင်ရောက်နေသည်..."
 
     // Sign in with Supabase Auth
     const {
@@ -220,7 +257,7 @@ async function loginUser() {
     })
 
     if (signInError) {
-      messageElement.textContent = `Login Error: ${signInError.message}`
+      messageElement.textContent = `ဝင်ရောက်မှု မအောင်မြင်ပါ: ${signInError.message}`
       messageElement.classList.add("error-message")
       playSound("error")
       loginBtn.disabled = false
@@ -229,7 +266,7 @@ async function loginUser() {
     }
 
     if (!user) {
-      messageElement.textContent = "Invalid email or password"
+      messageElement.textContent = "မမှန်ကန်သော အီးမေးလ် သို့မဟုတ် စကားဝှက်။"
       messageElement.classList.add("error-message")
       playSound("error")
       loginBtn.disabled = false
@@ -252,10 +289,9 @@ async function loginUser() {
   } catch (error) {
     console.error("Login Error:", error.message)
     const messageElement = document.getElementById("login-message")
-    messageElement.textContent = `An unexpected error occurred: ${error.message}`
+    messageElement.textContent = `မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်: ${error.message}`
     messageElement.classList.add("error-message")
     playSound("error")
-
     const loginBtn = document.getElementById("login-btn")
     loginBtn.disabled = false
     loginBtn.textContent = "Login"
@@ -273,13 +309,13 @@ async function handleSuccessfulAuth(authUser) {
 
     if (profileError) {
       console.error("User Profile Error:", profileError.message)
-      showNotification("Error retrieving user profile. Please try again.", "error")
+      showNotification("အသုံးပြုသူပရိုဖိုင်ထုတ်ယူမှု မအောင်မြင်ပါ။ ထပ်မံကြိုးစားပါ။", "error")
       return
     }
 
     if (!userProfile) {
       console.error("User profile not found")
-      showNotification("User profile not found. Please contact support.", "error")
+      showNotification("အသုံးပြုသူပရိုဖိုင်မတွေ့ပါ။ အကူအညီအတွက် ဆက်သွယ်ပါ�।", "error")
       return
     }
 
@@ -291,6 +327,9 @@ async function handleSuccessfulAuth(authUser) {
       balance: userProfile.balance,
       passport_status: userProfile.passport_status,
       phone: userProfile.phone,
+      passport_number: userProfile.passport_number,
+      address: userProfile.address,
+      submitted_at: userProfile.submitted_at,
     }
 
     isAuthenticated = true
@@ -305,7 +344,7 @@ async function handleSuccessfulAuth(authUser) {
     showSection("wallet")
 
     // Show welcome message
-    showNotification(`Welcome back, ${currentUser.email}!`, "success")
+    showNotification(`ပြန်လည်ကြိုဆိုပါသည်၊ ${currentUser.email}!`, "success")
 
     // Set up realtime subscriptions
     setupRealtimeSubscriptions()
@@ -316,7 +355,7 @@ async function handleSuccessfulAuth(authUser) {
     console.log("Authentication successful:", currentUser)
   } catch (error) {
     console.error("Auth Handler Error:", error.message)
-    showNotification(`An error occurred during authentication: ${error.message}`, "error")
+    showNotification(`အကောင့်ဝင်ရန်အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
@@ -326,7 +365,7 @@ async function logoutUser() {
 
     if (error) {
       console.error("Logout Error:", error.message)
-      showNotification(`Error during logout: ${error.message}`, "error")
+      showNotification(`အကောင့်ထွက်ရန်အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
       return
     }
 
@@ -344,10 +383,10 @@ async function logoutUser() {
     // Show auth section
     showSection("auth")
 
-    showNotification("You have been logged out", "success")
+    showNotification("အကောင့်မှ ထွက်ပြီးပါပြီ။", "success")
   } catch (error) {
     console.error("Logout Error:", error.message)
-    showNotification(`An error occurred during logout: ${error.message}`, "error")
+    showNotification(`အကောင့်ထွက်ရန်အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
@@ -355,7 +394,7 @@ async function logoutUser() {
 function showSection(sectionId) {
   // If trying to access a section other than auth while not authenticated
   if (sectionId !== "auth" && !isAuthenticated) {
-    showNotification("Please log in to access this section", "error")
+    showNotification("ကျေးဇူးပြု၍ အကောင့်ဝင်ပါ။", "error")
     sectionId = "auth"
   }
   ;["auth", "wallet", "host", "mi", "game"].forEach((id) => {
@@ -412,7 +451,7 @@ function showLoginSuccessAnimation() {
   animation.className = "login-success-animation"
   animation.innerHTML = `
         <img src="${logoUrl}" alt="OPPER Logo">
-        <div class="success-message">Login Successful</div>
+        <div class="success-message">ဝင်ရောက်မှု အောင်မြင်ပါသည်</div>
     `
   document.body.appendChild(animation)
 
@@ -456,7 +495,7 @@ async function setupRealtimeSubscriptions() {
         if (transaction.to_phone === currentUser.phone) {
           const message = document.createElement("div")
           message.className = "receiver-message"
-          message.innerHTML = `Received ${transaction.amount} Ks<br>From: ${transaction.from_phone}`
+          message.innerHTML = `လက်ခံရရှိသည် ${transaction.amount} Ks<br>မှ: ${transaction.from_phone}`
           document.body.appendChild(message)
           document
             .getElementById("transfer-received-sound")
@@ -501,7 +540,7 @@ async function retryOperation(operation, maxRetries = 3, delay = 1000) {
 async function checkTransferSettings() {
   try {
     const { data, error } = await supabase.from("settings").select("allow_transfers").single()
-    if (error) throw new Error(`Fetch Settings Error: ${error.message}`)
+    if (error) throw new Error(`ဆက်တင်ထုတ်ယူမှု မအောင်မြင်ပါ: ${error.message}`)
     allowTransfers = data.allow_transfers
   } catch (error) {
     console.error("Check Transfer Settings Error:", error.message)
@@ -511,17 +550,17 @@ async function checkTransferSettings() {
 
 function showPhoneInput() {
   if (!isAuthenticated) {
-    showNotification("Please log in to access this feature", "error")
+    showNotification("ကျေးဇူးပြု၍ အကောင့်ဝင်ပါ။", "error")
     showSection("auth")
     return
   }
 
   if (currentUser.passport_status !== "approved") {
-    showNotification("Passport must be approved to transfer money.", "error")
+    showNotification("ငွေလွှဲရန် နိုင်ငံကူးလက်မှတ်အတည်ပြုရန် လိုအပ်သည်။", "error")
     return
   }
   if (!allowTransfers) {
-    showNotification("Transfer functionality is currently disabled by the server.", "error")
+    showNotification("ဆာဗာမှ ငွေလွှဲလုပ်ဆောင်မှုကို ပိတ်ထားသည်။", "error")
     return
   }
   document.getElementById("transfer-phone-section").classList.remove("hidden")
@@ -539,7 +578,7 @@ async function checkPhone() {
     if (phone.match(/^09\d{9}$/)) {
       if (phone === currentUser.phone) {
         receiverName.className = "account-status not-found"
-        receiverName.textContent = "You cannot transfer money to your own phone number."
+        receiverName.textContent = "သင့်ဖုန်းနံပါတ်သို့ ငွေလွှဲမရပါ။"
         return
       }
 
@@ -551,17 +590,17 @@ async function checkPhone() {
       if (error && error.code !== "PGRST116") throw error
       if (receiver && receiver.passport_status === "approved") {
         receiverName.className = "account-status found"
-        receiverName.textContent = `Account Found: ${receiver.phone} (ID: ${receiver.user_id})`
+        receiverName.textContent = `အကောင့်တွေ့ရှိသည်: ${receiver.phone} (ID: ${receiver.user_id})`
         nextBtn.disabled = false
         receiverData = receiver
       } else {
         receiverName.className = "account-status not-found"
-        receiverName.textContent = "Account not found or passport not approved."
+        receiverName.textContent = "အကောင့်မတွေ့ပါ သို့မဟုတ် နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ။"
       }
     }
   } catch (error) {
     console.error("Check Phone Error:", error.message)
-    document.getElementById("receiver-name").textContent = "An error occurred."
+    document.getElementById("receiver-name").textContent = "အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်။"
   }
 }
 
@@ -575,7 +614,7 @@ function showTransferDetails() {
 function showPinOverlay() {
   const amount = Number.parseInt(document.getElementById("transfer-amount").value)
   if (!amount || amount <= 0 || amount > 1000000) {
-    document.getElementById("transfer-error").textContent = "Invalid amount. Max 1,000,000 Ks."
+    document.getElementById("transfer-error").textContent = "မမှန်ကန်သော ပမာဏ။ အများဆုံး ၁,၀၀၀,၀၀၀ ကျပ်။"
     document.getElementById("transfer-error").classList.remove("hidden")
     return
   }
@@ -611,8 +650,7 @@ function handlePinInput(current, index) {
 
 async function downloadReceipt() {
   try {
-    // Import html2canvas here
-    const html2canvas = (await import("html2canvas")).default
+    const html2canvas = window.html2canvas
     const ticketContent = document.getElementById("ticket-content")
     const canvas = await html2canvas(ticketContent, {
       scale: 4,
@@ -627,7 +665,7 @@ async function downloadReceipt() {
     link.click()
   } catch (error) {
     console.error("Download Receipt Error:", error.message)
-    showNotification(`Error downloading receipt: ${error.message}`, "error")
+    showNotification(`ပြေစာဒေါင်းလုဒ်လုပ်ရန် အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
@@ -636,14 +674,14 @@ async function printReceipt() {
     window.print()
   } catch (error) {
     console.error("Print Receipt Error:", error.message)
-    showNotification(`Error printing receipt: ${error.message}`, "error")
+    showNotification(`ပြေစာပုံနှိပ်ရန် အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
 async function submitTransfer() {
   try {
     if (!allowTransfers) {
-      document.getElementById("pin-error").textContent = "Transfer functionality is currently disabled by the server."
+      document.getElementById("pin-error").textContent = "ဆာဗာမှ ငွေလွှဲလုပ်ဆောင်မှုကို ပိတ်ထားသည်။"
       document.getElementById("pin-error").classList.remove("hidden")
       return
     }
@@ -656,7 +694,7 @@ async function submitTransfer() {
     const note = document.getElementById("transfer-note").value
 
     if (pin.length !== 6) {
-      document.getElementById("pin-error").textContent = "PIN must be 6 digits."
+      document.getElementById("pin-error").textContent = "ပင်နံပါတ်သည် ၆ လုံးရှိရမည်။"
       document.getElementById("pin-error").classList.remove("hidden")
       return
     }
@@ -665,7 +703,7 @@ async function submitTransfer() {
 
     const animation = document.createElement("div")
     animation.className = "transfer-animation"
-    animation.textContent = "Processing Transfer..."
+    animation.textContent = "ငွေလွှဲလုပ်ဆောင်နေသည်..."
     document.body.appendChild(animation)
 
     const isOnline = navigator.onLine
@@ -680,22 +718,22 @@ async function submitTransfer() {
       .eq("user_id", currentUser.user_id)
       .eq("payment_pin", pin)
       .single()
-    if (senderError) throw new Error(`Sender Fetch Error: ${senderError.message}`)
+    if (senderError) throw new Error(`ပေးပို့သူထုတ်ယူမှု မအောင်မြင်ပါ: ${senderError.message}`)
     const { data: receiver, error: receiverError } = await supabase
       .from("users")
       .select("*")
       .eq("phone", phone)
       .single()
-    if (receiverError) throw new Error(`Receiver Fetch Error: ${receiverError.message}`)
+    if (receiverError) throw new Error(`လက်ခံသူထုတ်ယူမှု မအောင်မြင်ပါ: ${receiverError.message}`)
 
     if (!sender || !receiver || sender.balance < amount || receiver.passport_status !== "approved") {
       document.getElementById("pin-error").textContent = !sender
-        ? "Incorrect PIN."
+        ? "မမှန်ကန်သော ပင်နံပါတ်။"
         : !receiver
-          ? "Recipient account not found."
+          ? "လက်ခံသူအကောင့်မတွေ့ပါ။"
           : sender.balance < amount
-            ? "Insufficient balance."
-            : "Recipient passport not approved."
+            ? "လက်ကျန်ငွေ မလုံလောက်ပါ။"
+            : "လက်ခံသူ၏ နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ။"
       document.getElementById("pin-error").classList.remove("hidden")
       animation.remove()
       return
@@ -708,7 +746,7 @@ async function submitTransfer() {
         .from("users")
         .update({ balance: sender.balance - amount })
         .eq("user_id", sender.user_id)
-      if (updateSenderError) throw new Error(`Update Sender Error: ${updateSenderError.message}`)
+      if (updateSenderError) throw new Error(`ပေးပို့သူအပ်ဒိတ်မှု မအောင်မြင်ပါ: ${updateSenderError.message}`)
     })
 
     await retryOperation(async () => {
@@ -716,7 +754,7 @@ async function submitTransfer() {
         .from("users")
         .update({ balance: receiver.balance + amount })
         .eq("user_id", receiver.user_id)
-      if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`)
+      if (updateReceiverError) throw new Error(`လက်ခံသူအပ်ဒိတ်မှု မအောင်မြင်ပါ: ${updateReceiverError.message}`)
     })
 
     await retryOperation(async () => {
@@ -729,7 +767,7 @@ async function submitTransfer() {
         timestamp: now,
         status: "completed",
       })
-      if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`)
+      if (insertError) throw new Error(`လွှဲပြောင်းမှုထည့်သွင်းမှု မအောင်မြင်ပါ: ${insertError.message}`)
     })
 
     currentUser.balance = sender.balance - amount
@@ -747,7 +785,7 @@ async function submitTransfer() {
     successAnimation.className = "success-animation"
     successAnimation.innerHTML = `
             <img src="${logoUrl}" alt="OPPER Logo">
-            Transfer Successful
+            ငွေလွှဲမှု အောင်မြင်ပါသည်
         `
     document.body.appendChild(successAnimation)
 
@@ -763,18 +801,18 @@ async function submitTransfer() {
                     <h1>OPPER Payment</h1>
                 </div>
                 <div class="content">
-                    <p><strong>Transaction Receipt</strong></p>
-                    <p><strong>Transaction ID:</strong> ${transactionId}</p>
-                    <p><strong>Amount:</strong> ${amount} Ks</p>
-                    <p><strong>From:</strong> ${sender.phone}</p>
-                    <p><strong>To:</strong> ${receiver.phone}</p>
-                    <p><strong>To ID:</strong> ${receiver.user_id}</p>
-                    <p><strong>Note:</strong> ${note || "None"}</p>
-                    <p><strong>Time:</strong> ${now}</p>
-                    <p><strong>Status:</strong> Sent</p>
+                    <p><strong>လွှဲပြောင်းမှု ပြေစာ</strong></p>
+                    <p><strong>လွှဲပြောင်းမှု ID:</strong> ${transactionId}</p>
+                    <p><strong>ပမာဏ:</strong> ${amount} Ks</p>
+                    <p><strong>မှ:</strong> ${sender.phone}</p>
+                    <p><strong>သို့:</strong> ${receiver.phone}</p>
+                    <p><strong>သို့ ID:</strong> ${receiver.user_id}</p>
+                    <p><strong>မှတ်ချက်:</strong> ${note || "မရှိ"}</p>
+                    <p><strong>အချိန်:</strong> ${now}</p>
+                    <p><strong>အခြေအနေ:</strong> ပေးပို့ပြီး</p>
                     <div class="done-ui">
                         <img src="${logoUrl}" alt="Done Icon">
-                        Transaction Completed
+                        လွှဲပြောင်းမှု ပြီးစီးသည်
                     </div>
                     <div class="footer">
                         Powered by OPPER Payment
@@ -788,7 +826,7 @@ async function submitTransfer() {
     loadHistory()
   } catch (error) {
     console.error("Transfer Error:", error.message)
-    document.getElementById("pin-error").textContent = `An error occurred during transfer: ${error.message}`
+    document.getElementById("pin-error").textContent = `လွှဲပြောင်းမှုတွင် အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`
     document.getElementById("pin-error").classList.remove("hidden")
     const animation = document.querySelector(".transfer-animation")
     if (animation) animation.remove()
@@ -821,7 +859,7 @@ async function loadHistory() {
       totalOut = 0
 
     if (!transactions || transactions.length === 0) {
-      historyList.innerHTML = '<p class="no-transactions">No transactions found for this period.</p>'
+      historyList.innerHTML = '<p class="no-transactions">ဤကာလအတွက် လွှဲပြောင်းမှုမတွေ့ပါ။</p>'
       document.getElementById("total-in").textContent = "0 Ks"
       document.getElementById("total-out").textContent = "0 Ks"
       return
@@ -832,11 +870,11 @@ async function loadHistory() {
       item.className = `history-item ${t.from_phone === currentUser.phone ? "out" : "in"}`
       item.innerHTML = `
                 ${t.from_phone === currentUser.phone ? "-" : "+"}${t.amount} Ks<br>
-                Transaction ID: ${t.id}<br>
-                Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
-                Note: ${t.note || "None"}<br>
-                Time: ${t.timestamp}<br>
-                Status: ${t.from_phone === currentUser.phone ? "Sent" : "Received"}
+                လွှဲပြောင်းမှု ID: ${t.id}<br>
+                ဖုန်း: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
+                မှတ်ချက်: ${t.note || "မရှိ"}<br>
+                အချိန်: ${t.timestamp}<br>
+                အခြေအနေ: ${t.from_phone === currentUser.phone ? "ပေးပို့ပြီး" : "လက်ခံရရှိသည်"}
                 <button class="print-btn" onclick="showReceipt('${t.id}')"></button>
             `
       historyList.appendChild(item)
@@ -848,7 +886,7 @@ async function loadHistory() {
     document.getElementById("total-out").textContent = `${totalOut} Ks`
   } catch (error) {
     console.error("Load History Error:", error.message)
-    showNotification(`Error loading transaction history: ${error.message}`, "error")
+    showNotification(`လွှဲပြောင်းမှုမှတ်တမ်းထုတ်ယူရန် အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
@@ -874,18 +912,18 @@ async function showReceipt(transactionId) {
                 <h1>OPPER Payment</h1>
             </div>
             <div class="content">
-                <p><strong>Transaction Receipt</strong></p>
-                <p><strong>Transaction ID:</strong> ${transaction.id}</p>
-                <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
-                <p><strong>From:</strong> ${transaction.from_phone}</p>
-                <p><strong>To:</strong> ${transaction.to_phone}</p>
-                <p><strong>To ID:</strong> ${toUserId}</p>
-                <p><strong>Note:</strong> ${transaction.note || "None"}</p>
-                <p><strong>Time:</strong> ${transaction.timestamp}</p>
-                <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? "Sent" : "Received"}</p>
+                <p><strong>လွှဲပြောင်းမှု ပြေစာ</strong></p>
+                <p><strong>လွှဲပြောင်းမှု ID:</strong> ${transaction.id}</p>
+                <p><strong>ပမာဏ:</strong> ${transaction.amount} Ks</p>
+                <p><strong>မှ:</strong> ${transaction.from_phone}</p>
+                <p><strong>သို့:</strong> ${transaction.to_phone}</p>
+                <p><strong>သို့ ID:</strong> ${toUserId}</p>
+                <p><strong>မှတ်ချက်:</strong> ${transaction.note || "မရှိ"}</p>
+                <p><strong>အချိန်:</strong> ${transaction.timestamp}</p>
+                <p><strong>အခြေအနေ:</strong> ${transaction.from_phone === currentUser.phone ? "ပေးပို့ပြီး" : "လက်ခံရရှိသည်"}</p>
                 <div class="done-ui">
                     <img src="${logoUrl}" alt="Done Icon">
-                    Transaction Completed
+                    လွှဲပြောင်းမှု ပြီးစီးသည်
                 </div>
                 <div class="footer">
                     Powered by OPPER Payment
@@ -896,7 +934,7 @@ async function showReceipt(transactionId) {
     document.getElementById("receipt-overlay").style.display = "flex"
   } catch (error) {
     console.error("Show Receipt Error:", error.message)
-    showNotification(`Error showing receipt: ${error.message}`, "error")
+    showNotification(`ပြေစာပြရန် အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
@@ -911,7 +949,7 @@ function updateStatus(status) {
   walletStatus.className = `status ${status}`
   miStatus.className = `status ${status}`
   walletStatus.textContent =
-    status === "pending" ? "Passport Verification Required" : status === "approved" ? "Approved" : "Passport Rejected"
+    status === "pending" ? "နိုင်ငံကူးလက်မှတ်အတည်ပြုရန် လိုအပ်သည်" : status === "approved" ? "အတည်ပြုပြီး" : "နိုင်ငံကူးလက်မှတ်ပယ်ဖျက်ခံရသည်"
   miStatus.textContent = walletStatus.textContent
 
   const passportForm = document.getElementById("passport-form")
@@ -921,21 +959,21 @@ function updateStatus(status) {
     document.getElementById("transfer-btn").disabled = false
     passportForm.classList.add("hidden")
     passportSubmitted.classList.remove("hidden")
-    document.getElementById("submitted-phone").textContent = currentUser.phone || "N/A"
-    document.getElementById("submitted-passport").textContent = currentUser.passport_number || "N/A"
-    document.getElementById("submitted-address").textContent = currentUser.address || "N/A"
+    document.getElementById("submitted-phone").textContent = currentUser.phone || "မရှိ"
+    document.getElementById("submitted-passport").textContent = currentUser.passport_number || "မရှိ"
+    document.getElementById("submitted-address").textContent = currentUser.address || "မရှိ"
     document.getElementById("submitted-time").textContent = currentUser.submitted_at
       ? new Date(currentUser.submitted_at).toLocaleString()
-      : "N/A"
+      : "မရှိ"
   } else if (status === "pending" && currentUser.submitted_at) {
     passportForm.classList.add("hidden")
     passportSubmitted.classList.remove("hidden")
-    document.getElementById("submitted-phone").textContent = currentUser.phone || "N/A"
-    document.getElementById("submitted-passport").textContent = currentUser.passport_number || "N/A"
-    document.getElementById("submitted-address").textContent = currentUser.address || "N/A"
+    document.getElementById("submitted-phone").textContent = currentUser.phone || "မရှိ"
+    document.getElementById("submitted-passport").textContent = currentUser.passport_number || "မရှိ"
+    document.getElementById("submitted-address").textContent = currentUser.address || "မရှိ"
     document.getElementById("submitted-time").textContent = currentUser.submitted_at
       ? new Date(currentUser.submitted_at).toLocaleString()
-      : "N/A"
+      : "မရှိ"
   } else {
     passportForm.classList.remove("hidden")
     passportSubmitted.classList.add("hidden")
@@ -964,13 +1002,13 @@ async function uploadToImgur(file) {
 document.getElementById("submit-passport-btn").addEventListener("click", async () => {
   try {
     if (!isAuthenticated) {
-      showNotification("Please log in to submit passport details", "error")
+      showNotification("နိုင်ငံကူးလက်မှတ်အချက်အလက်တင်သွင်းရန် အကောင့်ဝင်ပါ။", "error")
       showSection("auth")
       return
     }
 
     const passportNumber = document.getElementById("passport-number").value
-    const address = document.getElementById("address").value
+    const address = document.getElementById("passport-number").value
     const phone = document.getElementById("phone").value
     const paymentPin = document.getElementById("payment-pin").value
     const passportImage = document.getElementById("passport-image").files[0]
@@ -984,7 +1022,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
       !passportImage ||
       !selfieImage
     ) {
-      showNotification("Please fill all fields correctly. PIN must be 6 digits.", "error")
+      showNotification("ကျေးဇူးပြု၍ အကွက်အားလုံးကို မှန်ကန်စွာဖြည့်ပါ။ ပင်နံပါတ်သည် ၆ လုံးရှိရမည်။", "error")
       return
     }
 
@@ -992,7 +1030,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
     const submitBtn = document.getElementById("submit-passport-btn")
     const originalText = submitBtn.textContent
     submitBtn.disabled = true
-    submitBtn.textContent = "Uploading..."
+    submitBtn.textContent = "တင်ပို့နေသည်..."
 
     const { data: existingUser, error: checkError } = await supabase
       .from("users")
@@ -1002,7 +1040,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
       .single()
 
     if (existingUser) {
-      showNotification("This phone number is already registered with another account.", "error")
+      showNotification("ဤဖုန်းနံပါတ်သည် အခြားအကောင့်တစ်ခုနှင့် မှတ်ပုံတင်ပြီးဖြစ်သည်။", "error")
       submitBtn.disabled = false
       submitBtn.textContent = originalText
       return
@@ -1012,7 +1050,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
     const passportImageUrl = await uploadToImgur(passportImage)
     const selfieImageUrl = await uploadToImgur(selfieImage)
 
-    submitBtn.textContent = "Submitting..."
+    submitBtn.textContent = "တင်သွင်းနေသည်..."
 
     await retryOperation(async () => {
       const { error: updateError } = await supabase
@@ -1028,7 +1066,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
           submitted_at: new Date().toISOString(),
         })
         .eq("user_id", currentUser.user_id)
-      if (updateError) throw new Error(`Update User Error: ${updateError.message}`)
+      if (updateError) throw new Error(`အသုံးပြုသူအပ်ဒိတ်မှု မအောင်မြင်ပါ: ${updateError.message}`)
     })
 
     currentUser = {
@@ -1041,12 +1079,12 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
     }
 
     updateStatus("pending")
-    showNotification("Passport details submitted successfully!", "success")
+    showNotification("နိုင်ငံကူးလက်မှတ်အချက်အလက်များ တင်သွင်းပြီးပါပြီ!", "success")
     submitBtn.disabled = false
     submitBtn.textContent = originalText
   } catch (error) {
     console.error("Submit Passport Error:", error.message)
-    showNotification(`Error submitting passport details: ${error.message}`, "error")
+    showNotification(`နိုင်ငံကူးလက်မှတ်အချက်အလက်တင်သွင်းရန် အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
     const submitBtn = document.getElementById("submit-passport-btn")
     submitBtn.disabled = false
     submitBtn.textContent = "Submit"
@@ -1060,15 +1098,3 @@ function downloadApk() {
 function hideDownloadBar() {
   document.getElementById("download-bar").style.display = "none"
 }
-
-// Add logout button to the menu
-document.addEventListener("DOMContentLoaded", () => {
-  // Create logout button
-  const logoutBtn = document.createElement("button")
-  logoutBtn.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/6001/6001778.png" alt="Logout">Logout'
-  logoutBtn.id = "logout-btn"
-  logoutBtn.onclick = logoutUser
-
-  // Add to menu
-  document.querySelector(".menu").appendChild(logoutBtn)
-})
