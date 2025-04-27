@@ -127,6 +127,28 @@ async function signupUser() {
     signupBtn.disabled = true
     signupBtn.textContent = "Creating Account..."
 
+    // Generate a unique user ID (6-digit number)
+    const userId = Math.floor(100000 + Math.random() * 900000).toString()
+
+    // First create user record in users table with email and user_id
+    // This is a change from the original flow - we create the user record first
+    const { error: insertError } = await supabase.from("users").insert({
+      user_id: userId,
+      email: email,
+      balance: 0,
+      passport_status: "pending",
+    })
+
+    if (insertError) {
+      console.error("User Record Creation Error:", insertError.message)
+      messageElement.textContent = `Error creating user profile: ${insertError.message}`
+      messageElement.classList.add("error-message")
+      playSound("error")
+      signupBtn.disabled = false
+      signupBtn.textContent = originalText
+      return
+    }
+
     // Create user with Supabase Auth
     const {
       data: { user },
@@ -140,6 +162,10 @@ async function signupUser() {
       messageElement.textContent = `Signup Error: ${signupError.message}`
       messageElement.classList.add("error-message")
       playSound("error")
+
+      // Clean up the user record we created if auth fails
+      await supabase.from("users").delete().eq("email", email)
+
       signupBtn.disabled = false
       signupBtn.textContent = originalText
       return
@@ -149,30 +175,21 @@ async function signupUser() {
       messageElement.textContent = "An unknown error occurred. Please try again."
       messageElement.classList.add("error-message")
       playSound("error")
+
+      // Clean up the user record we created if auth fails
+      await supabase.from("users").delete().eq("email", email)
+
       signupBtn.disabled = false
       signupBtn.textContent = originalText
       return
     }
 
-    // Generate a unique user ID (6-digit number)
-    const userId = Math.floor(100000 + Math.random() * 900000).toString()
+    // Update the user record with the auth_id
+    const { error: updateError } = await supabase.from("users").update({ auth_id: user.id }).eq("email", email)
 
-    // Create user record in users table
-    const { error: insertError } = await supabase.from("users").insert({
-      user_id: userId,
-      email: email,
-      balance: 0,
-      passport_status: "pending",
-      auth_id: user.id,
-    })
-
-    if (insertError) {
-      console.error("User Record Creation Error:", insertError.message)
-
-      // Try to delete the auth user if profile creation fails
-      await supabase.auth.admin.deleteUser(user.id)
-
-      messageElement.textContent = `Error creating user profile: ${insertError.message}`
+    if (updateError) {
+      console.error("User Record Update Error:", updateError.message)
+      messageElement.textContent = `Error updating user profile: ${updateError.message}`
       messageElement.classList.add("error-message")
       playSound("error")
       signupBtn.disabled = false
