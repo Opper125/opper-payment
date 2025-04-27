@@ -60,13 +60,24 @@
             <input type="password" id="signup-password" placeholder="Enter your password" required>
             <label>Confirm Password</label>
             <input type="password" id="confirm-password" placeholder="Confirm your password" required>
+            <div class="alert alert-success hidden" id="signup-success"></div>
+            <div class="alert alert-danger hidden" id="signup-error"></div>
             <button id="signup-btn" onclick="signupUser()">Sign Up</button>
             <p class="form-message" id="signup-message"></p>
         </div>
     </div>
 
+    <!-- Confirm Section -->
+    <div id="confirm" class="container hidden">
+        <h2>Email Confirmation</h2>
+        <div class="form-group">
+            <p id="confirm-message">Processing your confirmation...</p>
+            <button class="btn back-btn" onclick="showSection('auth')">Back to Login</button>
+        </div>
+    </div>
+
     <!-- Wallet Section -->
-    <div id="wallet" class="container">
+    <div id="wallet" class="container hidden">
         <h2>My Wallet</h2>
         <div class="form-group">
             <label>Balance</label>
@@ -111,7 +122,7 @@
     </div>
 
     <!-- Host Section (Transaction History) -->
-    <div id="host" class="container">
+    <div id="host" class="container hidden">
         <h2>Transaction History</h2>
         <div class="form-group">
             <div class="history-header">
@@ -127,7 +138,7 @@
     </div>
 
     <!-- MI Section (Profile) -->
-    <div id="mi" class="container">
+    <div id="mi" class="container hidden">
         <h2>My Profile</h2>
         <div class="form-group">
             <p>Your ID: <span id="mi-id"></span></p>
@@ -159,7 +170,7 @@
     </div>
 
     <!-- Game Section -->
-    <div id="game" class="container">
+    <div id="game" class="container hidden">
         <h2>Play Game</h2>
         <div class="game-container">
             <iframe id="game-iframe" src="https://thai-fish-prawn-crab.netlify.app/" title="Thai Fish Prawn Crab"></iframe>
