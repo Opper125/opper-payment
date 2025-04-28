@@ -778,13 +778,13 @@
             <form id="login-form">
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" class="form-control" required>
+                    <input type="email" id="email" class="form-control" value="wechatopper@gmail.com" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" class="form-control" required>
+                    <input type="password" id="password" class="form-control" value="155872" required>
                 </div>
-                <button type="submit" class="login-btn" id="login-btn">Login</button>
+                <button type="submit" class="login-btn">Login</button>
             </form>
         </div>
     </div>
@@ -1071,12 +1071,7 @@
         const supabaseServiceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjY4NjA4MywiZXhwIjoyMDU4MjYyMDgzfQ.Wd_hHnHIf_rnj2c0zjCvJtIcRHyFdYkLekNLvAF3-7Y";
         
         // Initialize Supabase client with service key for admin operations
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseServiceKey, {
-            auth: {
-                autoRefreshToken: true,
-                persistSession: true
-            }
-        });
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseServiceKey);
         
         // Global variables
         let currentPage = "dashboard";
@@ -1090,7 +1085,6 @@
         const adminDashboard = document.getElementById("admin-dashboard");
         const loginForm = document.getElementById("login-form");
         const loginError = document.getElementById("login-error");
-        const loginBtn = document.getElementById("login-btn");
         const sidebar = document.getElementById("sidebar");
         const toggleSidebarBtn = document.querySelector(".toggle-sidebar");
         const menuLinks = document.querySelectorAll(".sidebar-menu a[data-page]");
@@ -1124,7 +1118,7 @@
                         .single();
                     
                     if (adminError || !adminData) {
-                        console.error("Not an admin user:", adminError?.message || "No admin data");
+                        console.error("Not an admin user");
                         await supabase.auth.signOut();
                         showLoginPage();
                         return;
@@ -1204,9 +1198,6 @@
             
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-            const originalText = loginBtn.textContent;
-            loginBtn.disabled = true;
-            loginBtn.textContent = "Logging in...";
             
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({
@@ -1217,8 +1208,6 @@
                 if (error) {
                     loginError.textContent = error.message;
                     loginError.classList.remove("hidden");
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = originalText;
                     return;
                 }
                 
@@ -1233,8 +1222,6 @@
                     loginError.textContent = "You do not have admin privileges";
                     loginError.classList.remove("hidden");
                     await supabase.auth.signOut();
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = originalText;
                     return;
                 }
                 
@@ -1249,9 +1236,6 @@
                 console.error("Login error:", error.message);
                 loginError.textContent = "An unexpected error occurred";
                 loginError.classList.remove("hidden");
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.textContent = originalText;
             }
         }
         
@@ -1265,8 +1249,6 @@
                 showLoginPage();
             } catch (error) {
                 console.error("Logout error:", error.message);
-                loginError.textContent = "Error logging out: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1275,8 +1257,8 @@
             loginPage.classList.remove("hidden");
             adminDashboard.classList.add("hidden");
             loginError.classList.add("hidden");
-            document.getElementById("email").value = "";
-            document.getElementById("password").value = "";
+            document.getElementById("email").value = "wechatopper@gmail.com";
+            document.getElementById("password").value = "155872";
         }
         
         // Show dashboard
@@ -1347,10 +1329,10 @@
                 ]);
                 
                 // Update stats
-                document.getElementById("total-users").textContent = totalUsers || 0;
-                document.getElementById("verified-users").textContent = verifiedUsers || 0;
-                document.getElementById("pending-verifications").textContent = pendingVerifications || 0;
-                document.getElementById("total-transactions").textContent = totalTransactions || 0;
+                document.getElementById("total-users").textContent = totalUsers;
+                document.getElementById("verified-users").textContent = verifiedUsers;
+                document.getElementById("pending-verifications").textContent = pendingVerifications;
+                document.getElementById("total-transactions").textContent = totalTransactions;
                 
                 // Load recent transactions
                 const { data: recentTransactions, error: transactionsError } = await supabase
@@ -1368,7 +1350,7 @@
                 const recentTransactionsTable = document.getElementById("recent-transactions");
                 recentTransactionsTable.innerHTML = "";
                 
-                if (!recentTransactions || recentTransactions.length === 0) {
+                if (recentTransactions.length === 0) {
                     recentTransactionsTable.innerHTML = `
                         <tr>
                             <td colspan="6" class="text-center">No transactions found</td>
@@ -1379,8 +1361,8 @@
                         recentTransactionsTable.innerHTML += `
                             <tr>
                                 <td>${transaction.id}</td>
-                                <td>${transaction.from_phone || "N/A"}</td>
-                                <td>${transaction.to_phone || "N/A"}</td>
+                                <td>${transaction.from_phone}</td>
+                                <td>${transaction.to_phone}</td>
                                 <td>${transaction.amount} Ks</td>
                                 <td>${formatDate(transaction.created_at)}</td>
                                 <td><span class="status ${transaction.status}">${transaction.status}</span></td>
@@ -1405,7 +1387,7 @@
                 const recentUsersTable = document.getElementById("recent-users");
                 recentUsersTable.innerHTML = "";
                 
-                if (!recentUsers || recentUsers.length === 0) {
+                if (recentUsers.length === 0) {
                     recentUsersTable.innerHTML = `
                         <tr>
                             <td colspan="5" class="text-center">No users found</td>
@@ -1426,8 +1408,6 @@
                 }
             } catch (error) {
                 console.error("Dashboard data error:", error.message);
-                loginError.textContent = "Error loading dashboard: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1449,8 +1429,6 @@
                 
                 if (error) {
                     console.error("Users error:", error.message);
-                    loginError.textContent = "Error loading users: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
@@ -1458,7 +1436,7 @@
                 const usersTable = document.getElementById("users-table");
                 usersTable.innerHTML = "";
                 
-                if (!users || users.length === 0) {
+                if (users.length === 0) {
                     usersTable.innerHTML = `
                         <tr>
                             <td colspan="6" class="text-center">No users found</td>
@@ -1486,8 +1464,6 @@
                 usersPage = page;
             } catch (error) {
                 console.error("Load users error:", error.message);
-                loginError.textContent = "Error loading users: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1514,8 +1490,6 @@
                 
                 if (error) {
                     console.error("Transactions error:", error.message);
-                    loginError.textContent = "Error loading transactions: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
@@ -1523,7 +1497,7 @@
                 const transactionsTable = document.getElementById("transactions-table");
                 transactionsTable.innerHTML = "";
                 
-                if (!transactions || transactions.length === 0) {
+                if (transactions.length === 0) {
                     transactionsTable.innerHTML = `
                         <tr>
                             <td colspan="7" class="text-center">No transactions found</td>
@@ -1534,8 +1508,8 @@
                         transactionsTable.innerHTML += `
                             <tr>
                                 <td>${transaction.id}</td>
-                                <td>${transaction.from_phone || "N/A"}</td>
-                                <td>${transaction.to_phone || "N/A"}</td>
+                                <td>${transaction.from_phone}</td>
+                                <td>${transaction.to_phone}</td>
                                 <td>${transaction.amount} Ks</td>
                                 <td>${formatDate(transaction.created_at)}</td>
                                 <td><span class="status ${transaction.status}">${transaction.status}</span></td>
@@ -1552,8 +1526,6 @@
                 transactionsPage = page;
             } catch (error) {
                 console.error("Load transactions error:", error.message);
-                loginError.textContent = "Error loading transactions: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1573,8 +1545,6 @@
                 
                 if (error) {
                     console.error("Verifications error:", error.message);
-                    loginError.textContent = "Error loading verifications: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
@@ -1582,7 +1552,7 @@
                 const verificationsTable = document.getElementById("verifications-table");
                 verificationsTable.innerHTML = "";
                 
-                if (!verifications || verifications.length === 0) {
+                if (verifications.length === 0) {
                     verificationsTable.innerHTML = `
                         <tr>
                             <td colspan="5" class="text-center">No pending verifications</td>
@@ -1607,8 +1577,6 @@
                 }
             } catch (error) {
                 console.error("Load verifications error:", error.message);
-                loginError.textContent = "Error loading verifications: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1622,18 +1590,14 @@
                 
                 if (error) {
                     console.error("Settings error:", error.message);
-                    loginError.textContent = "Error loading settings: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
                 document.getElementById("allow-transfers").checked = settings.allow_transfers;
                 document.getElementById("max-transfer").value = settings.max_transfer_amount || 1000000;
-                document.getElementById("admin-email").value = settings.admin_email || "";
+                document.getElementById("admin-email").value = settings.admin_email || "wechatopper@gmail.com";
             } catch (error) {
                 console.error("Load settings error:", error.message);
-                loginError.textContent = "Error loading settings: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1652,18 +1616,14 @@
                 const maxTransfer = parseInt(document.getElementById("max-transfer").value);
                 const adminEmail = document.getElementById("admin-email").value;
                 
-                if (isNaN(maxTransfer) || maxTransfer < 0) {
-                    throw new Error("Maximum transfer amount must be a positive number");
-                }
-                
                 const { error } = await supabase
                     .from("settings")
-                    .upsert({
-                        id: 1,
+                    .update({
                         allow_transfers: allowTransfers,
                         max_transfer_amount: maxTransfer,
                         admin_email: adminEmail
-                    }, { onConflict: "id" });
+                    })
+                    .eq("id", 1);
                 
                 if (error) {
                     throw error;
@@ -1681,18 +1641,16 @@
         }
         
         // View user details
-        async function viewUser(authId) {
+        async function viewUser(userId) {
             try {
                 const { data: user, error } = await supabase
                     .from("users")
                     .select("*")
-                    .eq("auth_id", authId)
+                    .eq("auth_id", userId)
                     .single();
                 
                 if (error) {
                     console.error("View user error:", error.message);
-                    loginError.textContent = "Error viewing user: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
@@ -1767,23 +1725,19 @@
                 document.getElementById("user-modal").style.display = "flex";
             } catch (error) {
                 console.error("View user error:", error.message);
-                loginError.textContent = "Error viewing user: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
         // Approve user
-        async function approveUser(authId) {
+        async function approveUser(userId) {
             try {
                 const { error } = await supabase
                     .from("users")
                     .update({ passport_status: "approved" })
-                    .eq("auth_id", authId);
+                    .eq("auth_id", userId);
                 
                 if (error) {
                     console.error("Approve user error:", error.message);
-                    loginError.textContent = "Error approving user: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
@@ -1799,23 +1753,19 @@
                 }
             } catch (error) {
                 console.error("Approve user error:", error.message);
-                loginError.textContent = "Error approving user: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
         // Reject user
-        async function rejectUser(authId) {
+        async function rejectUser(userId) {
             try {
                 const { error } = await supabase
                     .from("users")
                     .update({ passport_status: "rejected" })
-                    .eq("auth_id", authId);
+                    .eq("auth_id", userId);
                 
                 if (error) {
                     console.error("Reject user error:", error.message);
-                    loginError.textContent = "Error rejecting user: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
@@ -1831,8 +1781,6 @@
                 }
             } catch (error) {
                 console.error("Reject user error:", error.message);
-                loginError.textContent = "Error rejecting user: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1847,8 +1795,6 @@
                 
                 if (error) {
                     console.error("View transaction error:", error.message);
-                    loginError.textContent = "Error viewing transaction: " + error.message;
-                    loginError.classList.remove("hidden");
                     return;
                 }
                 
@@ -1860,12 +1806,12 @@
                     <div class="transaction-parties">
                         <div class="transaction-party">
                             <p>From</p>
-                            <h3>${transaction.from_phone || "N/A"}</h3>
+                            <h3>${transaction.from_phone}</h3>
                         </div>
                         <div class="transaction-arrow">→</div>
                         <div class="transaction-party">
                             <p>To</p>
-                            <h3>${transaction.to_phone || "N/A"}</h3>
+                            <h3>${transaction.to_phone}</h3>
                         </div>
                     </div>
                     
@@ -1880,8 +1826,6 @@
                 document.getElementById("transaction-modal").style.display = "flex";
             } catch (error) {
                 console.error("View transaction error:", error.message);
-                loginError.textContent = "Error viewing transaction: " + error.message;
-                loginError.classList.remove("hidden");
             }
         }
         
@@ -1983,7 +1927,7 @@
         function formatDate(dateString) {
             if (!dateString) return "N/A";
             const date = new Date(dateString);
-            return date.toLocaleString("en-US", { timeZone: "Asia/Yangon" });
+            return date.toLocaleString();
         }
         
         // Get badge class based on status
