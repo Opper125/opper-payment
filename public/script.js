@@ -1,914 +1,1470 @@
-const supabaseUrl = "https://vtsczzlnhsrgnbkfyizi.supabase.co"
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68"
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) })
-const imgurClientId = "5befa9dd970c7d0"
-const logoUrl = "https://github.com/Opper125/opper-payment/raw/main/logo.png"
+// Supabase Configuration
+const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
 
-let currentUser = { user_id: null, balance: 0, passport_status: "pending", phone: null }
-let allowTransfers = true
-let currentTransactionId = null
-let receiverData = null
-let isAuthenticated = false
+// Global Variables
+let currentUser = null;
+let userBalance = 0;
+let userKycStatus = 'pending';
+let transfersEnabled = true;
+let currentTheme = localStorage.getItem('theme') || 'light';
 
-// Play Intro Sound
-window.onload = () => {
-  const introSound = document.getElementById("intro-sound")
-  introSound.play().catch((err) => console.error("Intro sound error:", err))
-  setTimeout(() => {
-    document.getElementById("intro-container").style.display = "none"
-    checkAuthentication()
-  }, 8000)
-}
+// DOM Elements
+const loader = document.getElementById('loader');
+const authContainer = document.getElementById('auth-container');
+const appContainer = document.getElementById('app-container');
 
-// Authentication Functions
-function checkAuthentication() {
-  const userEmail = localStorage.getItem("userEmail")
-  const userId = localStorage.getItem("userId")
+// Initialize App
+document.addEventListener('DOMContentLoaded', async () => {
+    // Apply saved theme
+    document.body.setAttribute('data-theme', currentTheme);
+    
+    // Show loader
+    showLoader();
+    
+    // Check if user is logged in
+    await checkSession();
+    
+    // Initialize UI elements
+    initializeUI();
+    
+    // Hide loader after initialization
+    setTimeout(hideLoader, 1500);
+});
 
-  if (userEmail && userId) {
-    // User is already logged in
-    isAuthenticated = true
-    currentUser.user_id = userId
-    document.getElementById("auth-container").style.display = "none"
-    initializeUser()
-  } else {
-    // User needs to log in or sign up
-    document.getElementById("auth-container").style.display = "flex"
-    setupAuthTabs()
-  }
-}
-
-function setupAuthTabs() {
-  const tabs = document.querySelectorAll(".auth-tab")
-  const forms = document.querySelectorAll(".auth-form")
-
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const tabName = tab.getAttribute("data-tab")
-
-      // Update active tab
-      tabs.forEach((t) => t.classList.remove("active"))
-      tab.classList.add("active")
-
-      // Show corresponding form
-      forms.forEach((form) => {
-        form.classList.remove("active")
-        if (form.id === `${tabName}-form`) {
-          form.classList.add("active")
-        }
-      })
-    })
-  })
-
-  // Setup password strength meter
-  const passwordInput = document.getElementById("signup-password")
-  passwordInput.addEventListener("input", updatePasswordStrength)
-}
-
-function updatePasswordStrength() {
-  const password = document.getElementById("signup-password").value
-  const strengthBar = document.querySelector(".strength-bar")
-  const strengthText = document.querySelector(".strength-text")
-
-  // Calculate password strength
-  let strength = 0
-  if (password.length >= 8) strength += 25
-  if (password.match(/[a-z]+/)) strength += 25
-  if (password.match(/[A-Z]+/)) strength += 25
-  if (password.match(/[0-9]+/)) strength += 25
-
-  // Update UI
-  strengthBar.style.width = `${strength}%`
-
-  if (strength < 25) {
-    strengthBar.style.backgroundColor = "#FF4D4D"
-    strengthText.textContent = "Very Weak"
-  } else if (strength < 50) {
-    strengthBar.style.backgroundColor = "#FFA500"
-    strengthText.textContent = "Weak"
-  } else if (strength < 75) {
-    strengthBar.style.backgroundColor = "#FFFF00"
-    strengthText.textContent = "Medium"
-  } else {
-    strengthBar.style.backgroundColor = "#33CC33"
-    strengthText.textContent = "Strong"
-  }
-}
-
-function togglePasswordVisibility(inputId, button) {
-  const input = document.getElementById(inputId)
-  if (input.type === "password") {
-    input.type = "text"
-    button.classList.add("visible")
-  } else {
-    input.type = "password"
-    button.classList.remove("visible")
-  }
-}
-
-async function signupUser() {
-  const email = document.getElementById("signup-email").value
-  const password = document.getElementById("signup-password").value
-  const confirmPassword = document.getElementById("signup-confirm").value
-  const errorElement = document.getElementById("signup-error")
-
-  // Validate inputs
-  if (!email || !password || !confirmPassword) {
-    errorElement.textContent = "Please fill in all fields"
-    return
-  }
-
-  if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    errorElement.textContent = "Please enter a valid email address"
-    return
-  }
-
-  if (password.length < 8) {
-    errorElement.textContent = "Password must be at least 8 characters long"
-    return
-  }
-
-  if (password !== confirmPassword) {
-    errorElement.textContent = "Passwords do not match"
-    return
-  }
-
-  // Show loading state
-  const button = document.querySelector("#signup-form .auth-button")
-  button.classList.add("loading")
-  errorElement.textContent = ""
-
-  try {
-    // Check if email already exists
-    const { data: existingUser, error: checkError } = await supabase
-      .from("auth_users")
-      .select("email")
-      .eq("email", email)
-      .single()
-
-    if (existingUser) {
-      errorElement.textContent = "Email already registered"
-      button.classList.remove("loading")
-      return
-    }
-
-    // Generate a user ID
-    const userId = Math.floor(100000 + Math.random() * 900000).toString()
-
-    // Create user in auth_users table
-    const { error: authError } = await supabase.from("auth_users").insert({
-      email: email,
-      password: password, // In a real app, you should hash this password
-      user_id: userId,
-    })
-
-    if (authError) throw new Error(`Auth Error: ${authError.message}`)
-
-    // Create user in users table
-    const { error: userError } = await supabase.from("users").insert({
-      user_id: userId,
-      balance: 0,
-      passport_status: "pending",
-    })
-
-    if (userError) throw new Error(`User Error: ${userError.message}`)
-
-    // Store user info in localStorage
-    localStorage.setItem("userEmail", email)
-    localStorage.setItem("userId", userId)
-
-    // Show success message and redirect
-    const successSound = document.getElementById("success-sound")
-    successSound.play().catch((err) => console.error("Success sound error:", err))
-
-    // Create success animation
-    const successAnimation = document.createElement("div")
-    successAnimation.className = "success-animation"
-    successAnimation.innerHTML = `
-            <img src="${logoUrl}" alt="OPPER Logo">
-            Account Created Successfully!
-        `
-    document.body.appendChild(successAnimation)
-
-    setTimeout(() => {
-      successAnimation.remove()
-      isAuthenticated = true
-      currentUser.user_id = userId
-      document.getElementById("auth-container").style.display = "none"
-      initializeUser()
-    }, 2500)
-  } catch (error) {
-    console.error("Signup Error:", error.message)
-    errorElement.textContent = `Error creating account: ${error.message}`
-  } finally {
-    button.classList.remove("loading")
-  }
-}
-
-async function loginUser() {
-  const email = document.getElementById("login-email").value
-  const password = document.getElementById("login-password").value
-  const errorElement = document.getElementById("login-error")
-
-  // Validate inputs
-  if (!email || !password) {
-    errorElement.textContent = "Please fill in all fields"
-    return
-  }
-
-  // Show loading state
-  const button = document.querySelector("#login-form .auth-button")
-  button.classList.add("loading")
-  errorElement.textContent = ""
-
-  try {
-    // Check credentials
-    const { data: user, error } = await supabase
-      .from("auth_users")
-      .select("*")
-      .eq("email", email)
-      .eq("password", password) // In a real app, you would compare hashed passwords
-      .single()
-
-    if (error || !user) {
-      errorElement.textContent = "Invalid email or password"
-      button.classList.remove("loading")
-      return
-    }
-
-    // Store user info in localStorage
-    localStorage.setItem("userEmail", email)
-    localStorage.setItem("userId", user.user_id)
-
-    // Show success message and redirect
-    const successSound = document.getElementById("success-sound")
-    successSound.play().catch((err) => console.error("Success sound error:", err))
-
-    // Create success animation
-    const successAnimation = document.createElement("div")
-    successAnimation.className = "success-animation"
-    successAnimation.innerHTML = `
-            <img src="${logoUrl}" alt="OPPER Logo">
-            Login Successful!
-        `
-    document.body.appendChild(successAnimation)
-
-    setTimeout(() => {
-      successAnimation.remove()
-      isAuthenticated = true
-      currentUser.user_id = user.user_id
-      document.getElementById("auth-container").style.display = "none"
-      initializeUser()
-    }, 2500)
-  } catch (error) {
-    console.error("Login Error:", error.message)
-    errorElement.textContent = `Error logging in: ${error.message}`
-  } finally {
-    button.classList.remove("loading")
-  }
-}
-
-function logoutUser() {
-  localStorage.removeItem("userEmail")
-  localStorage.removeItem("userId")
-  isAuthenticated = false
-  currentUser = { user_id: null, balance: 0, passport_status: "pending", phone: null }
-
-  // Redirect to login page
-  document.getElementById("auth-container").style.display = "flex"
-  document.getElementById("intro-container").style.display = "none"
-
-  // Reset forms
-  document.getElementById("login-email").value = ""
-  document.getElementById("login-password").value = ""
-  document.getElementById("signup-email").value = ""
-  document.getElementById("signup-password").value = ""
-  document.getElementById("signup-confirm").value = ""
-  document.getElementById("login-error").textContent = ""
-  document.getElementById("signup-error").textContent = ""
-
-  // Hide main content
-  document.querySelectorAll(".container").forEach((container) => {
-    container.classList.remove("active")
-  })
-}
-
-function showSection(sectionId) {
-  if (!isAuthenticated && sectionId !== "auth") {
-    return
-  }
-  ;["wallet", "host", "mi", "game"].forEach((id) => {
-    document.getElementById(id).classList.toggle("active", id === sectionId)
-    document.getElementById(`${id}-btn`).classList.toggle("active", id === sectionId)
-  })
-  window.scrollTo({ top: 0, behavior: "smooth" })
-}
-
-function openTelegram() {
-  window.open("https://t.me/OPPERN", "_blank")
-}
-
-async function retryOperation(operation, maxRetries = 3, delay = 1000) {
-  for (let i = 0; i < maxRetries; i++) {
+// Check if user is logged in
+async function checkSession() {
     try {
-      return await operation()
-    } catch (error) {
-      if (i === maxRetries - 1) throw error
-      console.warn(`Retry ${i + 1}/${maxRetries} failed: ${error.message}`)
-      await new Promise((resolve) => setTimeout(resolve, delay))
-    }
-  }
-}
-
-async function checkTransferSettings() {
-  try {
-    const { data, error } = await supabase.from("settings").select("allow_transfers").single()
-    if (error) throw new Error(`Fetch Settings Error: ${error.message}`)
-    allowTransfers = data.allow_transfers
-  } catch (error) {
-    console.error("Check Transfer Settings Error:", error.message)
-    allowTransfers = false
-  }
-}
-
-async function initializeUser() {
-  try {
-    const userId = currentUser.user_id || localStorage.getItem("userId")
-    if (!userId) {
-      // This should not happen if authentication is working correctly
-      console.error("No user ID found")
-      logoutUser()
-      return
-    }
-
-    document.getElementById("id-badge").textContent = `ID: ${userId}`
-    document.getElementById("mi-id").textContent = userId
-
-    await retryOperation(async () => {
-      const { data: user, error } = await supabase.from("users").select("*").eq("user_id", userId).single()
-      if (error && error.code !== "PGRST116") throw new Error(`Fetch User Error: ${error.message}`)
-      if (user) currentUser = user
-    })
-
-    document.getElementById("balance").textContent = `${currentUser.balance} Ks`
-    updateStatus(currentUser.passport_status)
-
-    await checkTransferSettings()
-
-    supabase
-      .channel("users-channel")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "users", filter: `user_id=eq.${userId}` },
-        (payload) => {
-          currentUser = { ...currentUser, ...payload.new }
-          document.getElementById("balance").textContent = `${currentUser.balance} Ks`
-          updateStatus(currentUser.passport_status)
-        },
-      )
-      .subscribe()
-
-    supabase
-      .channel("transactions-channel")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "transactions" }, async (payload) => {
-        const transaction = payload.new
-        if (transaction.to_phone === currentUser.phone) {
-          const message = document.createElement("div")
-          message.className = "receiver-message"
-          message.innerHTML = `Received ${transaction.amount} Ks<br>From: ${transaction.from_phone}`
-          document.body.appendChild(message)
-          document
-            .getElementById("transfer-received-sound")
-            .play()
-            .catch((err) => console.error("Received sound error:", err))
-          setTimeout(() => message.remove(), 4000)
+        // Check local storage for session
+        const session = localStorage.getItem('opperSession');
+        
+        if (session) {
+            const sessionData = JSON.parse(session);
+            const { data: user, error } = await supabase
+                .from('auth_users')
+                .select('*')
+                .eq('email', sessionData.email)
+                .eq('user_id', sessionData.user_id)
+                .single();
+            
+            if (error || !user) {
+                // Invalid session
+                localStorage.removeItem('opperSession');
+                showAuthContainer();
+                return;
+            }
+            
+            // Valid session, load user data
+            currentUser = user;
+            await loadUserData();
+            showAppContainer();
+        } else {
+            // No session found
+            showAuthContainer();
         }
-        loadHistory()
-      })
-      .subscribe()
-
-    supabase
-      .channel("settings-channel")
-      .on("postgres_changes", { event: "*", schema: "public", table: "settings" }, (payload) => {
-        allowTransfers = payload.new.allow_transfers
-      })
-      .subscribe()
-
-    loadHistory()
-  } catch (error) {
-    console.error("Initialization Error:", error.message)
-    alert(`An error occurred: ${error.message}. Please try again.`)
-  }
-}
-
-function showPhoneInput() {
-  if (currentUser.passport_status !== "approved") {
-    alert("Passport must be approved to transfer money.")
-    return
-  }
-  if (!allowTransfers) {
-    alert("Transfer functionality is currently disabled by the server.")
-    return
-  }
-  document.getElementById("transfer-phone-section").classList.remove("hidden")
-  document.getElementById("transfer-details").classList.add("hidden")
-  document.getElementById("pin-overlay").style.display = "none"
-}
-
-async function checkPhone() {
-  try {
-    const phone = document.getElementById("transfer-phone").value
-    const receiverName = document.getElementById("receiver-name")
-    const nextBtn = document.getElementById("next-btn")
-    receiverName.textContent = ""
-    nextBtn.disabled = true
-    if (phone.match(/^09\d{9}$/)) {
-      if (phone === currentUser.phone) {
-        receiverName.className = "account-status not-found"
-        receiverName.textContent = "You cannot transfer money to your own phone number."
-        return
-      }
-
-      const { data: receiver, error } = await supabase
-        .from("users")
-        .select("user_id, phone, passport_status")
-        .eq("phone", phone)
-        .single()
-      if (error && error.code !== "PGRST116") throw error
-      if (receiver && receiver.passport_status === "approved") {
-        receiverName.className = "account-status found"
-        receiverName.textContent = `Account Found: ${receiver.phone} (ID: ${receiver.user_id})`
-        nextBtn.disabled = false
-        receiverData = receiver
-      } else {
-        receiverName.className = "account-status not-found"
-        receiverName.textContent = "Account not found or passport not approved."
-      }
+    } catch (error) {
+        console.error('Session check error:', error);
+        showAuthContainer();
     }
-  } catch (error) {
-    console.error("Check Phone Error:", error.message)
-    document.getElementById("receiver-name").textContent = "An error occurred."
-  }
 }
 
-function showTransferDetails() {
-  if (!receiverData) return
-  document.getElementById("transfer-phone-section").classList.add("hidden")
-  document.getElementById("transfer-details").classList.remove("hidden")
-  document.getElementById("transfer-receiver").textContent = `${receiverData.phone} (ID: ${receiverData.user_id})`
+// Load user data
+async function loadUserData() {
+    try {
+        if (!currentUser) return;
+        
+        // Get user profile data
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('user_id', currentUser.user_id)
+            .single();
+        
+        if (userError) throw userError;
+        
+        // Update global variables
+        userBalance = userData.balance || 0;
+        userKycStatus = userData.passport_status || 'pending';
+        
+        // Update UI with user data
+        updateUserUI(userData);
+        
+        // Check system settings
+        const { data: settings, error: settingsError } = await supabase
+            .from('settings')
+            .select('allow_transfers')
+            .eq('id', 1)
+            .single();
+        
+        if (!settingsError && settings) {
+            transfersEnabled = settings.allow_transfers;
+            updateTransferStatus();
+        }
+        
+        // Set up realtime subscriptions
+        setupRealtimeSubscriptions();
+        
+        // Load transactions
+        loadTransactions();
+    } catch (error) {
+        console.error('Load user data error:', error);
+    }
 }
 
-function showPinOverlay() {
-  const amount = Number.parseInt(document.getElementById("transfer-amount").value)
-  if (!amount || amount <= 0 || amount > 1000000) {
-    document.getElementById("transfer-error").textContent = "Invalid amount. Max 1,000,000 Ks."
-    document.getElementById("transfer-error").classList.remove("hidden")
-    return
-  }
-  document.getElementById("transfer-details").classList.add("hidden")
-  document.getElementById("pin-overlay").style.display = "flex"
-  const pinBoxes = document.querySelectorAll(".pin-box")
-  pinBoxes.forEach((box) => {
-    box.value = ""
-    box.classList.remove("filled")
-  })
-  pinBoxes[0].focus()
-  document.getElementById("pin-error").classList.add("hidden")
+// Update UI with user data
+function updateUserUI(userData) {
+    // Update user name and ID in header and sidebar
+    const userInitial = currentUser.email.charAt(0).toUpperCase();
+    const userName = currentUser.email.split('@')[0];
+    
+    document.getElementById('user-initial').textContent = userInitial;
+    document.getElementById('user-initial-sidebar').textContent = userInitial;
+    document.getElementById('user-name').textContent = userName;
+    document.getElementById('user-name-sidebar').textContent = userName;
+    document.getElementById('user-id').textContent = `ID: ${currentUser.user_id}`;
+    document.getElementById('user-id-sidebar').textContent = `ID: ${currentUser.user_id}`;
+    document.getElementById('greeting-name').textContent = userName;
+    
+    // Update balance
+    document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
+    document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
+    
+    // Update KYC status
+    updateKycStatus();
+    
+    // Update settings page
+    document.getElementById('settings-phone').value = userData.phone || '';
+    document.getElementById('settings-email').value = currentUser.email || '';
 }
 
-function closePinOverlay() {
-  document.getElementById("pin-overlay").style.display = "none"
-  document.getElementById("transfer-details").classList.remove("hidden")
-}
-
-function handlePinInput(current, index) {
-  const pinBoxes = document.querySelectorAll(".pin-box")
-  if (current.value.length === 1) {
-    current.classList.add("filled")
-    if (index < 5) {
-      pinBoxes[index + 1].focus()
+// Update KYC status in UI
+function updateKycStatus() {
+    const kycStatusElement = document.getElementById('kyc-status');
+    const kycStatusCard = document.getElementById('kyc-status-card');
+    const kycForm = document.getElementById('kyc-form');
+    const kycStatusMessage = document.getElementById('kyc-status-message');
+    const kycStatusIcon = document.querySelector('.kyc-status-icon');
+    
+    // Remove all status classes
+    kycStatusIcon.classList.remove('pending', 'approved', 'rejected');
+    
+    // Update based on status
+    if (userKycStatus === 'approved') {
+        kycStatusElement.textContent = 'KYC: အတည်ပြုပြီး';
+        kycStatusMessage.textContent = 'သင့် KYC အတည်ပြုပြီးဖြစ်ပါသည်။';
+        kycStatusIcon.classList.add('approved');
+        kycStatusIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+        kycForm.style.display = 'none';
+    } else if (userKycStatus === 'rejected') {
+        kycStatusElement.textContent = 'KYC: ငြင်းပယ်ခံရသည်';
+        kycStatusMessage.textContent = 'သင့် KYC ငြင်းပယ်ခံရပါသည်။ ပြန်လည်တင်သွင်းပါ။';
+        kycStatusIcon.classList.add('rejected');
+        kycStatusIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        kycForm.style.display = 'block';
     } else {
-      pinBoxes[index].blur()
+        kycStatusElement.textContent = 'KYC: စောင့်ဆိုင်းဆဲ';
+        kycStatusMessage.textContent = 'သင့် KYC စိစစ်နေဆဲဖြစ်ပါသည်။';
+        kycStatusIcon.classList.add('pending');
+        kycStatusIcon.innerHTML = '<i class="fas fa-clock"></i>';
+        
+        // Check if KYC data exists
+        if (currentUser) {
+            supabase
+                .from('users')
+                .select('passport_number, passport_image')
+                .eq('user_id', currentUser.user_id)
+                .single()
+                .then(({ data }) => {
+                    if (data && data.passport_number && data.passport_image) {
+                        kycForm.style.display = 'none';
+                    } else {
+                        kycForm.style.display = 'block';
+                    }
+                });
+        }
     }
-  } else {
-    current.classList.remove("filled")
-  }
 }
 
-async function downloadReceipt() {
-  try {
-    const ticketContent = document.getElementById("ticket-content")
-    // Declare html2canvas
-    const html2canvas = (await import("html2canvas")).default
-    const canvas = await html2canvas(ticketContent, {
-      scale: 4,
-      useCORS: true,
-      backgroundColor: "#FFFFFF",
-      logging: false,
-      imageTimeout: 15000,
-    })
-    const link = document.createElement("a")
-    link.href = canvas.toDataURL("image/png")
-    link.download = `Transaction_${currentTransactionId}.png`
-    link.click()
-  } catch (error) {
-    console.error("Download Receipt Error:", error.message)
-    alert(`Error downloading receipt: ${error.message}`)
-  }
+// Update transfer status in UI
+function updateTransferStatus() {
+    const transferStatusElement = document.getElementById('transfer-status');
+    
+    if (transfersEnabled) {
+        transferStatusElement.textContent = 'ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်';
+        transferStatusElement.classList.remove('disabled');
+        transferStatusElement.classList.add('enabled');
+    } else {
+        transferStatusElement.textContent = 'ငွေလွှဲခြင်း: ပိတ်ထားသည်';
+        transferStatusElement.classList.remove('enabled');
+        transferStatusElement.classList.add('disabled');
+    }
 }
 
-async function printReceipt() {
-  try {
-    window.print()
-  } catch (error) {
-    console.error("Print Receipt Error:", error.message)
-    alert(`Error printing receipt: ${error.message}`)
-  }
-}
-
-async function submitTransfer() {
-  try {
-    if (!allowTransfers) {
-      document.getElementById("pin-error").textContent = "Transfer functionality is currently disabled by the server."
-      document.getElementById("pin-error").classList.remove("hidden")
-      return
-    }
-
-    const pin = Array.from(document.querySelectorAll(".pin-box"))
-      .map((box) => box.value)
-      .join("")
-    const phone = receiverData.phone
-    const amount = Number.parseInt(document.getElementById("transfer-amount").value)
-    const note = document.getElementById("transfer-note").value
-
-    if (pin.length !== 6) {
-      document.getElementById("pin-error").textContent = "PIN must be 6 digits."
-      document.getElementById("pin-error").classList.remove("hidden")
-      return
-    }
-
-    console.log(`Entered PIN: ${pin}`)
-
-    const animation = document.createElement("div")
-    animation.className = "transfer-animation"
-    animation.textContent = "Processing Transfer..."
-    document.body.appendChild(animation)
-
-    const isOnline = navigator.onLine
-    animation.style.animationDuration = isOnline ? "1s" : "3s"
-
-    const { data: sender, error: senderError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("user_id", currentUser.user_id)
-      .eq("payment_pin", pin)
-      .single()
-    if (senderError) throw new Error(`Sender Fetch Error: ${senderError.message}`)
-    const { data: receiver, error: receiverError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("phone", phone)
-      .single()
-    if (receiverError) throw new Error(`Receiver Fetch Error: ${receiverError.message}`)
-
-    if (!sender || !receiver || sender.balance < amount || receiver.passport_status !== "approved") {
-      document.getElementById("pin-error").textContent = !sender
-        ? "Incorrect PIN."
-        : !receiver
-          ? "Recipient account not found."
-          : sender.balance < amount
-            ? "Insufficient balance."
-            : "Recipient passport not approved."
-      document.getElementById("pin-error").classList.remove("hidden")
-      animation.remove()
-      return
-    }
-
-    const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Yangon" })
-
-    await retryOperation(async () => {
-      const { error: updateSenderError } = await supabase
-        .from("users")
-        .update({ balance: sender.balance - amount })
-        .eq("user_id", sender.user_id)
-      if (updateSenderError) throw new Error(`Update Sender Error: ${updateSenderError.message}`)
-    })
-
-    await retryOperation(async () => {
-      const { error: updateReceiverError } = await supabase
-        .from("users")
-        .update({ balance: receiver.balance + amount })
-        .eq("user_id", receiver.user_id)
-      if (updateReceiverError) throw new Error(`Update Receiver Error: ${updateReceiverError.message}`)
-    })
-
-    let transactionId
-    await retryOperation(async () => {
-      const { data, error: insertError } = await supabase
-        .from("transactions")
-        .insert({
-          from_phone: sender.phone,
-          to_phone: receiver.phone,
-          amount: amount,
-          note: note || null,
-          timestamp: now,
+// Set up realtime subscriptions
+function setupRealtimeSubscriptions() {
+    // Subscribe to user balance changes
+    const userChannel = supabase
+        .channel('user-updates')
+        .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'users',
+            filter: `user_id=eq.${currentUser.user_id}`
+        }, (payload) => {
+            // Update balance if changed
+            if (payload.new.balance !== userBalance) {
+                userBalance = payload.new.balance;
+                document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
+                document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
+            }
+            
+            // Update KYC status if changed
+            if (payload.new.passport_status !== userKycStatus) {
+                userKycStatus = payload.new.passport_status;
+                updateKycStatus();
+            }
         })
-        .select("id")
-        .single()
-      if (insertError) throw new Error(`Insert Transaction Error: ${insertError.message}`)
-      transactionId = data.id
-    })
-
-    currentUser.balance = sender.balance - amount
-    document.getElementById("balance").textContent = `${currentUser.balance} Ks`
-    document.getElementById("pin-overlay").style.display = "none"
-
-    animation.remove()
-
-    document
-      .getElementById("transfer-sent-sound")
-      .play()
-      .catch((err) => console.error("Sent sound error:", err))
-
-    const successAnimation = document.createElement("div")
-    successAnimation.className = "success-animation"
-    successAnimation.innerHTML = `
-            <img src="${logoUrl}" alt="OPPER Logo">
-            Transfer Successful
-        `
-    document.body.appendChild(successAnimation)
-
-    console.log(`Transfer Successful: ${amount} Ks to ${receiver.phone}`)
-
-    setTimeout(async () => {
-      successAnimation.remove()
-
-      const ticketContent = document.getElementById("ticket-content")
-      ticketContent.innerHTML = `
-                <div class="header">
-                    <img src="${logoUrl}" alt="OPPER Logo">
-                    <h1>OPPER Payment</h1>
-                </div>
-                <div class="content">
-                    <p><strong>Transaction Receipt</strong></p>
-                    <p><strong>Amount:</strong> ${amount} Ks</p>
-                    <p><strong>From:</strong> ${sender.phone}</p>
-                    <p><strong>To:</strong> ${receiver.phone}</p>
-                    <p><strong>To ID:</strong> ${receiver.user_id}</p>
-                    <p><strong>Note:</strong> ${note || "None"}</p>
-                    <p><strong>Time:</strong> ${now}</p>
-                    <p><strong>Status:</strong> Sent</p>
-                    <div class="done-ui">
-                        <img src="${logoUrl}" alt="Done Icon">
-                        Transaction Completed
-                    </div>
-                    <div class="footer">
-                        Powered by OPPER Payment
-                    </div>
-                </div>
-            `
-      currentTransactionId = transactionId
-      document.getElementById("receipt-overlay").style.display = "flex"
-    }, 2500)
-
-    loadHistory()
-  } catch (error) {
-    console.error("Transfer Error:", error.message)
-    document.getElementById("pin-error").textContent = `An error occurred during transfer: ${error.message}`
-    document.getElementById("pin-error").classList.remove("hidden")
-    const animation = document.querySelector(".transfer-animation")
-    if (animation) animation.remove()
-  }
+        .subscribe();
+    
+    // Subscribe to system settings changes
+    const settingsChannel = supabase
+        .channel('settings-updates')
+        .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'settings'
+        }, (payload) => {
+            if (payload.new.allow_transfers !== transfersEnabled) {
+                transfersEnabled = payload.new.allow_transfers;
+                updateTransferStatus();
+            }
+        })
+        .subscribe();
+    
+    // Subscribe to new transactions
+    const transactionsChannel = supabase
+        .channel('transactions-updates')
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'transactions'
+        }, (payload) => {
+            // Check if transaction involves current user
+            if (currentUser && (payload.new.from_phone === currentUser.phone || payload.new.to_phone === currentUser.phone)) {
+                // Refresh transactions list
+                loadTransactions();
+            }
+        })
+        .subscribe();
 }
 
-async function loadHistory() {
-  try {
-    const month = document.getElementById("month-filter").value
-    const now = new Date()
-    const year = now.getFullYear()
-    const monthFilter = month === "current" ? now.getMonth() : now.getMonth() - 1
-    const startDate = new Date(year, monthFilter, 1).toISOString()
-    const endDate = new Date(year, monthFilter + 1, 0).toISOString()
-
-    const { data: transactions, error } = await supabase
-      .from("transactions")
-      .select("*")
-      .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
-      .gte("created_at", startDate)
-      .lte("created_at", endDate)
-      .order("created_at", { ascending: false })
-    if (error) throw error
-
-    const historyList = document.getElementById("history-list")
-    historyList.innerHTML = ""
-    let totalIn = 0,
-      totalOut = 0
-    ;(transactions || []).forEach((t) => {
-      const item = document.createElement("div")
-      item.className = `history-item ${t.from_phone === currentUser.phone ? "out" : "in"}`
-      item.innerHTML = `
-                ${t.from_phone === currentUser.phone ? "-" : "+"}${t.amount} Ks<br>
-                Phone: ${t.from_phone === currentUser.phone ? t.to_phone : t.from_phone}<br>
-                Note: ${t.note || "None"}<br>
-                Time: ${t.timestamp}<br>
-                Status: ${t.from_phone === currentUser.phone ? "Sent" : "Received"}
-                <button class="print-btn" onclick="showReceipt('${t.id}')"></button>
-            `
-      historyList.appendChild(item)
-      if (t.from_phone === currentUser.phone) totalOut += t.amount
-      else totalIn += t.amount
-    })
-
-    document.getElementById("total-in").textContent = `${totalIn} Ks`
-    document.getElementById("total-out").textContent = `${totalOut} Ks`
-  } catch (error) {
-    console.error("Load History Error:", error.message)
-    alert(`Error loading transaction history: ${error.message}`)
-  }
+// Load transactions
+async function loadTransactions() {
+    try {
+        if (!currentUser) return;
+        
+        // Get user phone number
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('phone')
+            .eq('user_id', currentUser.user_id)
+            .single();
+        
+        if (userError || !userData || !userData.phone) return;
+        
+        const userPhone = userData.phone;
+        
+        // Get recent transactions
+        const { data: transactions, error } = await supabase
+            .from('transactions')
+            .select('*')
+            .or(`from_phone.eq.${userPhone},to_phone.eq.${userPhone}`)
+            .order('created_at', { ascending: false })
+            .limit(5);
+        
+        if (error) throw error;
+        
+        // Update UI with transactions
+        updateTransactionsUI(transactions, userPhone);
+    } catch (error) {
+        console.error('Load transactions error:', error);
+    }
 }
 
-async function showReceipt(transactionId) {
-  try {
-    const { data: transaction, error } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("id", transactionId)
-      .single()
-    if (error) throw error
-
-    currentTransactionId = transactionId
-    const toUserId =
-      transaction.to_phone === currentUser.phone
-        ? currentUser.user_id
-        : (await supabase.from("users").select("user_id").eq("phone", transaction.to_phone).single()).data.user_id
-
-    const ticketContent = document.getElementById("ticket-content")
-    ticketContent.innerHTML = `
-            <div class="header">
-                <img src="${logoUrl}" alt="OPPER Logo">
-                <h1>OPPER Payment</h1>
+// Update transactions UI
+function updateTransactionsUI(transactions, userPhone) {
+    const recentTransactionsList = document.getElementById('recent-transactions-list');
+    const historyTransactionsList = document.getElementById('history-transactions-list');
+    
+    // Clear lists
+    recentTransactionsList.innerHTML = '';
+    historyTransactionsList.innerHTML = '';
+    
+    if (!transactions || transactions.length === 0) {
+        // Show empty state
+        const emptyState = `
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
             </div>
-            <div class="content">
-                <p><strong>Transaction Receipt</strong></p>
-                <p><strong>Amount:</strong> ${transaction.amount} Ks</p>
-                <p><strong>From:</strong> ${transaction.from_phone}</p>
-                <p><strong>To:</strong> ${transaction.to_phone}</p>
-                <p><strong>To ID:</strong> ${toUserId}</p>
-                <p><strong>Note:</strong> ${transaction.note || "None"}</p>
-                <p><strong>Time:</strong> ${transaction.timestamp}</p>
-                <p><strong>Status:</strong> ${transaction.from_phone === currentUser.phone ? "Sent" : "Received"}</p>
-                <div class="done-ui">
-                    <img src="${logoUrl}" alt="Done Icon">
-                    Transaction Completed
+        `;
+        recentTransactionsList.innerHTML = emptyState;
+        historyTransactionsList.innerHTML = emptyState;
+        return;
+    }
+    
+    // Create transaction items
+    transactions.forEach(transaction => {
+        const isSender = transaction.from_phone === userPhone;
+        const otherParty = isSender ? transaction.to_phone : transaction.from_phone;
+        const transactionDate = new Date(transaction.created_at).toLocaleString();
+        
+        const transactionItem = `
+            <div class="transaction-item ${isSender ? 'sent' : 'received'}">
+                <div class="transaction-icon">
+                    <i class="fas ${isSender ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
                 </div>
-                <div class="footer">
-                    Powered by OPPER Payment
+                <div class="transaction-details">
+                    <div class="transaction-title">
+                        ${isSender ? 'ပို့ထားသော' : 'လက်ခံရရှိသော'}
+                    </div>
+                    <div class="transaction-subtitle">
+                        ${otherParty} ${transaction.note ? `- ${transaction.note}` : ''}
+                    </div>
+                    <div class="transaction-date">${transactionDate}</div>
+                </div>
+                <div class="transaction-amount ${isSender ? 'negative' : 'positive'}">
+                    ${isSender ? '-' : '+'} ${transaction.amount.toLocaleString()} Ks
                 </div>
             </div>
-        `
-
-    document.getElementById("receipt-overlay").style.display = "flex"
-  } catch (error) {
-    console.error("Show Receipt Error:", error.message)
-    alert(`Error showing receipt: ${error.message}`)
-  }
+        `;
+        
+        // Add to recent transactions
+        recentTransactionsList.innerHTML += transactionItem;
+        
+        // Add to history transactions
+        historyTransactionsList.innerHTML += transactionItem;
+    });
 }
 
-function closeReceipt() {
-  document.getElementById("receipt-overlay").style.display = "none"
-  showSection("wallet")
+// Initialize UI elements
+function initializeUI() {
+    // Auth tabs
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const authForms = document.querySelectorAll('.auth-form');
+    
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.getAttribute('data-tab');
+            
+            // Update active tab
+            authTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Show corresponding form
+            authForms.forEach(form => {
+                form.classList.remove('active');
+                if (form.id === `${tabName}-form`) {
+                    form.classList.add('active');
+                }
+            });
+        });
+    });
+    
+    // Toggle password visibility
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+    
+    togglePasswordButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const input = button.previousElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.classList.remove('fa-eye-slash');
+                button.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                button.classList.remove('fa-eye');
+                button.classList.add('fa-eye-slash');
+            }
+        });
+    });
+    
+    // Sidebar navigation
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    const pages = document.querySelectorAll('.page');
+    
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageName = link.getAttribute('data-page');
+            
+            // Update active link
+            sidebarLinks.forEach(l => l.parentElement.classList.remove('active'));
+            link.parentElement.classList.add('active');
+            
+            // Show corresponding page
+            pages.forEach(page => {
+                page.classList.remove('active');
+                if (page.id === `${pageName}-page`) {
+                    page.classList.add('active');
+                }
+            });
+            
+            // Close sidebar on mobile
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        });
+    });
+    
+    // Quick action cards
+    const actionCards = document.querySelectorAll('.action-card');
+    
+    actionCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const pageName = card.getAttribute('data-page');
+            
+            // Update active link in sidebar
+            sidebarLinks.forEach(link => {
+                link.parentElement.classList.remove('active');
+                if (link.getAttribute('data-page') === pageName) {
+                    link.parentElement.classList.add('active');
+                }
+            });
+            
+            // Show corresponding page
+            pages.forEach(page => {
+                page.classList.remove('active');
+                if (page.id === `${pageName}-page`) {
+                    page.classList.add('active');
+                }
+            });
+        });
+    });
+    
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const closeSidebar = document.getElementById('close-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.add('active');
+    });
+    
+    closeSidebar.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
+    
+    // Profile dropdown
+    const profileDropdownTrigger = document.getElementById('profile-dropdown-trigger');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    profileDropdownTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+        
+        // Position dropdown
+        const rect = profileDropdownTrigger.getBoundingClientRect();
+        profileDropdown.style.top = `${rect.bottom + 10}px`;
+        profileDropdown.style.right = `${window.innerWidth - rect.right}px`;
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        profileDropdown.classList.remove('active');
+    });
+    
+    // Dropdown actions
+    document.getElementById('view-profile').addEventListener('click', () => {
+        // Show profile page (settings for now)
+        showPage('settings');
+    });
+    
+    document.getElementById('go-to-settings').addEventListener('click', () => {
+        showPage('settings');
+    });
+    
+    document.getElementById('dropdown-logout').addEventListener('click', () => {
+        logout();
+    });
+    
+    // Logout button
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        logout();
+    });
+    
+    // Balance actions
+    document.getElementById('refresh-balance').addEventListener('click', async () => {
+        await loadUserData();
+    });
+    
+    document.getElementById('hide-balance').addEventListener('click', () => {
+        const balanceAmount = document.getElementById('balance-amount');
+        if (balanceAmount.classList.contains('hidden-balance')) {
+            balanceAmount.textContent = `${userBalance.toLocaleString()} Ks`;
+            balanceAmount.classList.remove('hidden-balance');
+            document.querySelector('#hide-balance i').classList.remove('fa-eye');
+            document.querySelector('#hide-balance i').classList.add('fa-eye-slash');
+        } else {
+            balanceAmount.textContent = '••••••';
+            balanceAmount.classList.add('hidden-balance');
+            document.querySelector('#hide-balance i').classList.remove('fa-eye-slash');
+            document.querySelector('#hide-balance i').classList.add('fa-eye');
+        }
+    });
+    
+    // File uploads preview
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    
+    fileInputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const previewId = input.id.replace('-upload', '-preview');
+            const preview = document.getElementById(previewId);
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+    
+    // Theme selector
+    const themeOptions = document.querySelectorAll('.theme-option');
+    
+    themeOptions.forEach(option => {
+        if (option.getAttribute('data-theme') === currentTheme) {
+            option.classList.add('active');
+        }
+        
+        option.addEventListener('click', () => {
+            const theme = option.getAttribute('data-theme');
+            
+            // Update active option
+            themeOptions.forEach(o => o.classList.remove('active'));
+            option.classList.add('active');
+            
+            // Apply theme
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            currentTheme = theme;
+        });
+    });
+    
+    // Modal handling
+    const modals = document.querySelectorAll('.modal');
+    const modalTriggers = {
+        'change-password-btn': 'change-password-modal',
+        'change-pin-btn': 'change-pin-modal',
+        'delete-account-btn': 'delete-account-modal'
+    };
+    
+    // Open modals
+    Object.keys(modalTriggers).forEach(triggerId => {
+        const trigger = document.getElementById(triggerId);
+        const modalId = modalTriggers[triggerId];
+        
+        if (trigger) {
+            trigger.addEventListener('click', () => {
+                document.getElementById(modalId).classList.add('active');
+            });
+        }
+    });
+    
+    // Close modals
+    const modalCloseButtons = document.querySelectorAll('.modal-close, .modal-cancel');
+    
+    modalCloseButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal');
+            modal.classList.remove('active');
+        });
+    });
+    
+    // Close modal when clicking outside
+    modals.forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+    
+    // Form submissions
+    setupFormSubmissions();
 }
 
-function updateStatus(status) {
-  const walletStatus = document.getElementById("wallet-status")
-  const miStatus = document.getElementById("mi-status")
-  walletStatus.className = `status ${status}`
-  miStatus.className = `status ${status}`
-  walletStatus.textContent =
-    status === "pending" ? "Passport Verification Required" : status === "approved" ? "Approved" : "Passport Rejected"
-  miStatus.textContent = walletStatus.textContent
-
-  const passportForm = document.getElementById("passport-form")
-  const passportSubmitted = document.getElementById("passport-submitted")
-
-  if (status === "approved") {
-    document.getElementById("transfer-btn").disabled = false
-    passportForm.classList.add("hidden")
-    passportSubmitted.classList.remove("hidden")
-    document.getElementById("submitted-phone").textContent = currentUser.phone || "N/A"
-    document.getElementById("submitted-passport").textContent = currentUser.passport_number || "N/A"
-    document.getElementById("submitted-address").textContent = currentUser.address || "N/A"
-    document.getElementById("submitted-time").textContent = currentUser.submitted_at
-      ? new Date(currentUser.submitted_at).toLocaleString()
-      : "N/A"
-  } else if (status === "pending" && currentUser.submitted_at) {
-    passportForm.classList.add("hidden")
-    passportSubmitted.classList.remove("hidden")
-    document.getElementById("submitted-phone").textContent = currentUser.phone || "N/A"
-    document.getElementById("submitted-passport").textContent = currentUser.passport_number || "N/A"
-    document.getElementById("submitted-address").textContent = currentUser.address || "N/A"
-    document.getElementById("submitted-time").textContent = currentUser.submitted_at
-      ? new Date(currentUser.submitted_at).toLocaleString()
-      : "N/A"
-  } else {
-    passportForm.classList.remove("hidden")
-    passportSubmitted.classList.add("hidden")
-  }
+// Setup form submissions
+function setupFormSubmissions() {
+    // Login form
+    const loginBtn = document.getElementById('login-btn');
+    
+    loginBtn.addEventListener('click', async () => {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorElement = document.getElementById('login-error');
+        const successElement = document.getElementById('login-success');
+        
+        // Validate inputs
+        if (!email || !password) {
+            errorElement.textContent = 'အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check if user exists
+            const { data: user, error } = await supabase
+                .from('auth_users')
+                .select('*')
+                .eq('email', email)
+                .single();
+            
+            if (error || !user) {
+                errorElement.textContent = 'အကောင့်မတွေ့ရှိပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check password
+            if (user.password !== password) {
+                errorElement.textContent = 'စကားဝှက်မှားယွင်းနေပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Login successful
+            currentUser = user;
+            
+            // Save session
+            const sessionData = {
+                email: user.email,
+                user_id: user.user_id
+            };
+            localStorage.setItem('opperSession', JSON.stringify(sessionData));
+            
+            // Show success message
+            errorElement.style.display = 'none';
+            successElement.textContent = 'အကောင့်ဝင်ရောက်နေပါသည်...';
+            successElement.style.display = 'block';
+            
+            // Load user data and show app
+            await loadUserData();
+            showAppContainer();
+        } catch (error) {
+            console.error('Login error:', error);
+            errorElement.textContent = 'အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // Google login
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    
+    googleLoginBtn.addEventListener('click', () => {
+        // For demo purposes, we'll simulate Google login
+        simulateGoogleLogin('login');
+    });
+    
+    // Signup form
+    const signupBtn = document.getElementById('signup-btn');
+    
+    signupBtn.addEventListener('click', async () => {
+        const email = document.getElementById('signup-email').value;
+        const phone = document.getElementById('signup-phone').value;
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const termsAgree = document.getElementById('terms-agree').checked;
+        const errorElement = document.getElementById('signup-error');
+        const successElement = document.getElementById('signup-success');
+        
+        // Validate inputs
+        if (!email || !phone || !password || !confirmPassword) {
+            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            errorElement.textContent = 'စကားဝှက်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (!termsAgree) {
+            errorElement.textContent = 'စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check if email already exists
+            const { data: existingUser, error: checkError } = await supabase
+                .from('auth_users')
+                .select('email')
+                .eq('email', email)
+                .single();
+            
+            if (existingUser) {
+                errorElement.textContent = 'ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check if phone already exists
+            const { data: existingPhone, error: phoneError } = await supabase
+                .from('users')
+                .select('phone')
+                .eq('phone', phone)
+                .single();
+            
+            if (existingPhone) {
+                errorElement.textContent = 'ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Generate user ID (based on email)
+            const userId = generateUserId(email);
+            
+            // Create auth user
+            const { data: authUser, error: authError } = await supabase
+                .from('auth_users')
+                .insert([
+                    {
+                        email,
+                        password,
+                        user_id: userId
+                    }
+                ])
+                .select()
+                .single();
+            
+            if (authError) throw authError;
+            
+            // Create user profile
+            const { data: userProfile, error: profileError } = await supabase
+                .from('users')
+                .insert([
+                    {
+                        user_id: userId,
+                        phone,
+                        balance: 0,
+                        passport_status: 'pending'
+                    }
+                ])
+                .select()
+                .single();
+            
+            if (profileError) throw profileError;
+            
+            // Signup successful
+            errorElement.style.display = 'none';
+            successElement.textContent = 'အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။';
+            successElement.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('signup-email').value = '';
+            document.getElementById('signup-phone').value = '';
+            document.getElementById('signup-password').value = '';
+            document.getElementById('signup-confirm-password').value = '';
+            document.getElementById('terms-agree').checked = false;
+            
+            // Switch to login tab after a delay
+            setTimeout(() => {
+                document.querySelector('.auth-tab[data-tab="login"]').click();
+            }, 2000);
+        } catch (error) {
+            console.error('Signup error:', error);
+            errorElement.textContent = 'အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // Google signup
+    const googleSignupBtn = document.getElementById('google-signup-btn');
+    
+    googleSignupBtn.addEventListener('click', () => {
+        // For demo purposes, we'll simulate Google signup
+        simulateGoogleLogin('signup');
+    });
+    
+    // Transfer form
+    const transferBtn = document.getElementById('transfer-btn');
+    
+    transferBtn.addEventListener('click', async () => {
+        const phone = document.getElementById('transfer-phone').value;
+        const amount = parseInt(document.getElementById('transfer-amount').value);
+        const note = document.getElementById('transfer-note').value;
+        const pin = document.getElementById('transfer-pin').value;
+        const errorElement = document.getElementById('transfer-error');
+        const successElement = document.getElementById('transfer-success');
+        
+        // Validate inputs
+        if (!phone || !amount || !pin) {
+            errorElement.textContent = 'ဖုန်းနံပါတ်၊ ငွေပမာဏနှင့် PIN ထည့်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (amount < 1000) {
+            errorElement.textContent = 'ငွေပမာဏ အနည်းဆုံး 1,000 Ks ဖြစ်ရပါမည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check if transfers are enabled
+            const { data: settings, error: settingsError } = await supabase
+                .from('settings')
+                .select('allow_transfers')
+                .eq('id', 1)
+                .single();
+            
+            if (settingsError) throw settingsError;
+            
+            if (!settings.allow_transfers) {
+                errorElement.textContent = 'ငွေလွှဲခြင်းကို ယာယီပိတ်ထားပါသည်။ နောက်မှ ပြန်လည်ကြိုးစားပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Get sender's data
+            const { data: sender, error: senderError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('user_id', currentUser.user_id)
+                .single();
+            
+            if (senderError) throw senderError;
+            
+            // Check PIN
+            if (sender.payment_pin !== pin) {
+                errorElement.textContent = 'PIN မှားယွင်းနေပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check KYC status
+            if (sender.passport_status !== 'approved') {
+                errorElement.textContent = 'ငွေလွှဲရန် KYC အတည်ပြုရန် လိုအပ်ပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check balance
+            if (sender.balance < amount) {
+                errorElement.textContent = 'လက်ကျန်ငွေ မလုံလောက်ပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check if recipient exists
+            const { data: recipient, error: recipientError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+            
+            if (recipientError || !recipient) {
+                errorElement.textContent = 'လက်ခံမည့်သူ မတွေ့ရှိပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check if sending to self
+            if (sender.phone === recipient.phone) {
+                errorElement.textContent = 'ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Create transaction
+            const { data: transaction, error: transactionError } = await supabase
+                .from('transactions')
+                .insert([
+                    {
+                        from_phone: sender.phone,
+                        to_phone: recipient.phone,
+                        amount,
+                        note,
+                        timestamp: new Date().toISOString()
+                    }
+                ])
+                .select()
+                .single();
+            
+            if (transactionError) throw transactionError;
+            
+            // Update sender's balance
+            const { error: updateSenderError } = await supabase
+                .from('users')
+                .update({ balance: sender.balance - amount })
+                .eq('user_id', sender.user_id);
+            
+            if (updateSenderError) throw updateSenderError;
+            
+            // Update recipient's balance
+            const { error: updateRecipientError } = await supabase
+                .from('users')
+                .update({ balance: recipient.balance + amount })
+                .eq('user_id', recipient.user_id);
+            
+            if (updateRecipientError) throw updateRecipientError;
+            
+            // Transfer successful
+            errorElement.style.display = 'none';
+            successElement.textContent = `${amount.toLocaleString()} Ks ကို ${phone} သို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`;
+            successElement.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('transfer-phone').value = '';
+            document.getElementById('transfer-amount').value = '';
+            document.getElementById('transfer-note').value = '';
+            document.getElementById('transfer-pin').value = '';
+            
+            // Refresh user data
+            await loadUserData();
+        } catch (error) {
+            console.error('Transfer error:', error);
+            errorElement.textContent = 'ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // KYC form
+    const kycSubmitBtn = document.getElementById('kyc-submit-btn');
+    
+    kycSubmitBtn.addEventListener('click', async () => {
+        const passportNumber = document.getElementById('kyc-passport').value;
+        const address = document.getElementById('kyc-address').value;
+        const pin = document.getElementById('kyc-pin').value;
+        const confirmPin = document.getElementById('kyc-confirm-pin').value;
+        const passportFile = document.getElementById('passport-upload').files[0];
+        const selfieFile = document.getElementById('selfie-upload').files[0];
+        const errorElement = document.getElementById('kyc-error');
+        const successElement = document.getElementById('kyc-success');
+        
+        // Validate inputs
+        if (!passportNumber || !address || !pin || !confirmPin || !passportFile || !selfieFile) {
+            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (pin !== confirmPin) {
+            errorElement.textContent = 'PIN နှင့် အတည်ပြု PIN မတူညီပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+            errorElement.textContent = 'PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Upload passport image
+            const passportFileName = `passport_${currentUser.user_id}_${Date.now()}`;
+            const { data: passportData, error: passportError } = await supabase.storage
+                .from('kyc-documents')
+                .upload(passportFileName, passportFile);
+            
+            if (passportError) throw passportError;
+            
+            // Get passport URL
+            const { data: passportUrl } = await supabase.storage
+                .from('kyc-documents')
+                .getPublicUrl(passportFileName);
+            
+            // Upload selfie image
+            const selfieFileName = `selfie_${currentUser.user_id}_${Date.now()}`;
+            const { data: selfieData, error: selfieError } = await supabase.storage
+                .from('kyc-documents')
+                .upload(selfieFileName, selfieFile);
+            
+            if (selfieError) throw selfieError;
+            
+            // Get selfie URL
+            const { data: selfieUrl } = await supabase.storage
+                .from('kyc-documents')
+                .getPublicUrl(selfieFileName);
+            
+            // Update user profile
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({
+                    passport_number: passportNumber,
+                    address,
+                    payment_pin: pin,
+                    passport_image: passportUrl.publicUrl,
+                    selfie_image: selfieUrl.publicUrl,
+                    passport_status: 'pending',
+                    submitted_at: new Date().toISOString()
+                })
+                .eq('user_id', currentUser.user_id);
+            
+            if (updateError) throw updateError;
+            
+            // KYC submission successful
+            errorElement.style.display = 'none';
+            successElement.textContent = 'KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။';
+            successElement.style.display = 'block';
+            
+            // Update KYC status
+            userKycStatus = 'pending';
+            updateKycStatus();
+            
+            // Clear form
+            document.getElementById('kyc-passport').value = '';
+            document.getElementById('kyc-address').value = '';
+            document.getElementById('kyc-pin').value = '';
+            document.getElementById('kyc-confirm-pin').value = '';
+            document.getElementById('passport-upload').value = '';
+            document.getElementById('selfie-upload').value = '';
+            document.getElementById('passport-preview').innerHTML = '';
+            document.getElementById('selfie-preview').innerHTML = '';
+        } catch (error) {
+            console.error('KYC submission error:', error);
+            errorElement.textContent = 'KYC တင်သွင်းရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // Change password form
+    const savePasswordBtn = document.getElementById('save-password-btn');
+    
+    savePasswordBtn.addEventListener('click', async () => {
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmNewPassword = document.getElementById('confirm-new-password').value;
+        const errorElement = document.getElementById('change-password-error');
+        const successElement = document.getElementById('change-password-success');
+        
+        // Validate inputs
+        if (!currentPassword || !newPassword || !confirmNewPassword) {
+            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (newPassword !== confirmNewPassword) {
+            errorElement.textContent = 'စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check current password
+            const { data: user, error } = await supabase
+                .from('auth_users')
+                .select('password')
+                .eq('user_id', currentUser.user_id)
+                .single();
+            
+            if (error) throw error;
+            
+            if (user.password !== currentPassword) {
+                errorElement.textContent = 'လက်ရှိစကားဝှက် မှားယွင်းနေပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Update password
+            const { error: updateError } = await supabase
+                .from('auth_users')
+                .update({ password: newPassword })
+                .eq('user_id', currentUser.user_id);
+            
+            if (updateError) throw updateError;
+            
+            // Password change successful
+            errorElement.style.display = 'none';
+            successElement.textContent = 'စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။';
+            successElement.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-new-password').value = '';
+            
+            // Close modal after a delay
+            setTimeout(() => {
+                document.getElementById('change-password-modal').classList.remove('active');
+            }, 2000);
+        } catch (error) {
+            console.error('Change password error:', error);
+            errorElement.textContent = 'စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // Change PIN form
+    const savePinBtn = document.getElementById('save-pin-btn');
+    
+    savePinBtn.addEventListener('click', async () => {
+        const currentPin = document.getElementById('current-pin').value;
+        const newPin = document.getElementById('new-pin').value;
+        const confirmNewPin = document.getElementById('confirm-new-pin').value;
+        const errorElement = document.getElementById('change-pin-error');
+        const successElement = document.getElementById('change-pin-success');
+        
+        // Validate inputs
+        if (!currentPin || !newPin || !confirmNewPin) {
+            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (newPin !== confirmNewPin) {
+            errorElement.textContent = 'PIN အသစ်နှင့် အတည်ပြု PIN မတူညီပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (newPin.length !== 6 || !/^\d+$/.test(newPin)) {
+            errorElement.textContent = 'PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check current PIN
+            const { data: user, error } = await supabase
+                .from('users')
+                .select('payment_pin')
+                .eq('user_id', currentUser.user_id)
+                .single();
+            
+            if (error) throw error;
+            
+            if (user.payment_pin !== currentPin) {
+                errorElement.textContent = 'လက်ရှိ PIN မှားယွင်းနေပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Update PIN
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({ payment_pin: newPin })
+                .eq('user_id', currentUser.user_id);
+            
+            if (updateError) throw updateError;
+            
+            // PIN change successful
+            errorElement.style.display = 'none';
+            successElement.textContent = 'PIN အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။';
+            successElement.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('current-pin').value = '';
+            document.getElementById('new-pin').value = '';
+            document.getElementById('confirm-new-pin').value = '';
+            
+            // Close modal after a delay
+            setTimeout(() => {
+                document.getElementById('change-pin-modal').classList.remove('active');
+            }, 2000);
+        } catch (error) {
+            console.error('Change PIN error:', error);
+            errorElement.textContent = 'PIN ပြောင်းရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // Delete account form
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    
+    confirmDeleteBtn.addEventListener('click', async () => {
+        const password = document.getElementById('delete-password').value;
+        const confirmDelete = document.getElementById('confirm-delete').checked;
+        const errorElement = document.getElementById('delete-account-error');
+        
+        // Validate inputs
+        if (!password || !confirmDelete) {
+            errorElement.textContent = 'စကားဝှက်ထည့်၍ အတည်ပြုချက်ကို အမှန်ခြစ်ပါ။';
+            errorElement.style.display = 'block';
+            return;
+        }
+        
+        try {
+            // Check password
+            const { data: user, error } = await supabase
+                .from('auth_users')
+                .select('password')
+                .eq('user_id', currentUser.user_id)
+                .single();
+            
+            if (error) throw error;
+            
+            if (user.password !== password) {
+                errorElement.textContent = 'စကားဝှက် မှားယွင်းနေပါသည်။';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            // Delete user profile
+            const { error: deleteProfileError } = await supabase
+                .from('users')
+                .delete()
+                .eq('user_id', currentUser.user_id);
+            
+            if (deleteProfileError) throw deleteProfileError;
+            
+            // Delete auth user
+            const { error: deleteAuthError } = await supabase
+                .from('auth_users')
+                .delete()
+                .eq('user_id', currentUser.user_id);
+            
+            if (deleteAuthError) throw deleteAuthError;
+            
+            // Account deletion successful
+            localStorage.removeItem('opperSession');
+            currentUser = null;
+            
+            // Show auth container
+            showAuthContainer();
+            
+            // Close modal
+            document.getElementById('delete-account-modal').classList.remove('active');
+            
+            // Show message
+            alert('အကောင့်ကို အောင်မြင်စွာ ဖျက်ပြီးပါပြီ။');
+        } catch (error) {
+            console.error('Delete account error:', error);
+            errorElement.textContent = 'အကောင့်ဖျက်ရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+        }
+    });
 }
 
-async function uploadToImgur(file) {
-  try {
-    const formData = new FormData()
-    formData.append("image", file)
-    const response = await fetch("https://api.imgur.com/3/image", {
-      method: "POST",
-      headers: { Authorization: `Client-ID ${imgurClientId}` },
-      body: formData,
-      timeout: 10000,
-    })
-    const data = await response.json()
-    if (!data.success) throw new Error("Imgur Upload Failed")
-    return data.data.link
-  } catch (error) {
-    console.error("Imgur Upload Error:", error.message)
-    throw error
-  }
-}
-
-document.getElementById("submit-passport-btn").addEventListener("click", async () => {
-  try {
-    const passportNumber = document.getElementById("passport-number").value
-    const address = document.getElementById("address").value
-    const phone = document.getElementById("phone").value
-    const paymentPin = document.getElementById("payment-pin").value
-    const passportImage = document.getElementById("passport-image").files[0]
-    const selfieImage = document.getElementById("selfie-image").files[0]
-
-    if (
-      !passportNumber ||
-      !address ||
-      !phone.match(/^09\d{9}$/) ||
-      paymentPin.length !== 6 ||
-      !passportImage ||
-      !selfieImage
-    ) {
-      alert("Please fill all fields correctly. PIN must be 6 digits.")
-      return
+// Simulate Google login/signup
+function simulateGoogleLogin(type) {
+    // For demo purposes, we'll use a mock Google account
+    const googleEmail = 'user@gmail.com';
+    const googleName = 'User';
+    
+    if (type === 'login') {
+        // Check if account exists
+        supabase
+            .from('auth_users')
+            .select('*')
+            .eq('email', googleEmail)
+            .single()
+            .then(({ data: user, error }) => {
+                if (error || !user) {
+                    // No account found, show error
+                    const errorElement = document.getElementById('login-error');
+                    errorElement.textContent = 'Google အကောင့်ဖြင့် အကောင့်မတွေ့ရှိပါ။ အကောင့်ဖွင့်ပါ။';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // Login successful
+                currentUser = user;
+                
+                // Save session
+                const sessionData = {
+                    email: user.email,
+                    user_id: user.user_id
+                };
+                localStorage.setItem('opperSession', JSON.stringify(sessionData));
+                
+                // Show success message
+                const successElement = document.getElementById('login-success');
+                successElement.textContent = 'Google ဖြင့် အကောင့်ဝင်ရောက်နေပါသည်...';
+                successElement.style.display = 'block';
+                
+                // Load user data and show app
+                loadUserData().then(() => {
+                    showAppContainer();
+                });
+            });
+    } else if (type === 'signup') {
+        // Check if account already exists
+        supabase
+            .from('auth_users')
+            .select('email')
+            .eq('email', googleEmail)
+            .single()
+            .then(({ data: existingUser, error: checkError }) => {
+                if (existingUser) {
+                    // Account already exists
+                    const errorElement = document.getElementById('signup-error');
+                    errorElement.textContent = 'ဤ Google အကောင့်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // Generate user ID
+                const userId = generateUserId(googleEmail);
+                
+                // Create auth user
+                supabase
+                    .from('auth_users')
+                    .insert([
+                        {
+                            email: googleEmail,
+                            password: 'google-auth', // Special password for Google auth
+                            user_id: userId
+                        }
+                    ])
+                    .select()
+                    .single()
+                    .then(({ data: authUser, error: authError }) => {
+                        if (authError) {
+                            console.error('Google signup error:', authError);
+                            const errorElement = document.getElementById('signup-error');
+                            errorElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
+                            errorElement.style.display = 'block';
+                            return;
+                        }
+                        
+                        // Create user profile
+                        supabase
+                            .from('users')
+                            .insert([
+                                {
+                                    user_id: userId,
+                                    balance: 0,
+                                    passport_status: 'pending'
+                                }
+                            ])
+                            .then(({ error: profileError }) => {
+                                if (profileError) {
+                                    console.error('Google signup profile error:', profileError);
+                                    const errorElement = document.getElementById('signup-error');
+                                    errorElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
+                                    errorElement.style.display = 'block';
+                                    return;
+                                }
+                                
+                                // Signup successful
+                                const successElement = document.getElementById('signup-success');
+                                successElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။';
+                                successElement.style.display = 'block';
+                                
+                                // Switch to login tab after a delay
+                                setTimeout(() => {
+                                    document.querySelector('.auth-tab[data-tab="login"]').click();
+                                }, 2000);
+                            });
+                    });
+            });
     }
-
-    const { data: existingUser, error: checkError } = await supabase
-      .from("users")
-      .select("phone, passport_status")
-      .eq("phone", phone)
-      .single()
-    if (checkError && checkError.code !== "PGRST116") throw new Error(`Check Phone Error: ${checkError.message}`)
-    if (existingUser && existingUser.passport_status === "approved") {
-      alert("This phone number is already registered and approved.")
-      return
-    }
-
-    const passportImageUrl = await uploadToImgur(passportImage)
-    const selfieImageUrl = await uploadToImgur(selfieImage)
-
-    await retryOperation(async () => {
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({
-          passport_number: passportNumber,
-          address: address,
-          phone: phone,
-          payment_pin: paymentPin,
-          passport_image: passportImageUrl,
-          selfie_image: selfieImageUrl,
-          passport_status: "pending",
-          submitted_at: new Date().toISOString(),
-        })
-        .eq("user_id", currentUser.user_id)
-      if (updateError) throw new Error(`Update User Error: ${updateError.message}`)
-    })
-
-    currentUser = {
-      ...currentUser,
-      passport_number: passportNumber,
-      address: address,
-      phone: phone,
-      passport_status: "pending",
-      submitted_at: new Date().toISOString(),
-    }
-
-    updateStatus("pending")
-    alert("Passport details submitted successfully!")
-  } catch (error) {
-    console.error("Submit Passport Error:", error.message)
-    alert(`Error submitting passport details: ${error.message}`)
-  }
-})
-
-function downloadApk() {
-  window.open("https://appsgeyser.io/18731061/OPPER-Payment", "_blank")
 }
 
-function hideDownloadBar() {
-  document.getElementById("download-bar").style.display = "none"
+// Generate user ID based on email
+function generateUserId(email) {
+    // Extract username from email
+    const username = email.split('@')[0];
+    
+    // Generate random number
+    const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    
+    // Combine with timestamp
+    const timestamp = Date.now().toString().slice(-4);
+    
+    // Create user ID
+    return `${username.slice(0, 4)}${randomNum}${timestamp}`;
+}
+
+// Show specific page
+function showPage(pageName) {
+    // Update active link in sidebar
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    sidebarLinks.forEach(link => {
+        link.parentElement.classList.remove('active');
+        if (link.getAttribute('data-page') === pageName) {
+            link.parentElement.classList.add('active');
+        }
+    });
+    
+    // Show corresponding page
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(page => {
+        page.classList.remove('active');
+        if (page.id === `${pageName}-page`) {
+            page.classList.add('active');
+        }
+    });
+    
+    // Close dropdown
+    document.getElementById('profile-dropdown').classList.remove('active');
+    
+    // Close sidebar on mobile
+    if (window.innerWidth < 992) {
+        document.getElementById('sidebar').classList.remove('active');
+    }
+}
+
+// Logout function
+function logout() {
+    // Clear session
+    localStorage.removeItem('opperSession');
+    currentUser = null;
+    
+    // Show auth container
+    showAuthContainer();
+}
+
+// Show loader
+function showLoader() {
+    loader.classList.add('active');
+}
+
+// Hide loader
+function hideLoader() {
+    loader.classList.remove('active');
+}
+
+// Show auth container
+function showAuthContainer() {
+    authContainer.classList.remove('hidden');
+    appContainer.classList.add('hidden');
+}
+
+// Show app container
+function showAppContainer() {
+    authContainer.classList.add('hidden');
+    appContainer.classList.remove('hidden');
 }
