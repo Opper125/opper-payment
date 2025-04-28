@@ -92,9 +92,6 @@ async function signupUser() {
             throw new Error("စကားဝှက်သည် အနည်းဆုံး ၆ လုံးရှိရမည်။");
         }
 
-        // Generate unique user_id
-        const userId = Math.floor(100000 + Math.random() * 900000).toString();
-
         console.log("Attempting to check if email exists:", email);
         // Check if email already exists
         const { data: existingUser, error: checkError } = await supabase
@@ -129,26 +126,26 @@ async function signupUser() {
         }
 
         console.log("User signed up successfully, user ID:", user.id);
-        console.log("Attempting to insert user into users table:", { userId, auth_id: user.id, email });
 
-        // Insert user into users table
-        const { error: insertError } = await supabase.from("users").insert({
-            user_id: userId,
-            auth_id: user.id,
-            email: email,
-            balance: 0,
-            passport_status: "pending",
-            created_at: new Date().toISOString()
-        });
+        // Wait briefly to ensure trigger has inserted user
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        if (insertError) {
-            console.error("User insert error:", insertError);
-            // Clean up auth user if insert fails
+        // Fetch user profile to verify insertion
+        console.log("Fetching user profile for auth_id:", user.id);
+        const { data: userProfile, error: profileError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("auth_id", user.id)
+            .single();
+
+        if (profileError || !userProfile) {
+            console.error("Profile fetch error:", profileError);
+            // Clean up auth user if profile fetch fails
             await supabase.auth.admin.deleteUser(user.id);
-            throw new Error(`အသုံးပြုသူဖန်တီးမှု မအောင်မြင်ပါ: ${insertError.message}`);
+            throw new Error(`အသုံးပြုသူပရိုဖိုင်ထုတ်ယူမှု မအောင်မြင်ပါ: ${profileError ? profileError.message : 'အသုံးပြုသူဒေတာမတွေ့ပါ'}`);
         }
 
-        console.log("User inserted successfully, attempting to log in");
+        console.log("User profile fetched successfully:", userProfile);
         // Automatically log in the user
         const { data: { session }, error: loginError } = await supabase.auth.signInWithPassword({
             email,
@@ -614,7 +611,7 @@ async function submitTransfer() {
                     ? "လက်ခံသူအကောင့်မတွေ့ပါ။"
                     : sender.balance < amount
                         ? "လက်ကျန်ငွေ မလုံလောက်ပါ။"
-                        : "လက်ခံသူ၏ နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ�।";
+                        : "လက်ခံသူ၏ နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ။";
             document.getElementById("pin-error").classList.remove("hidden");
             animation.remove();
             return;
@@ -648,7 +645,8 @@ async function submitTransfer() {
                 status: "completed",
                 created_at: now
             });
-            if (insertError) throw new Error(`လွှဲပြောင်းမှုထည့်သွင်းမှု မအောင်မြင်ပါ: ${insertError.message}`);
+            if (insertError) throw new Error(`လွှဲပြ HeavenlyPath
+ောင်းမှုထည့်သွင်းမှု မအောင်မြင်ပါ: ${insertError.message}`);
         });
 
         currentUser.balance = sender.balance - amount;
