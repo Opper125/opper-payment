@@ -32,17 +32,6 @@ window.onload = () => {
 // AUTH FUNCTIONS
 async function initializeApp() {
   try {
-    // Check for confirmation token in URL
-    const urlParams = new URLSearchParams(window.location.search)
-    const tokenHash = urlParams.get('token_hash')
-    const type = urlParams.get('type')
-
-    if (tokenHash && type === 'email') {
-      await handleEmailConfirmation(tokenHash)
-      // Clear URL parameters after handling
-      window.history.replaceState({}, document.title, window.location.pathname)
-    }
-
     // Check for existing session
     const {
       data: { session },
@@ -66,31 +55,6 @@ async function initializeApp() {
   } catch (error) {
     console.error("Initialization Error:", error.message)
     showNotification(`စတင်ရန်အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
-  }
-}
-
-// New function to handle email confirmation
-async function handleEmailConfirmation(tokenHash) {
-  try {
-    const { data, error } = await supabase.auth.verifyOtp({
-      token_hash: tokenHash,
-      type: 'email'
-    })
-
-    if (error) {
-      console.error("Email Confirmation Error:", error.message)
-      showNotification(`အီးမေးလ်အတည်ပြုမှု မအောင်မြင်ပါ: ${error.message}`, "error")
-      return
-    }
-
-    if (data.user) {
-      await handleSuccessfulAuth(data.user)
-      showNotification("အီးမေးလ်အတည်ပြုပြီးပါပြီ။ ဝယ်လဒ်သို့ ပြောင်းနေသည်...", "success")
-      playSound("success")
-    }
-  } catch (error) {
-    console.error("Confirmation Handler Error:", error.message)
-    showNotification(`အီးမေးလ်အတည်ပြုရန်အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`, "error")
   }
 }
 
@@ -173,9 +137,6 @@ async function signupUser() {
     } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: 'https://yourdomain.com/auth/confirm' // Replace with your actual domain
-      }
     })
 
     if (signupError) {
@@ -188,7 +149,6 @@ async function signupUser() {
     }
 
     if (!user) {
-      messageElement.textContent = "မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်။"
       messageElement.textContent = "မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်။"
       messageElement.classList.add("error-message")
       playSound("error")
@@ -218,8 +178,26 @@ async function signupUser() {
       return
     }
 
-    // Show success message
-    messageElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ ကျေးဇူးပြု၍ သင့်အီးမေးလ်တွင် အတည်ပြုလင့်ခ်ကို စစ်ဆေးပါ။"
+    // Automatically log in the user
+    const { session, error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (loginError) {
+      messageElement.textContent = `အကောင့်ဝင်မှု မအောင်မြင်ပါ: ${loginError.message}`
+      messageElement.classList.add("error-message")
+      playSound("error")
+      // Clean up user record and auth user
+      await supabase.from("users").delete().eq("email", email)
+      await supabase.auth.admin.deleteUser(user.id)
+      signupBtn.disabled = false
+      signupBtn.textContent = originalText
+      return
+    }
+
+    // Show success message and redirect to wallet
+    messageElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ ဝယ်လဒ်သို့ ပြောင်းနေသည်..."
     messageElement.classList.add("success-message")
     playSound("success")
 
@@ -230,6 +208,9 @@ async function signupUser() {
 
     signupBtn.disabled = false
     signupBtn.textContent = originalText
+
+    // Handle successful authentication
+    await handleSuccessfulAuth(user)
   } catch (error) {
     console.error("Signup Error:", error.message)
     const messageElement = document.getElementById("signup-message")
@@ -239,50 +220,6 @@ async function signupUser() {
     const signupBtn = document.getElementById("signup-btn")
     signupBtn.disabled = false
     signupBtn.textContent = "Sign Up"
-  }
-}
-
-// New function to resend confirmation email
-async function resendConfirmationEmail() {
-  try {
-    const email = document.getElementById("signup-email").value
-    const messageElement = document.getElementById("signup-message")
-
-    // Reset message
-    messageElement.textContent = ""
-    messageElement.classList.remove("error-message", "success-message")
-
-    if (!email) {
-      messageElement.textContent = "ကျေးဇူးပြု၍ အီးမေးလ်ထည့်ပါ။"
-      messageElement.classList.add("error-message")
-      playSound("error")
-      return
-    }
-
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo: 'https://yourdomain.com/auth/confirm' // Replace with your actual domain
-      }
-    })
-
-    if (error) {
-      messageElement.textContent = `အီးမေးလ်ပြန်ပို့မှု မအောင်မြင်ပါ: ${error.message}`
-      messageElement.classList.add("error-message")
-      playSound("error")
-      return
-    }
-
-    messageElement.textContent = "အတည်ပြုအီးမေးလ်ကို ပြန်ပို့ပြီးပါပြီ။ ကျေးဇူးပြု၍ သင့်အီးမေးလ်ကို စစ်ဆေးပါ။"
-    messageElement.classList.add("success-message")
-    playSound("success")
-  } catch (error) {
-    console.error("Resend Confirmation Error:", error.message)
-    const messageElement = document.getElementById("signup-message")
-    messageElement.textContent = `အီးမေးလ်ပြန်ပို့ရန်အမှားဖြစ်ပေါ်ခဲ့သည်: ${error.message}`
-    messageElement.classList.add("error-message")
-    playSound("error")
   }
 }
 
@@ -658,7 +595,7 @@ async function checkPhone() {
         receiverData = receiver
       } else {
         receiverName.className = "account-status not-found"
-        receiverName.textContent = "အကောင့်မတွေ့ပါ သို့မဟုတ် နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ�।"
+        receiverName.textContent = "အကောင့်မတွေ့ပါ သို့မဟုတ် နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ။"
       }
     }
   } catch (error) {
