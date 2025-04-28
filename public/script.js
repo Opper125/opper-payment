@@ -95,6 +95,7 @@ async function signupUser() {
         // Generate unique user_id
         const userId = Math.floor(100000 + Math.random() * 900000).toString();
 
+        console.log("Attempting to check if email exists:", email);
         // Check if email already exists
         const { data: existingUser, error: checkError } = await supabase
             .from("users")
@@ -105,9 +106,11 @@ async function signupUser() {
             throw new Error("ဤအီးမေးလ်သည် မှတ်ပုံတင်ပြီးဖြစ်သည်။");
         }
         if (checkError && checkError.code !== "PGRST116") {
+            console.error("Email check error:", checkError);
             throw new Error(`အီးမေးလ်စစ်ဆေးမှု မအောင်မြင်ပါ: ${checkError.message}`);
         }
 
+        console.log("Attempting to sign up user with email:", email);
         // Sign up user with Supabase Auth
         const { data: { user }, error: signupError } = await supabase.auth.signUp({
             email,
@@ -118,11 +121,15 @@ async function signupUser() {
         });
 
         if (signupError) {
+            console.error("Signup error:", signupError);
             throw new Error(`အကောင့်ဖွင့်မှု မအောင်မြင်ပါ: ${signupError.message}`);
         }
         if (!user) {
             throw new Error("အကောင့်ဖွင့်မှု မအောင်မြင်ပါ: အသုံးပြုသူဒေတာမရရှိပါ။");
         }
+
+        console.log("User signed up successfully, user ID:", user.id);
+        console.log("Attempting to insert user into users table:", { userId, auth_id: user.id, email });
 
         // Insert user into users table
         const { error: insertError } = await supabase.from("users").insert({
@@ -135,11 +142,13 @@ async function signupUser() {
         });
 
         if (insertError) {
+            console.error("User insert error:", insertError);
             // Clean up auth user if insert fails
             await supabase.auth.admin.deleteUser(user.id);
             throw new Error(`အသုံးပြုသူဖန်တီးမှု မအောင်မြင်ပါ: ${insertError.message}`);
         }
 
+        console.log("User inserted successfully, attempting to log in");
         // Automatically log in the user
         const { data: { session }, error: loginError } = await supabase.auth.signInWithPassword({
             email,
@@ -147,12 +156,14 @@ async function signupUser() {
         });
 
         if (loginError) {
+            console.error("Login error after signup:", loginError);
             // Clean up user record and auth user
             await supabase.from("users").delete().eq("auth_id", user.id);
             await supabase.auth.admin.deleteUser(user.id);
             throw new Error(`အကောင့်ဝင်မှု မအောင်မြင်ပါ: ${loginError.message}`);
         }
 
+        console.log("Login successful after signup");
         messageElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ ဝယ်လဒ်သို့ ပြောင်းနေသည်...";
         messageElement.classList.add("success-message");
         playSound("success");
@@ -164,7 +175,7 @@ async function signupUser() {
 
         await handleSuccessfulAuth(user);
     } catch (error) {
-        console.error("Signup Error:", error.message);
+        console.error("Signup Error:", error.message, error.stack);
         messageElement.textContent = error.message;
         messageElement.classList.add("error-message");
         playSound("error");
@@ -221,6 +232,7 @@ async function loginUser() {
 
 async function handleSuccessfulAuth(authUser) {
     try {
+        console.log("Fetching user profile for auth_id:", authUser.id);
         const { data: userProfile, error: profileError } = await supabase
             .from("users")
             .select("*")
@@ -228,6 +240,7 @@ async function handleSuccessfulAuth(authUser) {
             .single();
 
         if (profileError) {
+            console.error("Profile fetch error:", profileError);
             throw new Error(`အသုံးပြုသူပရိုဖိုင်ထုတ်ယူမှု မအောင်မြင်ပါ: ${profileError.message}`);
         }
         if (!userProfile) {
@@ -601,7 +614,7 @@ async function submitTransfer() {
                     ? "လက်ခံသူအကောင့်မတွေ့ပါ။"
                     : sender.balance < amount
                         ? "လက်ကျန်ငွေ မလုံလောက်ပါ။"
-                        : "လက်ခံသူ၏ နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ။";
+                        : "လက်ခံသူ၏ နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ�।";
             document.getElementById("pin-error").classList.remove("hidden");
             animation.remove();
             return;
