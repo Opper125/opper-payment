@@ -34,39 +34,8 @@
     <img class="logo" src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
     <div class="id-badge" id="id-badge">ID: </div>
 
-    <!-- Auth Section -->
-    <div id="auth" class="container active">
-        <h2>Authentication</h2>
-        <div class="tabs">
-            <button id="login-tab" class="tab-btn active" onclick="switchTab('login')">Login</button>
-            <button id="signup-tab" class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
-        </div>
-        
-        <!-- Login Form -->
-        <div id="login-form" class="form-group">
-            <label>Email</label>
-            <input type="email" id="login-email" placeholder="Enter your email" required>
-            <label>Password</label>
-            <input type="password" id="login-password" placeholder="Enter your password" required>
-            <button id="login-btn" onclick="loginUser()">Login</button>
-            <p class="form-message" id="login-message"></p>
-        </div>
-        
-        <!-- Signup Form -->
-        <div id="signup-form" class="form-group hidden">
-            <label>Email</label>
-            <input type="email" id="signup-email" placeholder="Enter your email" required>
-            <label>Password</label>
-            <input type="password" id="signup-password" placeholder="Enter your password" required>
-            <label>Confirm Password</label>
-            <input type="password" id="confirm-password" placeholder="Confirm your password" required>
-            <button id="signup-btn" onclick="signupUser()">Sign Up</button>
-            <p class="form-message" id="signup-message"></p>
-        </div>
-    </div>
-
     <!-- Wallet Section -->
-    <div id="wallet" class="container">
+    <div id="wallet" class="container active">
         <h2>My Wallet</h2>
         <div class="form-group">
             <label>Balance</label>
@@ -189,7 +158,6 @@
         <button onclick="showSection('game')" id="game-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/game-icon.png" alt="Game">Game</button>
         <button onclick="openTelegram()" id="telegram-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/telegram-icon.png" alt="Telegram">Telegram</button>
         <button onclick="showSection('mi')" id="mi-btn"><img src="https://github.com/Opper125/opper-payment/raw/main/mi.png" alt="MI">Profile</button>
-        <button onclick="logoutUser()" id="logout-btn"><img src="https://cdn-icons-png.flaticon.com/512/6001/6001778.png" alt="Logout">Logout</button>
     </div>
 
     <!-- Audio Elements -->
@@ -201,12 +169,6 @@
     </audio>
     <audio id="transfer-received-sound" preload="auto">
         <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_received.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="success-sound" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="error-sound" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2032/2032-preview.mp3" type="audio/mpeg">
     </audio>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
