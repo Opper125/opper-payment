@@ -16,6 +16,92 @@
         </div>
     </div>
 
+    <!-- Auth Container -->
+    <div class="auth-container" id="auth-container">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Login</button>
+                <button class="auth-tab" data-tab="signup">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="auth-form active" id="login-form">
+                <h2>Welcome Back</h2>
+                <p class="auth-subtitle">Login to access your OPPER Payment account</p>
+                
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <div class="input-with-icon">
+                        <input type="email" id="login-email" placeholder="Enter your email" required>
+                        <i class="input-icon email-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="login-password" placeholder="Enter your password" required>
+                        <i class="input-icon password-icon"></i>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)"></button>
+                    </div>
+                </div>
+                
+                <button class="auth-button" onclick="loginUser()">
+                    <span class="button-text">Login</span>
+                    <span class="button-loader"></span>
+                </button>
+                
+                <p class="auth-error" id="login-error"></p>
+            </div>
+            
+            <!-- Sign Up Form -->
+            <div class="auth-form" id="signup-form">
+                <h2>Create Account</h2>
+                <p class="auth-subtitle">Join OPPER Payment and start your journey</p>
+                
+                <div class="form-group">
+                    <label for="signup-email">Email Address</label>
+                    <div class="input-with-icon">
+                        <input type="email" id="signup-email" placeholder="Enter your email" required>
+                        <i class="input-icon email-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="signup-password" placeholder="Create a password" required>
+                        <i class="input-icon password-icon"></i>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)"></button>
+                    </div>
+                    <div class="password-strength" id="password-strength">
+                        <div class="strength-bar"></div>
+                        <span class="strength-text">Password strength</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-confirm">Confirm Password</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="signup-confirm" placeholder="Confirm your password" required>
+                        <i class="input-icon password-icon"></i>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-confirm', this)"></button>
+                    </div>
+                </div>
+                
+                <button class="auth-button" onclick="signupUser()">
+                    <span class="button-text">Create Account</span>
+                    <span class="button-loader"></span>
+                </button>
+                
+                <p class="auth-error" id="signup-error"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Download APK Bar -->
     <div class="download-bar" id="download-bar">
         <p>Download the OPPER Payment App for a better experience!</p>
@@ -169,6 +255,9 @@
     </audio>
     <audio id="transfer-received-sound" preload="auto">
         <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/transfer_received.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="success-sound" preload="auto">
+        <source src="https://raw.githubusercontent.com/Opper125/opper-payment/main/success.mp3" type="audio/mpeg">
     </audio>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
