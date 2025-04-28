@@ -1,3 +1,4 @@
+// Supabase Client Setup
 const supabaseUrl = "https://vtsczzlnhsrgnbkfyizi.supabase.co"
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68"
@@ -18,6 +19,7 @@ let currentTransactionId = null
 let receiverData = null
 let isAuthenticated = false
 
+// Play Intro Sound
 window.onload = () => {
   const introSound = document.getElementById("intro-sound")
   introSound.play().catch((err) => console.error("Intro sound error:", err))
@@ -27,17 +29,21 @@ window.onload = () => {
   }, 8000)
 }
 
+// AUTH FUNCTIONS
 async function initializeApp() {
   try {
+    // Check for confirmation token in URL
     const urlParams = new URLSearchParams(window.location.search)
     const tokenHash = urlParams.get('token_hash')
     const type = urlParams.get('type')
 
     if (tokenHash && type === 'email') {
       await handleEmailConfirmation(tokenHash)
+      // Clear URL parameters after handling
       window.history.replaceState({}, document.title, window.location.pathname)
     }
 
+    // Check for existing session
     const {
       data: { session },
       error: sessionError,
@@ -63,6 +69,7 @@ async function initializeApp() {
   }
 }
 
+// New function to handle email confirmation
 async function handleEmailConfirmation(tokenHash) {
   try {
     const { data, error } = await supabase.auth.verifyOtp({
@@ -113,9 +120,11 @@ async function signupUser() {
     const confirmPassword = document.getElementById("confirm-password").value
     const messageElement = document.getElementById("signup-message")
 
+    // Reset message
     messageElement.textContent = ""
     messageElement.classList.remove("error-message", "success-message")
 
+    // Validate form
     if (!email || !password || !confirmPassword) {
       messageElement.textContent = "ကျေးဇူးပြု၍ အကွက်အားလုံးဖြည့်ပါ။"
       messageElement.classList.add("error-message")
@@ -123,6 +132,7 @@ async function signupUser() {
       return
     }
 
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       messageElement.textContent = "ကျေးဇူးပြု၍ မမှန်ကန်သော အီးမေးလ်လိပ်စာထည့်ပါ။"
@@ -131,6 +141,7 @@ async function signupUser() {
       return
     }
 
+    // Check if passwords match
     if (password !== confirmPassword) {
       messageElement.textContent = "စကားဝှက်များ မကိုက်ညီပါ။"
       messageElement.classList.add("error-message")
@@ -138,6 +149,7 @@ async function signupUser() {
       return
     }
 
+    // Check if password meets minimum requirements
     if (password.length < 6) {
       messageElement.textContent = "စကားဝှက်သည် အနည်းဆုံး ၆ လုံးရှိရမည်။"
       messageElement.classList.add("error-message")
@@ -145,13 +157,16 @@ async function signupUser() {
       return
     }
 
+    // Show loading state
     const signupBtn = document.getElementById("signup-btn")
     const originalText = signupBtn.textContent
     signupBtn.disabled = true
     signupBtn.textContent = "အကောင့်ဖွင့်နေသည်..."
 
+    // Generate a unique user ID (6-digit number)
     const userId = Math.floor(100000 + Math.random() * 900000).toString()
 
+    // Create user with Supabase Auth
     const {
       data: { user },
       error: signupError,
@@ -159,7 +174,7 @@ async function signupUser() {
       email,
       password,
       options: {
-        emailRedirectTo: 'https://opper-payment.netlify.app/'
+        emailRedirectTo: 'https://yourdomain.com/auth/confirm' // Replace with your actual domain
       }
     })
 
@@ -174,6 +189,7 @@ async function signupUser() {
 
     if (!user) {
       messageElement.textContent = "မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်။"
+      messageElement.textContent = "မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့သည်။"
       messageElement.classList.add("error-message")
       playSound("error")
       signupBtn.disabled = false
@@ -181,6 +197,7 @@ async function signupUser() {
       return
     }
 
+    // Insert user record in users table
     const { error: insertError } = await supabase.from("users").insert({
       user_id: userId,
       auth_id: user.id,
@@ -194,16 +211,19 @@ async function signupUser() {
       messageElement.textContent = `အသုံးပြုသူပရိုဖိုင်ဖန်တီးမှု မအောင်မြင်ပါ: ${insertError.message}`
       messageElement.classList.add("error-message")
       playSound("error")
+      // Clean up auth user if insert fails
       await supabase.auth.admin.deleteUser(user.id)
       signupBtn.disabled = false
       signupBtn.textContent = originalText
       return
     }
 
+    // Show success message
     messageElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ ကျေးဇူးပြု၍ သင့်အီးမေးလ်တွင် အတည်ပြုလင့်ခ်ကို စစ်ဆေးပါ။"
     messageElement.classList.add("success-message")
     playSound("success")
 
+    // Reset form
     document.getElementById("signup-email").value = ""
     document.getElementById("signup-password").value = ""
     document.getElementById("confirm-password").value = ""
@@ -222,11 +242,13 @@ async function signupUser() {
   }
 }
 
+// New function to resend confirmation email
 async function resendConfirmationEmail() {
   try {
     const email = document.getElementById("signup-email").value
     const messageElement = document.getElementById("signup-message")
 
+    // Reset message
     messageElement.textContent = ""
     messageElement.classList.remove("error-message", "success-message")
 
@@ -241,7 +263,7 @@ async function resendConfirmationEmail() {
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: 'https://opper-payment.netlify.app/'
+        emailRedirectTo: 'https://yourdomain.com/auth/confirm' // Replace with your actual domain
       }
     })
 
@@ -270,9 +292,11 @@ async function loginUser() {
     const password = document.getElementById("login-password").value
     const messageElement = document.getElementById("login-message")
 
+    // Reset message
     messageElement.textContent = ""
     messageElement.classList.remove("error-message", "success-message")
 
+    // Validate form
     if (!email || !password) {
       messageElement.textContent = "ကျေးဇူးပြု၍ အီးမေးလ်နှင့် စကားဝှက်ထည့်ပါ။"
       messageElement.classList.add("error-message")
@@ -280,11 +304,13 @@ async function loginUser() {
       return
     }
 
+    // Show loading state
     const loginBtn = document.getElementById("login-btn")
     const originalText = loginBtn.textContent
     loginBtn.disabled = true
     loginBtn.textContent = "ဝင်ရောက်နေသည်..."
 
+    // Sign in with Supabase Auth
     const {
       data: { user },
       error: signInError,
@@ -311,9 +337,13 @@ async function loginUser() {
       return
     }
 
+    // Show success animation
     showLoginSuccessAnimation()
+
+    // Handle successful authentication
     await handleSuccessfulAuth(user)
 
+    // Reset form
     document.getElementById("login-email").value = ""
     document.getElementById("login-password").value = ""
 
@@ -333,6 +363,7 @@ async function loginUser() {
 
 async function handleSuccessfulAuth(authUser) {
   try {
+    // Get user profile from the users table
     const { data: userProfile, error: profileError } = await supabase
       .from("users")
       .select("*")
@@ -347,10 +378,11 @@ async function handleSuccessfulAuth(authUser) {
 
     if (!userProfile) {
       console.error("User profile not found")
-      showNotification("အသုံးပြုသူပရိုဖိုင်မတွေ့ပါ။ အကူအညီအတွက် ဆက်သွယ်ပါ။", "error")
+      showNotification("အသုံးပြုသူပရိုဖိုင်မတွေ့ပါ။ အကူအညီအတွက် ဆက်သွယ်ပါ�।", "error")
       return
     }
 
+    // Set user data
     currentUser = {
       id: authUser.id,
       user_id: userProfile.user_id,
@@ -365,15 +397,22 @@ async function handleSuccessfulAuth(authUser) {
 
     isAuthenticated = true
 
+    // Update UI
     document.getElementById("id-badge").textContent = `ID: ${currentUser.user_id}`
     document.getElementById("mi-id").textContent = currentUser.user_id
     document.getElementById("balance").textContent = `${currentUser.balance} Ks`
     updateStatus(currentUser.passport_status)
 
+    // Show wallet section
     showSection("wallet")
+
+    // Show welcome message
     showNotification(`ပြန်လည်ကြိုဆိုပါသည်၊ ${currentUser.email}!`, "success")
 
+    // Set up realtime subscriptions
     setupRealtimeSubscriptions()
+
+    // Load transaction history
     loadHistory()
 
     console.log("Authentication successful:", currentUser)
@@ -393,6 +432,7 @@ async function logoutUser() {
       return
     }
 
+    // Reset user data and UI
     currentUser = {
       id: null,
       user_id: null,
@@ -403,7 +443,9 @@ async function logoutUser() {
     }
     isAuthenticated = false
 
+    // Show auth section
     showSection("auth")
+
     showNotification("အကောင့်မှ ထွက်ပြီးပါပြီ။", "success")
   } catch (error) {
     console.error("Logout Error:", error.message)
@@ -411,7 +453,9 @@ async function logoutUser() {
   }
 }
 
+// CORE APP FUNCTIONS
 function showSection(sectionId) {
+  // If trying to access a section other than auth while not authenticated
   if (sectionId !== "auth" && !isAuthenticated) {
     showNotification("ကျေးဇူးပြု၍ အကောင့်ဝင်ပါ။", "error")
     sectionId = "auth"
@@ -438,6 +482,7 @@ function showNotification(message, type) {
 
   document.body.appendChild(notification)
 
+  // Play sound based on notification type
   playSound(type)
 
   setTimeout(() => {
@@ -479,6 +524,7 @@ function showLoginSuccessAnimation() {
 }
 
 async function setupRealtimeSubscriptions() {
+  // Listen for changes to the current user's profile
   supabase
     .channel("users-channel")
     .on(
@@ -497,6 +543,7 @@ async function setupRealtimeSubscriptions() {
     )
     .subscribe()
 
+  // Listen for new transactions
   supabase
     .channel("transactions-channel")
     .on(
@@ -524,6 +571,7 @@ async function setupRealtimeSubscriptions() {
     )
     .subscribe()
 
+  // Listen for settings changes
   supabase
     .channel("settings-channel")
     .on(
@@ -610,7 +658,7 @@ async function checkPhone() {
         receiverData = receiver
       } else {
         receiverName.className = "account-status not-found"
-        receiverName.textContent = "အကောင့်မတွေ့ပါ သို့မဟုတ် နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ။"
+        receiverName.textContent = "အကောင့်မတွေ့ပါ သို့မဟုတ် နိုင်ငံကူးလက်မှတ်အတည်မပြုရသေးပါ�।"
       }
     }
   } catch (error) {
@@ -724,6 +772,7 @@ async function submitTransfer() {
     const isOnline = navigator.onLine
     animation.style.animationDuration = isOnline ? "1s" : "3s"
 
+    // Generate a unique transaction ID
     const transactionId = `TXN${Date.now().toString().slice(-10)}${Math.floor(Math.random() * 1000)}`
 
     const { data: sender, error: senderError } = await supabase
@@ -1022,7 +1071,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
     }
 
     const passportNumber = document.getElementById("passport-number").value
-    const address = document.getElementById("address").value
+    const address = document.getElementById("passport-number").value
     const phone = document.getElementById("phone").value
     const paymentPin = document.getElementById("payment-pin").value
     const passportImage = document.getElementById("passport-image").files[0]
@@ -1040,6 +1089,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
       return
     }
 
+    // Show loading state
     const submitBtn = document.getElementById("submit-passport-btn")
     const originalText = submitBtn.textContent
     submitBtn.disabled = true
@@ -1059,6 +1109,7 @@ document.getElementById("submit-passport-btn").addEventListener("click", async (
       return
     }
 
+    // Upload images to Imgur
     const passportImageUrl = await uploadToImgur(passportImage)
     const selfieImageUrl = await uploadToImgur(selfieImage)
 
