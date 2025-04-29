@@ -9,6 +9,7 @@ let userBalance = 0;
 let userKycStatus = 'pending';
 let transfersEnabled = true;
 let currentTheme = localStorage.getItem('theme') || 'light';
+let recipientInfo = null; // Store recipient information
 
 // DOM Elements
 const loader = document.getElementById('loader');
@@ -321,7 +322,7 @@ function updateTransactionsUI(transactions, userPhone) {
         const transactionDate = new Date(transaction.created_at).toLocaleString();
         
         const transactionItem = `
-            <div class="transaction-item ${isSender ? 'sent' : 'received'}">
+            <div class="transaction-item ${isSender ? 'sent' : 'received'}" data-transaction-id="${transaction.id}">
                 <div class="transaction-icon">
                     <i class="fas ${isSender ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
                 </div>
@@ -345,6 +346,17 @@ function updateTransactionsUI(transactions, userPhone) {
         
         // Add to history transactions
         historyTransactionsList.innerHTML += transactionItem;
+    });
+
+    // Add click event to show receipt
+    document.querySelectorAll('.transaction-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const transactionId = item.getAttribute('data-transaction-id');
+            const transaction = transactions.find(t => t.id == transactionId);
+            if (transaction) {
+                showTransactionReceipt(transaction, userPhone);
+            }
+        });
     });
 }
 
@@ -596,6 +608,161 @@ function initializeUI() {
     
     // Form submissions
     setupFormSubmissions();
+
+    // Create receipt modal
+    createReceiptModal();
+}
+
+// Create receipt modal
+function createReceiptModal() {
+    // Create the modal element
+    const receiptModal = document.createElement('div');
+    receiptModal.id = 'receipt-modal';
+    receiptModal.className = 'modal';
+    
+    // Create modal content
+    receiptModal.innerHTML = `
+        <div class="modal-content receipt-modal-content">
+            <div class="modal-header">
+                <h3>ငွေလွှဲပြေစာ</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="receipt-container">
+                    <div class="receipt">
+                        <div class="receipt-header">
+                            <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="receipt-logo">
+                            <h2>OPPER</h2>
+                        </div>
+                        <div class="receipt-title">ငွေလွှဲပြေစာ</div>
+                        <div class="receipt-status" id="receipt-status">
+                            <span class="status-badge">ပို့ထားသော</span>
+                        </div>
+                        <div class="receipt-details">
+                            <div class="receipt-row">
+                                <div class="receipt-label">ငွေပမာဏ</div>
+                                <div class="receipt-value" id="receipt-amount">0 Ks</div>
+                            </div>
+                            <div class="receipt-row">
+                                <div class="receipt-label">မှ</div>
+                                <div class="receipt-value" id="receipt-from">-</div>
+                            </div>
+                            <div class="receipt-row">
+                                <div class="receipt-label">သို့</div>
+                                <div class="receipt-value" id="receipt-to">-</div>
+                            </div>
+                            <div class="receipt-row">
+                                <div class="receipt-label">ရက်စွဲ</div>
+                                <div class="receipt-value" id="receipt-date">-</div>
+                            </div>
+                            <div class="receipt-row">
+                                <div class="receipt-label">မှတ်ချက်</div>
+                                <div class="receipt-value" id="receipt-note">-</div>
+                            </div>
+                            <div class="receipt-row">
+                                <div class="receipt-label">Transaction ID</div>
+                                <div class="receipt-value" id="receipt-id">-</div>
+                            </div>
+                        </div>
+                        <div class="receipt-footer">
+                            <div class="receipt-thank-you">OPPER Payment ကို အသုံးပြုသည့်အတွက် ကျေးဇူးတင်ပါသည်။</div>
+                            <div class="receipt-contact">အကူအညီလိုအပ်ပါက ဖုန်း - 09xxxxxxxxx သို့ ဆက်သွယ်ပါ။</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="download-receipt">
+                    <i class="fas fa-download"></i>
+                    <span>ပြေစာကို ဒေါင်းလုဒ်ဆွဲရန်</span>
+                </button>
+                <button class="btn btn-primary" id="close-receipt">
+                    <span>ပိတ်မည်</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Append modal to body
+    document.body.appendChild(receiptModal);
+    
+    // Add event listeners
+    document.getElementById('close-receipt').addEventListener('click', () => {
+        receiptModal.classList.remove('active');
+    });
+    
+    document.getElementById('download-receipt').addEventListener('click', () => {
+        downloadReceipt();
+    });
+    
+    document.querySelector('#receipt-modal .modal-close').addEventListener('click', () => {
+        receiptModal.classList.remove('active');
+    });
+}
+
+// Show transaction receipt
+function showTransactionReceipt(transaction, userPhone) {
+    const isSender = transaction.from_phone === userPhone;
+    const statusText = isSender ? 'ပို့ထားသော' : 'လက်ခံရရှိသော';
+    const statusClass = isSender ? 'sent' : 'received';
+    const transactionDate = new Date(transaction.created_at).toLocaleString();
+    const transactionId = transaction.id || generateTransactionId();
+    
+    // Update receipt content
+    document.getElementById('receipt-status').innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
+    document.getElementById('receipt-amount').textContent = `${transaction.amount.toLocaleString()} Ks`;
+    document.getElementById('receipt-from').textContent = transaction.from_phone;
+    document.getElementById('receipt-to').textContent = transaction.to_phone;
+    document.getElementById('receipt-date').textContent = transactionDate;
+    document.getElementById('receipt-note').textContent = transaction.note || '-';
+    document.getElementById('receipt-id').textContent = transactionId;
+    
+    // Show receipt modal
+    document.getElementById('receipt-modal').classList.add('active');
+}
+
+// Generate transaction ID
+function generateTransactionId() {
+    return 'TXN' + Date.now().toString().slice(-8) + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+}
+
+// Download receipt as PNG
+function downloadReceipt() {
+    const receiptElement = document.querySelector('.receipt');
+    
+    // Use html2canvas to convert the receipt to an image
+    html2canvas(receiptElement, {
+        scale: 2,
+        backgroundColor: null,
+        logging: false
+    }).then(canvas => {
+        // Convert canvas to data URL
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = 'OPPER_Receipt_' + Date.now() + '.png';
+        
+        // Check if running in Android WebView
+        if (window.Android) {
+            // Call Android method to save image
+            try {
+                window.Android.saveImageToGallery(imgData);
+                alert('ပြေစာကို ဖုန်းထဲသို့ သိမ်းဆည်းပြီးပါပြီ။');
+            } catch (e) {
+                console.error('Android save failed:', e);
+                // Fallback to normal download
+                link.click();
+            }
+        } else {
+            // Normal browser download
+            link.click();
+        }
+    }).catch(err => {
+        console.error('Receipt download error:', err);
+        alert('ပြေစာကို ဒေါင်းလုဒ်ဆွဲရာတွင် အမှားရှိနေပါသည်။');
+    });
 }
 
 // Setup form submissions
@@ -805,6 +972,49 @@ function setupFormSubmissions() {
     
     // Transfer form
     const transferBtn = document.getElementById('transfer-btn');
+    const transferPhoneInput = document.getElementById('transfer-phone');
+    const recipientStatusElement = document.createElement('div');
+    recipientStatusElement.className = 'recipient-status';
+    transferPhoneInput.parentNode.appendChild(recipientStatusElement);
+    
+    // Add event listener to check recipient status when phone number is entered
+    transferPhoneInput.addEventListener('blur', async () => {
+        const phone = transferPhoneInput.value;
+        if (!phone || phone.length < 9) {
+            recipientStatusElement.innerHTML = '';
+            recipientInfo = null;
+            return;
+        }
+        
+        try {
+            // Check if recipient exists
+            const { data: recipient, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+            
+            if (error || !recipient) {
+                recipientStatusElement.innerHTML = '<span class="status-badge rejected">အကောင့်မတွေ့ရှိပါ</span>';
+                recipientInfo = null;
+                return;
+            }
+            
+            // Store recipient info
+            recipientInfo = recipient;
+            
+            // Check if account is approved
+            if (recipient.passport_status === 'approved') {
+                recipientStatusElement.innerHTML = '<span class="status-badge approved">အတည်ပြုပြီးအကောင့်</span>';
+            } else {
+                recipientStatusElement.innerHTML = '<span class="status-badge pending">အတည်မပြုရသေးသောအကောင့်</span>';
+            }
+        } catch (error) {
+            console.error('Recipient check error:', error);
+            recipientStatusElement.innerHTML = '';
+            recipientInfo = null;
+        }
+    });
     
     transferBtn.addEventListener('click', async () => {
         const phone = document.getElementById('transfer-phone').value;
@@ -880,17 +1090,24 @@ function setupFormSubmissions() {
             }
             
             // Check if recipient exists
-            const { data: recipient, error: recipientError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('phone', phone)
-                .single();
-            
-            if (recipientError || !recipient) {
-                errorElement.textContent = 'လက်ခံမည့်သူ မတွေ့ရှိပါ။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
+            let recipient;
+            if (recipientInfo) {
+                recipient = recipientInfo;
+            } else {
+                const { data: recipientData, error: recipientError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('phone', phone)
+                    .single();
+                
+                if (recipientError || !recipientData) {
+                    errorElement.textContent = 'လက်ခံမည့်သူ မတွေ့ရှိပါ။';
+                    errorElement.style.display = 'block';
+                    successElement.style.display = 'none';
+                    return;
+                }
+                
+                recipient = recipientData;
             }
             
             // Check if sending to self
@@ -902,15 +1119,19 @@ function setupFormSubmissions() {
             }
             
             // Create transaction
+            const transactionId = generateTransactionId();
+            const timestamp = new Date().toISOString();
+            
             const { data: transaction, error: transactionError } = await supabase
                 .from('transactions')
                 .insert([
                     {
+                        id: transactionId,
                         from_phone: sender.phone,
                         to_phone: recipient.phone,
                         amount,
                         note,
-                        timestamp: new Date().toISOString()
+                        created_at: timestamp
                     }
                 ])
                 .select()
@@ -939,11 +1160,23 @@ function setupFormSubmissions() {
             successElement.textContent = `${amount.toLocaleString()} Ks ကို ${phone} သို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`;
             successElement.style.display = 'block';
             
+            // Show receipt
+            showTransactionReceipt({
+                id: transactionId,
+                from_phone: sender.phone,
+                to_phone: recipient.phone,
+                amount,
+                note,
+                created_at: timestamp
+            }, sender.phone);
+            
             // Clear form
             document.getElementById('transfer-phone').value = '';
             document.getElementById('transfer-amount').value = '';
             document.getElementById('transfer-note').value = '';
             document.getElementById('transfer-pin').value = '';
+            recipientStatusElement.innerHTML = '';
+            recipientInfo = null;
             
             // Refresh user data
             await loadUserData();
@@ -1279,6 +1512,8 @@ function setupFormSubmissions() {
 
 // Simulate Google login/signup
 function simulateGoogleLogin(type) {
+    // For demo purposes, we'll use a mock Google account
+    const googleEmail = 'user@  {
     // For demo purposes, we'll use a mock Google account
     const googleEmail = 'user@gmail.com';
     const googleName = 'User';
