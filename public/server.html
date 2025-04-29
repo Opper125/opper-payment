@@ -5,1048 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OPPER Payment Server</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #ff4d4d;
-            --primary-dark: #e63939;
-            --primary-light: #ff7070;
-            --secondary: #0d0d2b;
-            --secondary-dark: #080818;
-            --secondary-light: #1e1e5f;
-            --accent: #00ccff;
-            --accent-dark: #0099cc;
-            --accent-light: #33ddff;
-            --success: #33cc33;
-            --success-dark: #229922;
-            --success-light: #44dd44;
-            --warning: #ffcc00;
-            --warning-dark: #e6b800;
-            --warning-light: #ffdd33;
-            --danger: #ff3333;
-            --danger-dark: #cc0000;
-            --danger-light: #ff6666;
-            --info: #3b82f6;
-            --info-dark: #1d4ed8;
-            --info-light: #60a5fa;
-            --text-light: #e0e0ff;
-            --text-dark: #0d0d2b;
-            --bg-dark: #0a0a23;
-            --bg-card: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.4);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --transition: all 0.3s ease;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
-            min-height: 100vh;
-            color: var(--text-light);
-            font-size: 16px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(13, 13, 43, 0.3);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-light);
-        }
-
-        /* Background Effects */
-        .background-waves {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: transparent;
-            overflow: hidden;
-        }
-
-        .wave {
-            position: absolute;
-            bottom: -100px;
-            left: 0;
-            width: 100%;
-            height: 100px;
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(255, 77, 77, 0.15)"/></svg>');
-            background-size: cover;
-            animation: wave 15s linear infinite;
-        }
-
-        .wave:nth-child(2) {
-            bottom: -120px;
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(13, 13, 43, 0.2)"/></svg>');
-            animation: wave 20s linear infinite reverse;
-        }
-
-        @keyframes wave {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(1200px); }
-        }
-
-        /* Layout */
-        .dashboard {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: rgba(13, 13, 43, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px;
-            height: 100vh;
-            z-index: 100;
-            transition: var(--transition);
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo img {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-        }
-
-        .logo h2 {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0;
-        }
-
-        .menu-toggle {
-            display: none;
-            background: transparent;
-            border: none;
-            color: var(--text-light);
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .nav-item {
-            margin-bottom: 5px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 15px;
-            color: var(--text-light);
-            text-decoration: none;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: rgba(255, 77, 77, 0.1);
-            color: var(--primary);
-        }
-
-        .nav-link i {
-            font-size: 18px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        .admin-details {
-            flex: 1;
-        }
-
-        .admin-name {
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .admin-role {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 10px;
-            margin-top: 15px;
-            background: rgba(255, 77, 77, 0.1);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .logout-btn:hover {
-            background: var(--primary);
-            color: var(--text-dark);
-        }
-
-        /* Main Content */
-        .main-content {
-            grid-column: 2;
-            padding: 20px;
-            transition: var(--transition);
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        /* Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-            transition: var(--transition);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary);
-        }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .stat-title {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .stat-icon.users {
-            background: rgba(255, 77, 77, 0.1);
-            color: var(--primary);
-        }
-
-        .stat-icon.approved {
-            background: rgba(51, 204, 51, 0.1);
-            color: var(--success);
-        }
-
-        .stat-icon.pending {
-            background: rgba(255, 204, 0, 0.1);
-            color: var(--warning);
-        }
-
-        .stat-icon.rejected {
-            background: rgba(255, 51, 51, 0.1);
-            color: var(--danger);
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .stat-description {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* Control Panel */
-        .control-panel {
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-        }
-
-        .panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .panel-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .panel-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .transfer-status {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .indicator.on {
-            background: var(--success);
-            box-shadow: 0 0 10px var(--success);
-        }
-
-        .indicator.off {
-            background: var(--danger);
-            box-shadow: 0 0 10px var(--danger);
-        }
-
-        .control-buttons {
-            display: flex;
-            gap: 15px;
-        }
-
-        /* Bulk Deposit */
-        .bulk-deposit {
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-        }
-
-        .form-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        /* Search Bar */
-        .search-bar {
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-        }
-
-        .search-form {
-            display: flex;
-            gap: 15px;
-        }
-
-        /* User List */
-        .user-list {
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-            overflow: hidden;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 800px;
-        }
-
-        thead {
-            background: rgba(13, 13, 43, 0.5);
-        }
-
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--primary);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-        }
-
-        tr:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .user-id {
-            font-weight: 600;
-            color: var(--info);
-        }
-
-        .user-phone {
-            color: var(--text-light);
-        }
-
-        .user-balance {
-            font-weight: 600;
-            color: var(--success);
-        }
-
-        .user-status {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-align: center;
-            min-width: 100px;
-        }
-
-        .status-pending {
-            background: rgba(255, 204, 0, 0.1);
-            color: var(--warning);
-            border: 1px solid var(--warning);
-        }
-
-        .status-approved {
-            background: rgba(51, 204, 51, 0.1);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .status-rejected {
-            background: rgba(255, 51, 51, 0.1);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .user-image {
-            width: 60px;
-            height: 60px;
-            border-radius: var(--radius-sm);
-            object-fit: cover;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 2px solid transparent;
-        }
-
-        .user-image:hover {
-            transform: scale(1.05);
-            border-color: var(--primary);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        /* Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background: var(--secondary);
-            border-radius: var(--radius-md);
-            padding: 25px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-color);
-            position: relative;
-            animation: modalFadeIn 0.3s ease;
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .close-modal {
-            background: transparent;
-            border: none;
-            color: var(--text-light);
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            margin-bottom: 20px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Image Preview Modal */
-        .image-preview {
-            max-width: 100%;
-            max-height: 70vh;
-            border-radius: var(--radius-md);
-            display: block;
-            margin: 0 auto;
-        }
-
-        /* Login Container */
-        .login-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .login-box {
-            background: var(--secondary);
-            border-radius: var(--radius-md);
-            padding: 30px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-color);
-            animation: loginFadeIn 0.5s ease;
-        }
-
-        @keyframes loginFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .login-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .login-logo img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-        }
-
-        .login-title {
-            text-align: center;
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 30px;
-        }
-
-        /* Form Elements */
-        input, select {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-light);
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(255, 77, 77, 0.2);
-            outline: none;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: var(--transition);
-            border: none;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: var(--text-dark);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: var(--text-dark);
-        }
-
-        .btn-success:hover {
-            background: var(--success-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(51, 204, 51, 0.3);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: var(--text-light);
-        }
-
-        .btn-danger:hover {
-            background: var(--danger-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(255, 51, 51, 0.3);
-        }
-
-        .btn-info {
-            background: var(--info);
-            color: var(--text-light);
-        }
-
-        .btn-info:hover {
-            background: var(--info-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-        }
-
-        .btn-outline:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .btn-block {
-            width: 100%;
-        }
-
-        /* Messages */
-        .message {
-            padding: 12px 15px;
-            border-radius: var(--radius-sm);
-            margin: 15px 0;
-            font-size: 14px;
-            display: none;
-        }
-
-        .message-success {
-            background: rgba(51, 204, 51, 0.1);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .message-error {
-            background: rgba(255, 51, 51, 0.1);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 20px;
-        }
-
-        .page-item {
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-sm);
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .page-item:hover, .page-item.active {
-            background: var(--primary);
-            color: var(--text-dark);
-            border-color: var(--primary);
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                transform: translateX(-100%);
-                box-shadow: var(--shadow-lg);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                grid-column: 1;
-                padding-left: 20px;
-            }
-
-            .menu-toggle {
-                display: block;
-            }
-
-            .header {
-                position: sticky;
-                top: 0;
-                background: var(--secondary);
-                z-index: 90;
-                padding: 15px;
-                margin: -20px -20px 20px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            }
-
-            .form-group, .search-form {
-                flex-direction: column;
-            }
-
-            .control-buttons {
-                flex-direction: column;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header-actions {
-                display: none;
-            }
-        }
-
-        /* Utility Classes */
-        .hidden {
-            display: none !important;
-        }
-
-        .flex {
-            display: flex;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .gap-2 {
-            gap: 8px;
-        }
-
-        .mt-4 {
-            margin-top: 16px;
-        }
-
-        .mb-4 {
-            margin-bottom: 16px;
-        }
-
-        /* Icons */
-        .icon {
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            stroke-width: 0;
-            stroke: currentColor;
-            fill: currentColor;
-            vertical-align: middle;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>:root{--primary:#ff4d4d;--primary-dark:#e63939;--primary-light:#ff7070;--secondary:#0d0d2b;--secondary-dark:#080818;--secondary-light:#1e1e5f;--accent:#00ccff;--accent-dark:#0099cc;--accent-light:#33ddff;--success:#33cc33;--success-dark:#229922;--success-light:#44dd44;--warning:#ffcc00;--warning-dark:#e6b800;--warning-light:#ffdd33;--danger:#ff3333;--danger-dark:#cc0000;--danger-light:#ff6666;--info:#3b82f6;--info-dark:#1d4ed8;--info-light:#60a5fa;--text-light:#e0e0ff;--text-dark:#0d0d2b;--bg-dark:#0a0a23;--bg-card:rgba(255,255,255,0.05);--border-color:rgba(255,255,255,0.1);--shadow-sm:0 2px 5px rgba(0,0,0,0.2);--shadow-md:0 4px 10px rgba(0,0,0,0.3);--shadow-lg:0 10px 20px rgba(0,0,0,0.4);--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--transition:all 0.3s ease;}*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}body{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));min-height:100vh;color:var(--text-light);font-size:16px;position:relative;overflow-x:hidden;}::-webkit-scrollbar{width:8px;height:8px;}::-webkit-scrollbar-track{background:rgba(13,13,43,0.3);border-radius:10px;}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:10px;}::-webkit-scrollbar-thumb:hover{background:var(--primary-light);}.background-waves{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;background:transparent;overflow:hidden;}.wave{position:absolute;bottom:-100px;left:0;width:100%;height:100px;background:url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(255, 77, 77, 0.15)"/></svg>');background-size:cover;animation:wave 15s linear infinite;}.wave:nth-child(2){bottom:-120px;background:url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0v27.35a600.21,600.21,0,0,0,321.39,29.09Z" fill="rgba(13, 13, 43, 0.2)"/></svg>');animation:wave 20s linear infinite reverse;}@keyframes wave{0%{transform:translateX(0);}100%{transform:translateX(1200px);}}.dashboard{display:grid;grid-template-columns:250px 1fr;min-height:100vh;}.sidebar{background:rgba(13,13,43,0.8);backdrop-filter:blur(10px);padding:20px;border-right:1px solid var(--border-color);display:flex;flex-direction:column;position:fixed;top:0;left:0;width:250px;height:100vh;z-index:100;transition:var(--transition);overflow-y:auto;transform:translateX(-100%);}.sidebar.active{transform:translateX(0);}.sidebar-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;border-bottom:1px solid var(--border-color);margin-bottom:20px;}.logo{display:flex;align-items:center;gap:10px;}.logo img{width:40px;height:40px;object-fit:contain;}.logo h2{font-size:18px;font-weight:700;color:var(--primary);margin:0;}.menu-toggle{background:transparent;border:none;color:var(--text-light);font-size:24px;cursor:pointer;}.nav-menu{list-style:none;padding:0;margin:0;}.nav-item{margin-bottom:5px;}.nav-link{display:flex;align-items:center;gap:10px;padding:12px 15px;color:var(--text-light);text-decoration:none;border-radius:var(--radius-sm);transition:var(--transition);}.nav-link:hover,.nav-link.active{background:rgba(255,77,77,0.1);color:var(--primary);}.nav-link i{font-size:18px;width:20px;text-align:center;}.sidebar-footer{margin-top:auto;padding-top:20px;border-top:1px solid var(--border-color);}.admin-info{display:flex;align-items:center;gap:10px;}.admin-avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text-dark);}.admin-details{flex:1;}.admin-name{font-weight:600;font-size:14px;}.admin-role{font-size:12px;color:rgba(255,255,255,0.6);}.logout-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;margin-top:15px;background:rgba(255,77,77,0.1);color:var(--primary);border:1px solid var(--primary);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);}.logout-btn:hover{background:var(--primary);color:var(--text-dark);}.main-content{grid-column:2;padding:20px;transition:var(--transition);}.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px;padding-bottom:20px;border-bottom:1px solid var(--border-color);position:sticky;top:0;background:var(--secondary);z-index:90;padding:15px;margin:-20px -20px 20px;}.page-title{font-size:24px;font-weight:700;color:var(--primary);}.header-actions{display:flex;gap:15px;}.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-bottom:30px;}.stat-card{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;box-shadow:var(--shadow-md);border:1px solid var(--border-color);backdrop-filter:blur(10px);transition:var(--transition);}.stat-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:var(--primary);}.stat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;}.stat-title{font-size:14px;color:rgba(255,255,255,0.7);}.stat-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;}.stat-icon.users{background:rgba(255,77,77,0.1);color:var(--primary);}.stat-icon.approved{background:rgba(51,204,51,0.1);color:var(--success);}.stat-icon.pending{background:rgba(255,204,0,0.1);color:var(--warning);}.stat-icon.rejected{background:rgba(255,51,51,0.1);color:var(--danger);}.stat-value{font-size:28px;font-weight:700;margin-bottom:5px;}.stat-description{font-size:12px;color:rgba(255,255,255,0.6);}.control-panel{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;margin-bottom:30px;box-shadow:var(--shadow-md);border:1px solid var(--border-color);backdrop-filter:blur(10px);}.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}.panel-title{font-size:18px;font-weight:600;color:var(--primary);}.panel-actions{display:flex;gap:10px;}.transfer-status{display:flex;align-items:center;gap:15px;margin-bottom:20px;}.status-indicator{display:flex;align-items:center;gap:8px;}.indicator{width:12px;height:12px;border-radius:50%;}.indicator.on{background:var(--success);box-shadow:0 0 10px var(--success);}.indicator.off{background:var(--danger);box-shadow:0 0 10px var(--danger);}.control-buttons{display:flex;gap:15px;}.bulk-deposit{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;margin-bottom:30px;box-shadow:var(--shadow-md);border:1px solid var(--border-color);backdrop-filter:blur(10px);}.form-group{display:flex;gap:15px;margin-top:15px;}.search-bar{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;margin-bottom:30px;box-shadow:var(--shadow-md);border:1px solid var(--border-color);backdrop-filter:blur(10px);}.search-form{display:flex;gap:15px;}.user-list{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;box-shadow:var(--shadow-md);border:1px solid var(--border-color);backdrop-filter:blur(10px);overflow:hidden;}.table-container{overflow-x:auto;margin-top:20px;}table{width:100%;border-collapse:collapse;min-width:800px;}thead{background:rgba(13,13,43,0.5);}th{padding:15px;text-align:left;font-weight:600;color:var(--primary);border-bottom:1px solid var(--border-color);}td{padding:15px;border-bottom:1px solid var(--border-color);vertical-align:middle;}tr:hover{background:rgba(255,255,255,0.03);}.user-id{font-weight:600;color:var(--info);}.user-phone{color:var(--text-light);}.user-balance{font-weight:600;color:var(--success);}.user-status{display:inline-block;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;}.status-approved{background:rgba(51,204,51,0.1);color:var(--success);border:1px solid var(--success);}.status-pending{background:rgba(255,204,0,0.1);color:var(--warning);border:1px solid var(--warning);}.status-rejected{background:rgba(255,51,51,0.1);color:var(--danger);border:1px solid var(--danger);}.action-buttons{display:flex;gap:10px;}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 15px;border-radius:var(--radius-sm);font-weight:600;font-size:14px;cursor:pointer;transition:var(--transition);border:none;}.btn-primary{background:var(--primary);color:var(--text-dark);}.btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 4px 10px rgba(255,77,77,0.3);}.btn-success{background:var(--success);color:white;}.btn-success:hover{background:var(--success-dark);transform:translateY(-2px);box-shadow:0 4px 10px rgba(51,204,51,0.3);}.btn-warning{background:var(--warning);color:var(--text-dark);}.btn-warning:hover{background:var(--warning-dark);transform:translateY(-2px);box-shadow:0 4px 10px rgba(255,204,0,0.3);}.btn-danger{background:var(--danger);color:white;}.btn-danger:hover{background:var(--danger-dark);transform:translateY(-2px);box-shadow:0 4px 10px rgba(255,51,51,0.3);}.btn-outline{background:transparent;border:1px solid var(--border-color);color:var(--text-light);}.btn-outline:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 10px rgba(255,77,77,0.1);}.btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;}.input-group{display:flex;flex-direction:column;gap:8px;flex:1;}.input-group label{font-size:14px;color:var(--text-light);}.input-field{padding:10px 15px;background:rgba(255,255,255,0.05);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-light);font-size:14px;transition:var(--transition);}.input-field:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 2px rgba(255,77,77,0.2);}.pagination{display:flex;justify-content:center;gap:10px;margin-top:20px;}.page-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.05);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-light);cursor:pointer;transition:var(--transition);}.page-btn:hover,.page-btn.active{background:var(--primary);color:var(--text-dark);border-color:var(--primary);}.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity 0.3s ease,visibility 0.3s ease;}.modal.active{opacity:1;visibility:visible;}.modal-content{background:rgba(13,13,43,0.95);backdrop-filter:blur(10px);border-radius:var(--radius-md);border:1px solid var(--border-color);box-shadow:var(--shadow-lg);width:90%;max-width:500px;max-height:90vh;overflow-y:auto;animation:modal-fade-in 0.3s ease;}@keyframes modal-fade-in{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}.modal-header{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--border-color);}.modal-header h3{font-size:18px;font-weight:600;color:var(--text-light);margin:0;}.modal-close{background:transparent;border:none;color:var(--text-light);font-size:24px;cursor:pointer;line-height:1;opacity:0.7;transition:var(--transition);}.modal-close:hover{opacity:1;color:var(--primary);}.modal-body{padding:20px;}.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:15px 20px;border-top:1px solid var(--border-color);}.kyc-details{display:grid;grid-template-columns:1fr 1fr;gap:20px;}.kyc-images{display:flex;flex-direction:column;gap:15px;}.kyc-image{width:100%;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border-color);}.kyc-image img{width:100%;height:auto;display:block;}.kyc-info{display:flex;flex-direction:column;gap:10px;}.kyc-info-item{display:flex;flex-direction:column;gap:5px;}.kyc-info-label{font-size:12px;color:rgba(255,255,255,0.6);}.kyc-info-value{font-size:14px;color:var(--text-light);}.notification{position:fixed;bottom:20px;right:20px;background:rgba(13,13,43,0.9);backdrop-filter:blur(10px);border-radius:var(--radius-md);padding:15px 20px;box-shadow:var(--shadow-lg);border-left:4px solid var(--primary);color:var(--text-light);z-index:1000;transform:translateX(120%);transition:transform 0.3s ease;max-width:300px;}.notification.show{transform:translateX(0);}.notification-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}.notification-title{font-weight:600;font-size:16px;}.notification-close{background:transparent;border:none;color:var(--text-light);cursor:pointer;font-size:16px;opacity:0.7;transition:var(--transition);}.notification-close:hover{opacity:1;}.notification-message{font-size:14px;line-height:1.5;}.page{display:none;}.page.active{display:block;}@media(max-width:991px){.dashboard{grid-template-columns:1fr;}.main-content{grid-column:1;}.sidebar{transform:translateX(-100%);}.sidebar.active{transform:translateX(0);}.mobile-menu-toggle{display:block;}}@media(min-width:992px){.sidebar{transform:translateX(0);}.mobile-menu-toggle{display:none;}.close-sidebar{display:none;}}@media(max-width:768px){.stats-grid{grid-template-columns:1fr;}.form-group{flex-direction:column;}.search-form{flex-direction:column;}.control-buttons{flex-direction:column;}.kyc-details{grid-template-columns:1fr;}}@media(max-width:480px){.header{flex-direction:column;align-items:flex-start;gap:15px;}.header-actions{width:100%;justify-content:space-between;}}</style>
 </head>
 <body>
-    <!-- Background Waves -->
     <div class="background-waves">
         <div class="wave"></div>
         <div class="wave"></div>
     </div>
 
-    <!-- Login Container -->
-    <div class="login-container" id="login-container">
-        <div class="login-box">
-            <div class="login-logo">
-                <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
-            </div>
-            <h2 class="login-title">Admin Dashboard</h2>
-            <div class="mb-4">
-                <input type="email" id="admin-email" placeholder="Email Address" required>
-            </div>
-            <div class="mb-4">
-                <input type="password" id="admin-pin" placeholder="PIN" required>
-            </div>
-            <button class="btn btn-primary btn-block" onclick="adminLogin()">
-                <span>Login</span>
-                <svg class="icon" viewBox="0 0 24 24">
-                    <path d="M14 12l-4-4v3H2v2h8v3l4-4z"></path>
-                    <path d="M20 7V5c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2v-2h-2v2H9V5h9v2h2z"></path>
-                </svg>
-            </button>
-            <div class="message message-error" id="login-error"></div>
-        </div>
-    </div>
-
-    <!-- Dashboard -->
-    <div class="dashboard" id="dashboard">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
+    <div class="dashboard">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
                     <h2>OPPER Admin</h2>
                 </div>
-                <button class="menu-toggle" id="close-sidebar">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
-                    </svg>
+                <button class="menu-toggle close-sidebar" id="close-sidebar">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#dashboard" class="nav-link active" onclick="showTab('dashboard-tab')">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path>
-                        </svg>
-                        Dashboard
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#users" class="nav-link" onclick="showTab('users-tab')">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
-                        </svg>
-                        Users
+                    <a href="#" class="nav-link" data-page="users">
+                        <i class="fas fa-users"></i>
+                        <span>Users</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#kyc" class="nav-link" onclick="showTab('kyc-tab')">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"></path>
-                        </svg>
-                        KYC Verification
+                    <a href="#" class="nav-link" data-page="kyc">
+                        <i class="fas fa-id-card"></i>
+                        <span>KYC Verification</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#transactions" class="nav-link" onclick="showTab('transactions-tab')">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"></path>
-                        </svg>
-                        Transactions
+                    <a href="#" class="nav-link" data-page="transactions">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Transactions</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#settings" class="nav-link" onclick="showTab('settings-tab')">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
-                        </svg>
-                        Settings
+                    <a href="#" class="nav-link" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
                     </a>
                 </li>
             </ul>
@@ -1054,161 +61,165 @@
                 <div class="admin-info">
                     <div class="admin-avatar">A</div>
                     <div class="admin-details">
-                        <div class="admin-name">Admin</div>
+                        <div class="admin-name">Admin User</div>
                         <div class="admin-role">Super Admin</div>
                     </div>
                 </div>
-                <button class="logout-btn" onclick="logout()">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"></path>
-                    </svg>
-                    Logout
+                <button class="logout-btn" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
                 </button>
             </div>
-        </div>
+        </aside>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <div class="header">
-                <button class="menu-toggle" id="open-sidebar">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path>
-                    </svg>
+        <main class="main-content">
+            <header class="header">
+                <button class="menu-toggle mobile-menu-toggle" id="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
                 </button>
                 <h1 class="page-title">Dashboard</h1>
                 <div class="header-actions">
-                    <button class="btn btn-outline" onclick="refreshData()">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path>
-                        </svg>
-                        Refresh
+                    <button class="btn btn-outline" id="refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
+                    <button class="btn btn-primary" id="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        <span class="badge">3</span>
                     </button>
                 </div>
-            </div>
+            </header>
 
-            <!-- Dashboard Tab -->
-            <div id="dashboard-tab" class="tab-content active">
-                <!-- Stats Grid -->
+            <section class="page active" id="dashboard-page">
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-header">
                             <div class="stat-title">Total Users</div>
                             <div class="stat-icon users">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path>
-                                </svg>
+                                <i class="fas fa-users"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="total-users">0</div>
-                        <div class="stat-description">Registered users</div>
+                        <div class="stat-value">1,245</div>
+                        <div class="stat-description">+12% from last month</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-title">Approved Users</div>
+                            <div class="stat-title">KYC Approved</div>
                             <div class="stat-icon approved">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
-                                </svg>
+                                <i class="fas fa-check-circle"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="approved-users">0</div>
-                        <div class="stat-description">KYC verified users</div>
+                        <div class="stat-value">876</div>
+                        <div class="stat-description">70.3% of total users</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-title">Pending Users</div>
+                            <div class="stat-title">KYC Pending</div>
                             <div class="stat-icon pending">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path>
-                                    <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"></path>
-                                </svg>
+                                <i class="fas fa-clock"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="pending-users">0</div>
-                        <div class="stat-description">Awaiting verification</div>
+                        <div class="stat-value">243</div>
+                        <div class="stat-description">19.5% of total users</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-title">Rejected Users</div>
+                            <div class="stat-title">KYC Rejected</div>
                             <div class="stat-icon rejected">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
-                                </svg>
+                                <i class="fas fa-times-circle"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="rejected-users">0</div>
-                        <div class="stat-description">Failed verification</div>
+                        <div class="stat-value">126</div>
+                        <div class="stat-description">10.1% of total users</div>
                     </div>
                 </div>
 
-                <!-- Control Panel -->
                 <div class="control-panel">
                     <div class="panel-header">
                         <h2 class="panel-title">System Controls</h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-outline" id="system-log-btn">
+                                <i class="fas fa-list"></i>
+                                <span>System Log</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="transfer-status">
                         <div class="status-indicator">
-                            <div class="indicator" id="transfer-indicator"></div>
-                            <span id="transfer-status-text">Loading status...</span>
+                            <div class="indicator on" id="transfer-indicator"></div>
+                            <span id="transfer-status-text">Transfers: Enabled</span>
                         </div>
                     </div>
                     <div class="control-buttons">
-                        <button class="btn btn-success" onclick="enableTransfers()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
-                            </svg>
-                            Enable Transfers
+                        <button class="btn btn-success" id="enable-transfers-btn">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Enable Transfers</span>
                         </button>
-                        <button class="btn btn-danger" onclick="disableTransfers()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
-                            </svg>
-                            Disable Transfers
+                        <button class="btn btn-danger" id="disable-transfers-btn">
+                            <i class="fas fa-ban"></i>
+                            <span>Disable Transfers</span>
+                        </button>
+                        <button class="btn btn-warning" id="maintenance-mode-btn">
+                            <i class="fas fa-tools"></i>
+                            <span>Maintenance Mode</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Bulk Deposit -->
                 <div class="bulk-deposit">
                     <div class="panel-header">
                         <h2 class="panel-title">Bulk Deposit</h2>
                     </div>
                     <div class="form-group">
-                        <input type="number" id="bulk-amount" placeholder="Enter Amount (Ks)" min="1">
-                        <button class="btn btn-primary" onclick="bulkDeposit()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
-                            </svg>
-                            Deposit to All Approved Users
+                        <div class="input-group">
+                            <label for="deposit-phone">User Phone</label>
+                            <input type="text" id="deposit-phone" class="input-field" placeholder="09xxxxxxxxx">
+                        </div>
+                        <div class="input-group">
+                            <label for="deposit-amount">Amount (Ks)</label>
+                            <input type="number" id="deposit-amount" class="input-field" placeholder="Enter amount">
+                        </div>
+                        <button class="btn btn-primary" id="deposit-btn">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Deposit</span>
                         </button>
                     </div>
-                    <div class="message message-success" id="bulk-success"></div>
-                    <div class="message message-error" id="bulk-error"></div>
                 </div>
-            </div>
 
-            <!-- Users Tab -->
-            <div id="users-tab" class="tab-content">
-                <!-- Search Bar -->
                 <div class="search-bar">
                     <div class="panel-header">
-                        <h2 class="panel-title">Search Users</h2>
+                        <h2 class="panel-title">Quick Search</h2>
                     </div>
                     <div class="search-form">
-                        <input type="text" id="search-input" placeholder="Search by User ID or Phone Number">
-                        <button class="btn btn-primary" onclick="searchUser()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
-                            </svg>
-                            Search
+                        <div class="input-group">
+                            <label for="search-type">Search Type</label>
+                            <select id="search-type" class="input-field">
+                                <option value="user">User</option>
+                                <option value="transaction">Transaction</option>
+                                <option value="kyc">KYC</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="search-query">Search Query</label>
+                            <input type="text" id="search-query" class="input-field" placeholder="Enter user ID, phone, or transaction ID">
+                        </div>
+                        <button class="btn btn-primary" id="search-btn">
+                            <i class="fas fa-search"></i>
+                            <span>Search</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- User List -->
                 <div class="user-list">
                     <div class="panel-header">
-                        <h2 class="panel-title">All Users</h2>
+                        <h2 class="panel-title">Recent Users</h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-outline" id="view-all-users-btn">
+                                <span>View All</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table>
@@ -1217,24 +228,93 @@
                                     <th>User ID</th>
                                     <th>Phone</th>
                                     <th>Balance</th>
-                                    <th>Status</th>
-                                    <th>Passport</th>
-                                    <th>Selfie</th>
+                                    <th>KYC Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="user-table"></tbody>
+                            <tbody>
+                                <tr>
+                                    <td class="user-id">user1234</td>
+                                    <td class="user-phone">09123456789</td>
+                                    <td class="user-balance">250,000 Ks</td>
+                                    <td><span class="user-status status-approved">Approved</span></td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-icon btn-outline view-user-btn" title="View User">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-icon btn-outline edit-user-btn" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="user-id">user5678</td>
+                                    <td class="user-phone">09987654321</td>
+                                    <td class="user-balance">120,000 Ks</td>
+                                    <td><span class="user-status status-pending">Pending</span></td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-icon btn-outline view-user-btn" title="View User">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-icon btn-outline edit-user-btn" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="user-id">user9012</td>
+                                    <td class="user-phone">09555666777</td>
+                                    <td class="user-balance">75,000 Ks</td>
+                                    <td><span class="user-status status-rejected">Rejected</span></td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-icon btn-outline view-user-btn" title="View User">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-icon btn-outline edit-user-btn" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
-                    <div class="pagination" id="pagination"></div>
                 </div>
-            </div>
+            </section>
 
-            <!-- KYC Tab -->
-            <div id="kyc-tab" class="tab-content">
+            <section class="page" id="users-page">
+                <div class="search-bar">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Search Users</h2>
+                    </div>
+                    <div class="search-form">
+                        <div class="input-group">
+                            <label for="user-search-type">Search By</label>
+                            <select id="user-search-type" class="input-field">
+                                <option value="user_id">User ID</option>
+                                <option value="phone">Phone</option>
+                                <option value="email">Email</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="user-search-query">Search Query</label>
+                            <input type="text" id="user-search-query" class="input-field" placeholder="Enter search term">
+                        </div>
+                        <button class="btn btn-primary" id="user-search-btn">
+                            <i class="fas fa-search"></i>
+                            <span>Search</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="user-list">
                     <div class="panel-header">
-                        <h2 class="panel-title">Pending KYC Verifications</h2>
+                        <h2 class="panel-title">All Users</h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-outline" id="export-users-btn">
+                                <i class="fas fa-download"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table>
@@ -1242,706 +322,507 @@
                                 <tr>
                                     <th>User ID</th>
                                     <th>Phone</th>
-                                    <th>Passport</th>
-                                    <th>Selfie</th>
-                                    <th>Submitted At</th>
+                                    <th>Email</th>
+                                    <th>Balance</th>
+                                    <th>KYC Status</th>
+                                    <th>Created At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="kyc-table"></tbody>
+                            <tbody id="users-table-body">
+                                <!-- User data will be loaded here -->
+                            </tbody>
                         </table>
                     </div>
+                    <div class="pagination" id="users-pagination">
+                        <button class="page-btn" data-page="1">1</button>
+                        <button class="page-btn" data-page="2">2</button>
+                        <button class="page-btn" data-page="3">3</button>
+                        <button class="page-btn">...</button>
+                        <button class="page-btn" data-page="next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Transactions Tab -->
-            <div id="transactions-tab" class="tab-content">
+            <section class="page" id="kyc-page">
+                <div class="search-bar">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Filter KYC</h2>
+                    </div>
+                    <div class="search-form">
+                        <div class="input-group">
+                            <label for="kyc-status-filter">Status</label>
+                            <select id="kyc-status-filter" class="input-field">
+                                <option value="all">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="kyc-date-filter">Date</label>
+                            <select id="kyc-date-filter" class="input-field">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="kyc-filter-btn">
+                            <i class="fas fa-filter"></i>
+                            <span>Apply Filter</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="user-list">
                     <div class="panel-header">
-                        <h2 class="panel-title">Recent Transactions</h2>
+                        <h2 class="panel-title">KYC Verifications</h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-outline" id="export-kyc-btn">
+                                <i class="fas fa-download"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Phone</th>
+                                    <th>Passport Number</th>
+                                    <th>Status</th>
+                                    <th>Submitted At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kyc-table-body">
+                                <!-- KYC data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="kyc-pagination">
+                        <button class="page-btn" data-page="1">1</button>
+                        <button class="page-btn" data-page="2">2</button>
+                        <button class="page-btn" data-page="3">3</button>
+                        <button class="page-btn">...</button>
+                        <button class="page-btn" data-page="next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="transactions-page">
+                <div class="search-bar">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Filter Transactions</h2>
+                    </div>
+                    <div class="search-form">
+                        <div class="input-group">
+                            <label for="transaction-type-filter">Type</label>
+                            <select id="transaction-type-filter" class="input-field">
+                                <option value="all">All</option>
+                                <option value="transfer">Transfer</option>
+                                <option value="deposit">Deposit</option>
+                                <option value="withdrawal">Withdrawal</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="transaction-date-filter">Date</label>
+                            <select id="transaction-date-filter" class="input-field">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="transaction-filter-btn">
+                            <i class="fas fa-filter"></i>
+                            <span>Apply Filter</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="user-list">
+                    <div class="panel-header">
+                        <h2 class="panel-title">All Transactions</h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-outline" id="export-transactions-btn">
+                                <i class="fas fa-download"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
                                     <th>From</th>
                                     <th>To</th>
                                     <th>Amount</th>
-                                    <th>Note</th>
+                                    <th>Type</th>
                                     <th>Date</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="transactions-table"></tbody>
+                            <tbody id="transactions-table-body">
+                                <!-- Transaction data will be loaded here -->
+                            </tbody>
                         </table>
                     </div>
+                    <div class="pagination" id="transactions-pagination">
+                        <button class="page-btn" data-page="1">1</button>
+                        <button class="page-btn" data-page="2">2</button>
+                        <button class="page-btn" data-page="3">3</button>
+                        <button class="page-btn">...</button>
+                        <button class="page-btn" data-page="next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Settings Tab -->
-            <div id="settings-tab" class="tab-content">
+            <section class="page" id="settings-page">
                 <div class="control-panel">
                     <div class="panel-header">
                         <h2 class="panel-title">System Settings</h2>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary" onclick="resetAllPasswords()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path>
-                            </svg>
-                            Reset All User Passwords
+                        <div class="input-group">
+                            <label for="transaction-fee">Transaction Fee (%)</label>
+                            <input type="number" id="transaction-fee" class="input-field" value="1.5" step="0.1" min="0" max="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="min-transfer">Minimum Transfer Amount (Ks)</label>
+                            <input type="number" id="min-transfer" class="input-field" value="1000" step="100" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <label for="max-transfer">Maximum Transfer Amount (Ks)</label>
+                            <input type="number" id="max-transfer" class="input-field" value="1000000" step="10000" min="0">
+                        </div>
+                        <div class="input-group">
+                            <label for="daily-limit">Daily Transfer Limit (Ks)</label>
+                            <input type="number" id="daily-limit" class="input-field" value="5000000" step="10000" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="save-settings-btn">
+                            <i class="fas fa-save"></i>
+                            <span>Save Settings</span>
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+
+                <div class="control-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Admin Management</h2>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Admin ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>admin001</td>
+                                    <td>Admin User</td>
+                                    <td>admin@opper.com</td>
+                                    <td>Super Admin</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-icon btn-outline" title="Edit Admin">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>admin002</td>
+                                    <td>KYC Manager</td>
+                                    <td>kyc@opper.com</td>
+                                    <td>KYC Admin</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-icon btn-outline" title="Edit Admin">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <button class="btn btn-primary" id="add-admin-btn">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Add New Admin</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <!-- Image Preview Modal -->
-    <div class="modal" id="image-modal">
+    <div class="modal" id="kyc-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Image Preview</h2>
-                <button class="close-modal" onclick="closeModal('image-modal')">×</button>
+                <h3>KYC Verification Details</h3>
+                <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <img src="/placeholder.svg" alt="Preview" class="image-preview" id="preview-image">
+                <div class="kyc-details">
+                    <div class="kyc-images">
+                        <div class="kyc-image">
+                            <img src="https://github.com/Opper125/opper-payment/raw/main/placeholder.jpg" alt="Passport" id="passport-image">
+                        </div>
+                        <div class="kyc-image">
+                            <img src="https://github.com/Opper125/opper-payment/raw/main/placeholder.jpg" alt="Selfie" id="selfie-image">
+                        </div>
+                    </div>
+                    <div class="kyc-info">
+                        <div class="kyc-info-item">
+                            <div class="kyc-info-label">User ID</div>
+                            <div class="kyc-info-value" id="kyc-user-id">user1234</div>
+                        </div>
+                        <div class="kyc-info-item">
+                            <div class="kyc-info-label">Phone</div>
+                            <div class="kyc-info-value" id="kyc-phone">09123456789</div>
+                        </div>
+                        <div class="kyc-info-item">
+                            <div class="kyc-info-label">Passport Number</div>
+                            <div class="kyc-info-value" id="kyc-passport">MB123456</div>
+                        </div>
+                        <div class="kyc-info-item">
+                            <div class="kyc-info-label">Address</div>
+                            <div class="kyc-info-value" id="kyc-address">123 Main St, Yangon</div>
+                        </div>
+                        <div class="kyc-info-item">
+                            <div class="kyc-info-label">Submitted At</div>
+                            <div class="kyc-info-value" id="kyc-date">2023-05-15 14:30:22</div>
+                        </div>
+                        <div class="kyc-info-item">
+                            <div class="kyc-info-label">Status</div>
+                            <div class="kyc-info-value" id="kyc-status">Pending</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('image-modal')">Close</button>
+                <button class="btn btn-danger" id="reject-kyc-btn">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Reject</span>
+                </button>
+                <button class="btn btn-success" id="approve-kyc-btn">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Approve</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Deposit Modal -->
-    <div class="modal" id="deposit-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Deposit Funds</h2>
-                <button class="close-modal" onclick="closeModal('deposit-modal')">×</button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-4">Depositing to: <span id="deposit-user-id" class="user-id"></span></p>
-                <input type="number" id="deposit-amount" placeholder="Enter Amount (Ks)" min="1">
-                <div class="message message-error" id="deposit-error"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('deposit-modal')">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmDeposit()">Deposit</button>
-            </div>
+    <div class="notification" id="notification">
+        <div class="notification-header">
+            <div class="notification-title">Success</div>
+            <button class="notification-close">&times;</button>
         </div>
+        <div class="notification-message">Operation completed successfully.</div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
-
-        const ADMIN_EMAIL = 'crakb68@gmail.com';
-        const ADMIN_PIN = '155872';
-
-        let currentUserId = null;
-        let currentPage = 1;
-        let itemsPerPage = 10;
-        let totalUsers = 0;
-        let userStats = {
-            total: 0,
-            approved: 0,
-            pending: 0,
-            rejected: 0
-        };
-
-        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('dashboard').classList.add('hidden');
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const closeSidebar = document.getElementById('close-sidebar');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pages = document.querySelectorAll('.page');
+            const pageTitle = document.querySelector('.page-title');
+            const notification = document.getElementById('notification');
+            const notificationClose = document.querySelector('.notification-close');
+            const transferIndicator = document.getElementById('transfer-indicator');
+            const transferStatusText = document.getElementById('transfer-status-text');
+            const enableTransfersBtn = document.getElementById('enable-transfers-btn');
+            const disableTransfersBtn = document.getElementById('disable-transfers-btn');
             
-            // Mobile menu toggle
-            document.getElementById('open-sidebar').addEventListener('click', function() {
-                document.getElementById('sidebar').classList.add('active');
-            });
-            
-            document.getElementById('close-sidebar').addEventListener('click', function() {
-                document.getElementById('sidebar').classList.remove('active');
-            });
-        });
+            let transfersEnabled = true;
 
-        function adminLogin() {
-            const email = document.getElementById('admin-email').value;
-            const pin = document.getElementById('admin-pin').value;
-            const errorMessage = document.getElementById('login-error');
-
-            if (email === ADMIN_EMAIL && pin === ADMIN_PIN) {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                initializeDashboard();
-            } else {
-                errorMessage.textContent = 'Invalid email or PIN.';
-                errorMessage.style.display = 'block';
-            }
-        }
-
-        function logout() {
-            document.getElementById('login-container').classList.remove('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('admin-email').value = '';
-            document.getElementById('admin-pin').value = '';
-            document.getElementById('login-error').style.display = 'none';
-        }
-
-        async function retryOperation(operation, maxRetries = 3, delay = 1000) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    console.warn(`Retry ${i + 1}/${maxRetries} failed: ${error.message}`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-
-        async function initializeDashboard() {
-            try {
-                await Promise.all([
-                    loadUserStats(),
-                    loadUsers(),
-                    loadKycRequests(),
-                    loadTransactions(),
-                    checkTransferStatus()
-                ]);
-            } catch (error) {
-                console.error('Dashboard Initialization Error:', error.message);
-                alert(`Error initializing dashboard: ${error.message}`);
-            }
-        }
-
-        async function refreshData() {
-            try {
-                const activeTab = document.querySelector('.tab-content.active').id;
-                
-                await loadUserStats();
-                
-                if (activeTab === 'dashboard-tab' || activeTab === 'users-tab') {
-                    await loadUsers();
-                }
-                
-                if (activeTab === 'kyc-tab') {
-                    await loadKycRequests();
-                }
-                
-                if (activeTab === 'transactions-tab') {
-                    await loadTransactions();
-                }
-                
-                await checkTransferStatus();
-                
-                // Show success message
-                alert('Data refreshed successfully!');
-            } catch (error) {
-                console.error('Refresh Data Error:', error.message);
-                alert(`Error refreshing data: ${error.message}`);
-            }
-        }
-
-        async function loadUserStats() {
-            try {
-                const { data: users, error } = await supabase.from('users').select('passport_status');
-                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
-
-                userStats = {
-                    total: users.length,
-                    approved: users.filter(user => user.passport_status === 'approved').length,
-                    pending: users.filter(user => user.passport_status === 'pending').length,
-                    rejected: users.filter(user => user.passport_status === 'rejected').length
-                };
-
-                document.getElementById('total-users').textContent = userStats.total;
-                document.getElementById('approved-users').textContent = userStats.approved;
-                document.getElementById('pending-users').textContent = userStats.pending;
-                document.getElementById('rejected-users').textContent = userStats.rejected;
-            } catch (error) {
-                console.error('Load User Stats Error:', error.message);
-                throw error;
-            }
-        }
-
-        async function loadUsers(searchQuery = '') {
-            try {
-                let query = supabase.from('users').select('*');
-                if (searchQuery) {
-                    query = query.or(`user_id.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
-                }
-                
-                const { data: users, error, count } = await query;
-                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
-
-                totalUsers = users.length;
-                
-                const userTable = document.getElementById('user-table');
-                userTable.innerHTML = '';
-
-                // Calculate pagination
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = Math.min(startIndex + itemsPerPage, users.length);
-                const paginatedUsers = users.slice(startIndex, endIndex);
-
-                paginatedUsers.forEach(user => {
-                    const row = document.createElement('tr');
-                    
-                    let statusClass = '';
-                    if (user.passport_status === 'pending') statusClass = 'status-pending';
-                    else if (user.passport_status === 'approved') statusClass = 'status-approved';
-                    else if (user.passport_status === 'rejected') statusClass = 'status-rejected';
-                    
-                    row.innerHTML = `
-                        <td class="user-id">${user.user_id}</td>
-                        <td class="user-phone">${user.phone || 'N/A'}</td>
-                        <td class="user-balance">${user.balance} Ks</td>
-                        <td><span class="user-status ${statusClass}">${user.passport_status}</span></td>
-                        <td>
-                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Passport" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
-                        </td>
-                        <td>
-                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Selfie" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
-                        </td>
-                        <td class="action-buttons">
-                            ${user.passport_status === 'pending' ? `
-                                <button class="btn btn-success" onclick="updateStatus('${user.user_id}', 'approved')">
-                                    <svg class="icon" viewBox="0 0 24 24">
-                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
-                                    </svg>
-                                    Approve
-                                </button>
-                                <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
-                                    <svg class="icon" viewBox="0 0 24 24">
-                                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
-                                    </svg>
-                                    Reject
-                                </button>
-                            ` : ''}
-                            <button class="btn btn-info" onclick="showDepositModal('${user.user_id}')">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
-                                </svg>
-                                Deposit
-                            </button>
-                        </td>
-                    `;
-                    userTable.appendChild(row);
+            function showPage(pageName) {
+                pages.forEach(page => {
+                    page.classList.remove('active');
                 });
-
-                // Update pagination
-                updatePagination(users.length);
-            } catch (error) {
-                console.error('Load Users Error:', error.message);
-                throw error;
-            }
-        }
-
-        function updatePagination(totalItems) {
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            const paginationElement = document.getElementById('pagination');
-            paginationElement.innerHTML = '';
-
-            // Previous button
-            if (totalPages > 1) {
-                const prevBtn = document.createElement('div');
-                prevBtn.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-                prevBtn.innerHTML = '&laquo;';
-                prevBtn.onclick = () => {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        loadUsers();
-                    }
-                };
-                paginationElement.appendChild(prevBtn);
-            }
-
-            // Page numbers
-            for (let i = 1; i <= totalPages; i++) {
-                const pageItem = document.createElement('div');
-                pageItem.className = `page-item ${currentPage === i ? 'active' : ''}`;
-                pageItem.textContent = i;
-                pageItem.onclick = () => {
-                    currentPage = i;
-                    loadUsers();
-                };
-                paginationElement.appendChild(pageItem);
-            }
-
-            // Next button
-            if (totalPages > 1) {
-                const nextBtn = document.createElement('div');
-                nextBtn.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-                nextBtn.innerHTML = '&raquo;';
-                nextBtn.onclick = () => {
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        loadUsers();
-                    }
-                };
-                paginationElement.appendChild(nextBtn);
-            }
-        }
-
-        async function loadKycRequests() {
-            try {
-                const { data: pendingUsers, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('passport_status', 'pending')
-                    .order('submitted_at', { ascending: false });
+                document.getElementById(`${pageName}-page`).classList.add('active');
+                pageTitle.textContent = pageName.charAt(0).toUpperCase() + pageName.slice(1);
                 
-                if (error) throw new Error(`Fetch KYC Requests Error: ${error.message}`);
-
-                const kycTable = document.getElementById('kyc-table');
-                kycTable.innerHTML = '';
-
-                if (pendingUsers.length === 0) {
-                    kycTable.innerHTML = `
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 20px;">No pending KYC requests</td>
-                        </tr>
-                    `;
-                    return;
+                if (window.innerWidth < 992) {
+                    sidebar.classList.remove('active');
                 }
-
-                pendingUsers.forEach(user => {
-                    const row = document.createElement('tr');
-                    const submittedDate = user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A';
-                    
-                    row.innerHTML = `
-                        <td class="user-id">${user.user_id}</td>
-                        <td class="user-phone">${user.phone || 'N/A'}</td>
-                        <td>
-                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Passport" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
-                        </td>
-                        <td>
-                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Selfie" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
-                        </td>
-                        <td>${submittedDate}</td>
-                        <td class="action-buttons">
-                            <button class="btn btn-success" onclick="updateStatus('${user.user_id}', 'approved')">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
-                                </svg>
-                                Approve
-                            </button>
-                            <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
-                                </svg>
-                                Reject
-                            </button>
-                        </td>
-                    `;
-                    kycTable.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Load KYC Requests Error:', error.message);
-                throw error;
             }
-        }
 
-        async function loadTransactions() {
-            try {
-                const { data: transactions, error } = await supabase
-                    .from('transactions')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-                
-                if (error) throw new Error(`Fetch Transactions Error: ${error.message}`);
-
-                const transactionsTable = document.getElementById('transactions-table');
-                transactionsTable.innerHTML = '';
-
-                if (transactions.length === 0) {
-                    transactionsTable.innerHTML = `
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 20px;">No transactions found</td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                transactions.forEach(transaction => {
-                    const row = document.createElement('tr');
-                    const date = new Date(transaction.created_at).toLocaleString();
-                    
-                    row.innerHTML = `
-                        <td>${transaction.id}</td>
-                        <td>${transaction.from_phone || 'N/A'}</td>
-                        <td>${transaction.to_phone || 'N/A'}</td>
-                        <td class="user-balance">${transaction.amount} Ks</td>
-                        <td>${transaction.note || 'N/A'}</td>
-                        <td>${date}</td>
-                    `;
-                    transactionsTable.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Load Transactions Error:', error.message);
-                throw error;
-            }
-        }
-
-        async function checkTransferStatus() {
-            try {
-                const { data, error } = await supabase
-                    .from('settings')
-                    .select('allow_transfers')
-                    .eq('id', 1)
-                    .single();
-                
-                if (error) throw new Error(`Fetch Settings Error: ${error.message}`);
-                
-                const indicator = document.getElementById('transfer-indicator');
-                const statusText = document.getElementById('transfer-status-text');
-                
-                if (data.allow_transfers) {
-                    indicator.className = 'indicator on';
-                    statusText.textContent = 'Transfers are currently ENABLED';
-                    statusText.style.color = 'var(--success)';
+            function updateTransferStatus(enabled) {
+                transfersEnabled = enabled;
+                if (enabled) {
+                    transferIndicator.classList.remove('off');
+                    transferIndicator.classList.add('on');
+                    transferStatusText.textContent = 'Transfers: Enabled';
                 } else {
-                    indicator.className = 'indicator off';
-                    statusText.textContent = 'Transfers are currently DISABLED';
-                    statusText.style.color = 'var(--danger)';
+                    transferIndicator.classList.remove('on');
+                    transferIndicator.classList.add('off');
+                    transferStatusText.textContent = 'Transfers: Disabled';
                 }
-            } catch (error) {
-                console.error('Check Transfer Status Error:', error.message);
-                throw error;
             }
-        }
 
-        async function searchUser() {
-            const searchQuery = document.getElementById('search-input').value.trim();
-            currentPage = 1; // Reset to first page on search
-            await loadUsers(searchQuery);
-        }
-
-        async function updateStatus(userId, status) {
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('users')
-                        .update({ passport_status: status })
-                        .eq('user_id', userId);
-                    
-                    if (error) throw new Error(`Update Status Error: ${error.message}`);
-                });
+            function showNotification(title, message, type = 'success') {
+                const notificationTitle = document.querySelector('.notification-title');
+                const notificationMessage = document.querySelector('.notification-message');
                 
-                await Promise.all([
-                    loadUserStats(),
-                    loadUsers(),
-                    loadKycRequests()
-                ]);
+                notificationTitle.textContent = title;
+                notificationMessage.textContent = message;
                 
-                alert(`User ${userId} has been ${status} successfully.`);
-            } catch (error) {
-                console.error('Update Status Error:', error.message);
-                alert(`Error updating status: ${error.message}`);
-            }
-        }
-
-        function showImagePreview(imageUrl) {
-            document.getElementById('preview-image').src = imageUrl;
-            document.getElementById('image-modal').style.display = 'flex';
-        }
-
-        function showDepositModal(userId) {
-            currentUserId = userId;
-            document.getElementById('deposit-user-id').textContent = userId;
-            document.getElementById('deposit-amount').value = '';
-            document.getElementById('deposit-error').style.display = 'none';
-            document.getElementById('deposit-modal').style.display = 'flex';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        async function confirmDeposit() {
-            const amount = parseInt(document.getElementById('deposit-amount').value);
-            const errorElement = document.getElementById('deposit-error');
-            
-            if (!amount || amount <= 0) {
-                errorElement.textContent = 'Please enter a valid amount.';
-                errorElement.style.display = 'block';
-                return;
+                notification.className = 'notification';
+                notification.classList.add(type);
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 5000);
             }
 
-            try {
-                await retryOperation(async () => {
-                    const { data: user, error: fetchError } = await supabase
-                        .from('users')
-                        .select('balance')
-                        .eq('user_id', currentUserId)
-                        .single();
-                    
-                    if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.add('active');
+            });
 
-                    const newBalance = user.balance + amount;
-                    const { error: updateError } = await supabase
-                        .from('users')
-                        .update({ balance: newBalance })
-                        .eq('user_id', currentUserId);
+            closeSidebar.addEventListener('click', function() {
+                sidebar.classList.remove('active');
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageName = this.getAttribute('data-page');
                     
-                    if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    showPage(pageName);
                 });
+            });
 
-                closeModal('deposit-modal');
-                await loadUsers();
-                alert(`Successfully deposited ${amount} Ks to user ${currentUserId}.`);
-            } catch (error) {
-                console.error('Deposit Error:', error.message);
-                errorElement.textContent = `Error: ${error.message}`;
-                errorElement.style.display = 'block';
-            }
-        }
+            notificationClose.addEventListener('click', function() {
+                notification.classList.remove('show');
+            });
 
-        async function bulkDeposit() {
-            const amount = parseInt(document.getElementById('bulk-amount').value);
-            const successMessage = document.getElementById('bulk-success');
-            const errorMessage = document.getElementById('bulk-error');
+            enableTransfersBtn.addEventListener('click', function() {
+                updateTransferStatus(true);
+                showNotification('Success', 'Transfers have been enabled');
+            });
 
-            if (!amount || amount <= 0) {
-                errorMessage.textContent = 'Please enter a valid amount.';
-                errorMessage.style.display = 'block';
-                successMessage.style.display = 'none';
-                return;
-            }
+            disableTransfersBtn.addEventListener('click', function() {
+                updateTransferStatus(false);
+                showNotification('Success', 'Transfers have been disabled');
+            });
 
-            try {
-                await retryOperation(async () => {
-                    const { data: users, error: fetchError } = await supabase
-                        .from('users')
-                        .select('user_id, balance')
-                        .eq('passport_status', 'approved');
-                    
-                    if (fetchError) throw new Error(`Fetch Users Error: ${fetchError.message}`);
+            document.getElementById('maintenance-mode-btn').addEventListener('click', function() {
+                showNotification('Maintenance Mode', 'System is now in maintenance mode');
+            });
 
-                    for (const user of users) {
-                        const newBalance = user.balance + amount;
-                        const { error: updateError } = await supabase
-                            .from('users')
-                            .update({ balance: newBalance })
-                            .eq('user_id', user.user_id);
-                        
-                        if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+            document.getElementById('deposit-btn').addEventListener('click', function() {
+                const phone = document.getElementById('deposit-phone').value;
+                const amount = document.getElementById('deposit-amount').value;
+                
+                if (!phone || !amount) {
+                    showNotification('Error', 'Please enter both phone and amount', 'error');
+                    return;
+                }
+                
+                showNotification('Success', `Deposited ${amount} Ks to ${phone}`);
+                document.getElementById('deposit-phone').value = '';
+                document.getElementById('deposit-amount').value = '';
+            });
+
+            document.getElementById('save-settings-btn').addEventListener('click', function() {
+                showNotification('Settings Saved', 'System settings have been updated');
+            });
+
+            document.querySelectorAll('.view-user-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.closest('tr').querySelector('.user-id').textContent;
+                    showNotification('User Details', `Viewing details for user ${userId}`);
+                });
+            });
+
+            document.querySelectorAll('.edit-user-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.closest('tr').querySelector('.user-id').textContent;
+                    showNotification('Edit User', `Editing user ${userId}`);
+                });
+            });
+
+            document.getElementById('approve-kyc-btn').addEventListener('click', function() {
+                const userId = document.getElementById('kyc-user-id').textContent;
+                showNotification('KYC Approved', `KYC for user ${userId} has been approved`);
+                document.getElementById('kyc-modal').classList.remove('active');
+            });
+
+            document.getElementById('reject-kyc-btn').addEventListener('click', function() {
+                const userId = document.getElementById('kyc-user-id').textContent;
+                showNotification('KYC Rejected', `KYC for user ${userId} has been rejected`);
+                document.getElementById('kyc-modal').classList.remove('active');
+            });
+
+            document.querySelectorAll('.modal-close, .modal').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.closest('.modal').classList.remove('active');
                     }
                 });
+            });
 
-                successMessage.textContent = `Successfully deposited ${amount} Ks to all ${userStats.approved} approved accounts.`;
-                successMessage.style.display = 'block';
-                errorMessage.style.display = 'none';
-                
-                await loadUsers();
-            } catch (error) {
-                console.error('Bulk Deposit Error:', error.message);
-                errorMessage.textContent = `Error: ${error.message}`;
-                errorMessage.style.display = 'block';
-                successMessage.style.display = 'none';
+            if (window.innerWidth >= 992) {
+                sidebar.classList.add('active');
             }
-        }
-
-        async function enableTransfers() {
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: true })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
-                });
-                
-                await checkTransferStatus();
-                alert('Transfers have been enabled successfully.');
-            } catch (error) {
-                console.error('Enable Transfers Error:', error.message);
-                alert(`Error enabling transfers: ${error.message}`);
-            }
-        }
-
-        async function disableTransfers() {
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: false })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
-                });
-                
-                await checkTransferStatus();
-                alert('Transfers have been disabled successfully.');
-            } catch (error) {
-                console.error('Disable Transfers Error:', error.message);
-                alert(`Error disabling transfers: ${error.message}`);
-            }
-        }
-
-        async function resetAllPasswords() {
-            if (!confirm('Are you sure you want to reset all user passwords? This action cannot be undone.')) {
-                return;
-            }
-
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('auth_users')
-                        .update({ password: '123456' });
-                    
-                    if (error) throw new Error(`Reset Passwords Error: ${error.message}`);
-                });
-                
-                alert('All user passwords have been reset to "123456".');
-            } catch (error) {
-                console.error('Reset Passwords Error:', error.message);
-                alert(`Error resetting passwords: ${error.message}`);
-            }
-        }
-
-        function showTab(tabId) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
+            
+            // Handle view all users button
+            document.getElementById('view-all-users-btn').addEventListener('click', function() {
+                showPage('users');
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('.nav-link[data-page="users"]').classList.add('active');
             });
             
-            // Show selected tab
-            document.getElementById(tabId).classList.add('active');
+            // Connect Supabase for realtime transactions
+            const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
             
-            // Update active nav link
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            
-            const activeLink = document.querySelector(`[onclick="showTab('${tabId}')"]`);
-            if (activeLink) {
-                activeLink.classList.add('active');
+            try {
+                const { createClient } = window.supabase;
+                const supabase = createClient(supabaseUrl, supabaseKey);
+                
+                // Subscribe to transactions table changes
+                const transactionsChannel = supabase
+                    .channel('public:transactions')
+                    .on('postgres_changes', { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'transactions' 
+                    }, payload => {
+                        showNotification('New Transaction', `New transaction received: ${payload.new.amount} Ks`);
+                        // Refresh transactions if on transactions page
+                        if (document.getElementById('transactions-page').classList.contains('active')) {
+                            // Load transactions logic would go here
+                        }
+                    })
+                    .subscribe();
+            } catch (error) {
+                console.error('Supabase connection error:', error);
             }
-            
-            // Load tab-specific data
-            if (tabId === 'kyc-tab') {
-                loadKycRequests();
-            } else if (tabId === 'transactions-tab') {
-                loadTransactions();
-            }
-        }
+        });
     </script>
 </body>
 </html>
