@@ -30,6 +30,75 @@
         </div>
     </div>
 
+    <!-- Transaction Processing Overlay -->
+    <div class="transaction-overlay" id="transaction-overlay">
+        <div class="transaction-processing">
+            <div class="processing-animation">
+                <div class="processing-circle"></div>
+                <div class="processing-logo">OPPER</div>
+            </div>
+            <div class="processing-text">ငွေလွှဲလုပ်ဆောင်နေသည်...</div>
+        </div>
+    </div>
+
+    <!-- Transaction Receipt Modal -->
+    <div class="modal" id="receipt-modal">
+        <div class="modal-content receipt-modal-content">
+            <div class="modal-header">
+                <h3>ငွေလွှဲပြေစာ</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="receipt" id="receipt">
+                    <div class="receipt-header">
+                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="receipt-logo">
+                        <h2>OPPER Pay</h2>
+                    </div>
+                    <div class="receipt-divider"></div>
+                    <div class="receipt-transaction-id" id="receipt-transaction-id">
+                        Transaction ID: OPPER12345678
+                    </div>
+                    <div class="receipt-details">
+                        <div class="receipt-row">
+                            <div class="receipt-label">From:</div>
+                            <div class="receipt-value" id="receipt-from">09XXXXXXXX</div>
+                        </div>
+                        <div class="receipt-row">
+                            <div class="receipt-label">To:</div>
+                            <div class="receipt-value" id="receipt-to">09XXXXXXXX</div>
+                        </div>
+                        <div class="receipt-row">
+                            <div class="receipt-label">Amount:</div>
+                            <div class="receipt-value" id="receipt-amount">0 Ks</div>
+                        </div>
+                        <div class="receipt-row">
+                            <div class="receipt-label">Date:</div>
+                            <div class="receipt-value" id="receipt-date">YYYY-MM-DD HH:MM:SS</div>
+                        </div>
+                        <div class="receipt-row">
+                            <div class="receipt-label">Payment Method:</div>
+                            <div class="receipt-value">OPPER Pay</div>
+                        </div>
+                        <div class="receipt-row" id="receipt-note-row">
+                            <div class="receipt-label">Note:</div>
+                            <div class="receipt-value" id="receipt-note"></div>
+                        </div>
+                    </div>
+                    <div class="receipt-divider"></div>
+                    <div class="receipt-status" id="receipt-status">
+                        <i class="fas fa-check-circle"></i> အောင်မြင်စွာ ငွေလွှဲပြီးပါပြီ
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="download-receipt">
+                    <i class="fas fa-download"></i>
+                    <span>ပြေစာဒေါင်းလုပ်ဆွဲရန်</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Auth Container -->
     <div class="auth-container" id="auth-container">
         <div class="auth-card">
@@ -129,7 +198,7 @@
                     <span>သို့မဟုတ်</span>
                 </div>
                 <button class="btn btn-outline btn-block" id="google-signup-btn">
-                    <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" class="btn-icon">
                     <span>Google ဖြင့် အကောင့်ဖွင့်မည်</span>
                 </button>
                 <div class="auth-message error" id="signup-error"></div>
@@ -158,6 +227,7 @@
                 </div>
                 <div class="user-profile" id="profile-dropdown-trigger">
                     <div class="user-avatar">
+                        <img id="user-avatar-img" class="hidden">
                         <span id="user-initial">A</span>
                     </div>
                     <div class="user-info">
@@ -182,6 +252,7 @@
             </div>
             <div class="user-profile-sidebar">
                 <div class="user-avatar large">
+                    <img id="user-avatar-sidebar-img" class="hidden">
                     <span id="user-initial-sidebar">A</span>
                 </div>
                 <div class="user-info">
@@ -328,6 +399,19 @@
                             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required>
                         </div>
                     </div>
+                    
+                    <!-- Recipient Info (shows when recipient is found) -->
+                    <div class="recipient-info" id="recipient-info">
+                        <div class="recipient-avatar">
+                            <img id="recipient-avatar-img" class="hidden">
+                            <span id="recipient-initial">?</span>
+                        </div>
+                        <div class="recipient-details">
+                            <h4 id="recipient-name">လက်ခံမည့်သူ</h4>
+                            <p id="recipient-phone">09xxxxxxxxx</p>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="transfer-amount">ငွေပမာဏ (Ks)</label>
                         <div class="input-with-icon">
@@ -447,6 +531,7 @@
                         <div class="file-upload">
                             <input type="file" id="passport-upload" accept="image/*" required>
                             <label for="passport-upload" class="file-upload-label">
+                                <i class="fas fa-upload">  class="file-upload-label">
                                 <i class="fas fa-upload"></i>
                                 <span>ဖိုင်ရွေးရန်</span>
                             </label>
@@ -478,6 +563,32 @@
                 <div class="page-header">
                     <h2>ဆက်တင်များ</h2>
                     <p>သင့်အကောင့်ဆက်တင်များ ပြင်ဆင်ပါ</p>
+                </div>
+
+                <div class="settings-card">
+                    <h3>ပရိုဖိုင်ဓာတ်ပုံ</h3>
+                    <div class="profile-photo-section">
+                        <div class="profile-photo-container">
+                            <div class="profile-photo">
+                                <img id="profile-photo-preview" class="hidden">
+                                <span id="profile-photo-initial">A</span>
+                            </div>
+                            <div class="profile-photo-overlay">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <input type="file" id="profile-photo-upload" accept="image/*" class="profile-photo-input">
+                        </div>
+                        <div class="profile-photo-actions">
+                            <button class="btn btn-outline" id="upload-profile-photo">
+                                <i class="fas fa-upload"></i>
+                                <span>ဓာတ်ပုံတင်ရန်</span>
+                            </button>
+                            <button class="btn btn-outline" id="remove-profile-photo">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>ဓာတ်ပုံဖျက်ရန်</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="settings-card">
@@ -700,6 +811,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
