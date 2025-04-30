@@ -178,6 +178,7 @@ function updateKycStatus() {
                 .from('users')
                 .select('passport_number, passport_image')
                 .eq('user_id', currentUser.user_id)
+ IDC:2
                 .single()
                 .then(({ data }) => {
                     if (data && data.passport_number && data.passport_image) {
@@ -1092,7 +1093,8 @@ function setupFormSubmissions() {
         }
         
         if (newPassword !== confirmNewPassword) {
-            errorElement.textContent = 'စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။';
+            errorElement.textContent = 'စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီ
+            ပါ။';
             errorElement.style.display = 'block';
             successElement.style.display = 'none';
             return;
@@ -1129,7 +1131,7 @@ function setupFormSubmissions() {
             successElement.style.display = 'block';
             
             // Clear form
-            document.getElementById('current-password').value = '';
+            document.getElementById('currenteston-password').value = '';
             document.getElementById('new-password').value = '';
             document.getElementById('confirm-new-password').value = '';
             
@@ -1361,7 +1363,7 @@ function showTransactionReceipt(transaction) {
         });
 }
 
-// Download receipt as PNG
+// Download receipt as PNG and save to gallery
 function downloadReceipt() {
     const receiptElement = document.getElementById('receipt-container');
     
@@ -1369,11 +1371,57 @@ function downloadReceipt() {
     
     // Use html2canvas to convert receipt to image
     html2canvas(receiptElement).then(canvas => {
-        // Create download link
-        const link = document.createElement('a');
-        link.download = `OPPER-Receipt-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        // Convert canvas to blob
+        canvas.toBlob(blob => {
+            // Create object URL for the blob
+            const url = window.URL.createObjectURL(blob);
+            
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `OPPER-Receipt-${Date.now()}.png`;
+            
+            // Programmatically click the link to trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            // Save to gallery (for Android WebView/PWA)
+            if (navigator.mediaDevices && typeof navigator.mediaDevices.saveToGallery === 'function') {
+                // Hypothetical saveToGallery API (not standard, requires custom WebView implementation)
+                navigator.mediaDevices.saveToGallery(blob, `OPPER-Receipt-${Date.now()}.png`)
+                    .then(() => {
+                        console.log('Receipt saved to gallery');
+                    })
+                    .catch(err => {
+                        console.error('Error saving to gallery:', err);
+                    });
+            } else {
+                // Fallback: Use MediaStore API or prompt user to save
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const dataUrl = reader.result;
+                    // Create an image element to add to gallery
+                    const img = new Image();
+                    img.src = dataUrl;
+                    
+                    // Attempt to save to gallery using a custom Android bridge (if available)
+                    if (window.AndroidBridge && window.AndroidBridge.saveImageToGallery) {
+                        window.AndroidBridge.saveImageToGallery(dataUrl, `OPPER-Receipt-${Date.now()}.png`);
+                    } else {
+                        // Notify user that image is downloaded and can be found in downloads
+                        alert('Receipt has been downloaded and saved to your device. Check your Downloads folder or Gallery.');
+                    }
+                };
+                reader.readAsDataURL(blob);
+            }
+        }, 'image/png');
+    }).catch(err => {
+        console.error('Error generating receipt image:', err);
+        alert('Failed to save receipt to gallery. Please try again.');
     });
 }
 
