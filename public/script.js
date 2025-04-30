@@ -1,3 +1,4 @@
+// Supabase Configuration
 const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
@@ -6,17 +7,17 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch:
 let currentUser = null;
 let userBalance = 0;
 let userKycStatus = 'pending';
-let userPhone = '';
 let transfersEnabled = true;
 let currentTheme = localStorage.getItem('theme') || 'light';
-let userPaymentPin = ''; // This would come from the database in a real app
-let savedTransactions = [];
-let verifiedReceiver = null;
+let transactions = [];
 
 // DOM Elements
 const loader = document.getElementById('loader');
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
+const pinEntryModal = document.getElementById('pin-entry-modal');
+const receiptModal = document.getElementById('receipt-modal');
+const processingOverlay = document.getElementById('processing-overlay');
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
@@ -89,8 +90,6 @@ async function loadUserData() {
         // Update global variables
         userBalance = userData.balance || 0;
         userKycStatus = userData.passport_status || 'pending';
-        userPhone = userData.phone || '';
-        userPaymentPin = userData.payment_pin || '123456'; // Default PIN for demo
         
         // Update UI with user data
         updateUserUI(userData);
@@ -231,7 +230,7 @@ function setupRealtimeSubscriptions() {
             }
         })
         .subscribe();
-    
+
     // Subscribe to system settings changes
     const settingsChannel = supabase
         .channel('settings-updates')
@@ -246,7 +245,7 @@ function setupRealtimeSubscriptions() {
             }
         })
         .subscribe();
-    
+
     // Subscribe to new transactions
     const transactionsChannel = supabase
         .channel('transactions-updates')
@@ -256,7 +255,7 @@ function setupRealtimeSubscriptions() {
             table: 'transactions'
         }, (payload) => {
             // Check if transaction involves current user
-            if (currentUser && (payload.new.from_phone === userPhone || payload.new.to_phone === userPhone)) {
+            if (currentUser && (payload.new.from_phone === currentUser.phone || payload.new.to_phone === currentUser.phone)) {
                 // Refresh transactions list
                 loadTransactions();
             }
@@ -267,18 +266,31 @@ function setupRealtimeSubscriptions() {
 // Load transactions
 async function loadTransactions() {
     try {
-        if (!currentUser || !userPhone) return;
+        if (!currentUser) return;
+        
+        // Get user phone number
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('phone')
+            .eq('user_id', currentUser.user_id)
+            .single();
+        
+        if (userError || !userData || !userData.phone) return;
+        
+        const userPhone = userData.phone;
         
         // Get recent transactions
-        const { data: transactions, error } = await supabase
+        const { data: transactionsData, error } = await supabase
             .from('transactions')
             .select('*')
             .or(`from_phone.eq.${userPhone},to_phone.eq.${userPhone}`)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(10);
         
         if (error) throw error;
         
-        savedTransactions = transactions || [];
+        // Store transactions globally
+        transactions = transactionsData || [];
         
         // Update UI with transactions
         updateTransactionsUI(transactions, userPhone);
@@ -316,7 +328,7 @@ function updateTransactionsUI(transactions, userPhone) {
         const transactionDate = new Date(transaction.created_at).toLocaleString();
         
         const transactionItem = `
-            <div class="transaction-item ${isSender ? 'sent' : 'received'}" data-transaction-id="${index}">
+            <div class="transaction-item ${isSender ? 'sent' : 'received'}">
                 <div class="transaction-icon">
                     <i class="fas ${isSender ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
                 </div>
@@ -327,42 +339,40 @@ function updateTransactionsUI(transactions, userPhone) {
                     <div class="transaction-subtitle">
                         ${otherParty} ${transaction.note ? `- ${transaction.note}` : ''}
                     </div>
-                    <div class="transaction-date">
-                        ${transactionDate}
-                    </div>
-                </div>
-                <div class="transaction-amount">
-                    ${isSender ? '-' : '+'}${transaction.amount.toLocaleString()} Ks
+                    <div class="transaction-date">${transactionDate}</div>
                 </div>
                 <div class="transaction-actions">
-                    <div class="view-receipt-btn" data-transaction-id="${index}">
-                        <i class="fas fa-eye"></i>
+                    <div class="transaction-amount ${isSender ? 'negative' : 'positive'}">
+                        ${isSender ? '-' : '+'} ${transaction.amount.toLocaleString()} Ks
                     </div>
+                    <button class="transaction-view-btn" data-transaction-index="${index}">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
             </div>
         `;
         
-        // Add to recent transactions (max 5)
+        // Add to recent transactions (only first 5)
         if (index < 5) {
             recentTransactionsList.innerHTML += transactionItem;
         }
         
-        // Add to history list
+        // Add to history transactions
         historyTransactionsList.innerHTML += transactionItem;
     });
     
-    // Add event listeners to view receipt buttons
-    document.querySelectorAll('.view-receipt-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const transactionId = e.currentTarget.getAttribute('data-transaction-id');
-            showReceiptModal(savedTransactions[transactionId]);
+    // Add event listeners to view buttons
+    document.querySelectorAll('.transaction-view-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const transactionIndex = button.getAttribute('data-transaction-index');
+            showTransactionReceipt(transactions[transactionIndex]);
         });
     });
 }
 
-// Initialize UI elements and event listeners
+// Initialize UI elements
 function initializeUI() {
-    // Auth Tabs
+    // Auth tabs
     const authTabs = document.querySelectorAll('.auth-tab');
     const authForms = document.querySelectorAll('.auth-form');
     
@@ -384,184 +394,78 @@ function initializeUI() {
         });
     });
     
-    // Password Toggle
-    const togglePasswordBtns = document.querySelectorAll('.toggle-password');
+    // Toggle password visibility
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
     
-    togglePasswordBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const input = btn.previousElementSibling;
+    togglePasswordButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const input = button.previousElementSibling;
             if (input.type === 'password') {
                 input.type = 'text';
-                btn.classList.remove('fa-eye-slash');
-                btn.classList.add('fa-eye');
+                button.classList.remove('fa-eye-slash');
+                button.classList.add('fa-eye');
             } else {
                 input.type = 'password';
-                btn.classList.remove('fa-eye');
-                btn.classList.add('fa-eye-slash');
+                button.classList.remove('fa-eye');
+                button.classList.add('fa-eye-slash');
             }
         });
     });
     
-    // Login Form
-    const loginForm = document.getElementById('login-btn');
+    // Sidebar navigation
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    const pages = document.querySelectorAll('.page');
     
-    loginForm.addEventListener('click', async () => {
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        const rememberMe = document.getElementById('remember-me').checked;
-        
-        if (!email || !password) {
-            showAuthMessage('login-error', 'အီးမေးလ်နှင့် စကားဝှက်ဖြည့်ပါ');
-            return;
-        }
-        
-        // Show loader
-        showLoader();
-        
-        try {
-            const { data: user, error } = await supabase
-                .from('auth_users')
-                .select('*')
-                .eq('email', email)
-                .single();
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageName = link.getAttribute('data-page');
             
-            if (error || !user) {
-                hideLoader();
-                showAuthMessage('login-error', 'အီးမေးလ် သို့မဟုတ် စကားဝှက်မှားယွင်းသည်');
-                return;
+            // Update active link
+            sidebarLinks.forEach(l => l.parentElement.classList.remove('active'));
+            link.parentElement.classList.add('active');
+            
+            // Show corresponding page
+            pages.forEach(page => {
+                page.classList.remove('active');
+                if (page.id === `${pageName}-page`) {
+                    page.classList.add('active');
+                }
+            });
+            
+            // Close sidebar on mobile
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('active');
             }
-            
-            // Validate password (in a real app, you would use proper hashing)
-            if (user.password !== password) {
-                hideLoader();
-                showAuthMessage('login-error', 'အီးမေးလ် သို့မဟုတ် စကားဝှက်မှားယွင်းသည်');
-                return;
-            }
-            
-            // Login successful
-            currentUser = user;
-            
-            // Save session if remember me is checked
-            if (rememberMe) {
-                localStorage.setItem('opperSession', JSON.stringify({
-                    email: user.email,
-                    user_id: user.user_id
-                }));
-            }
-            
-            await loadUserData();
-            hideLoader();
-            showAppContainer();
-        } catch (error) {
-            hideLoader();
-            showAuthMessage('login-error', 'အကောင့်ဝင်ရာတွင် အမှားရှိသည်');
-            console.error('Login error:', error);
-        }
+        });
     });
     
-    // Signup Form
-    const signupForm = document.getElementById('signup-btn');
+    // Quick action cards
+    const actionCards = document.querySelectorAll('.action-card');
     
-    signupForm.addEventListener('click', async () => {
-        const email = document.getElementById('signup-email').value;
-        const phone = document.getElementById('signup-phone').value;
-        const password = document.getElementById('signup-password').value;
-        const confirmPassword = document.getElementById('signup-confirm-password').value;
-        const termsAgree = document.getElementById('terms-agree').checked;
-        
-        if (!email || !phone || !password || !confirmPassword) {
-            showAuthMessage('signup-error', 'အချက်အလက်အားလုံးဖြည့်ပါ');
-            return;
-        }
-        
-        if (password !== confirmPassword) {
-            showAuthMessage('signup-error', 'စကားဝှက်များ မတူညီပါ');
-            return;
-        }
-        
-        if (!termsAgree) {
-            showAuthMessage('signup-error', 'စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရပါမည်');
-            return;
-        }
-        
-        // Show loader
-        showLoader();
-        
-        try {
-            // Check if email already exists
-            const { data: existingEmail } = await supabase
-                .from('auth_users')
-                .select('email')
-                .eq('email', email)
-                .single();
+    actionCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const pageName = card.getAttribute('data-page');
             
-            if (existingEmail) {
-                hideLoader();
-                showAuthMessage('signup-error', 'ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်သည်');
-                return;
-            }
+            // Update active link in sidebar
+            sidebarLinks.forEach(link => {
+                link.parentElement.classList.remove('active');
+                if (link.getAttribute('data-page') === pageName) {
+                    link.parentElement.classList.add('active');
+                }
+            });
             
-            // Check if phone already exists
-            const { data: existingPhone } = await supabase
-                .from('users')
-                .select('phone')
-                .eq('phone', phone)
-                .single();
-            
-            if (existingPhone) {
-                hideLoader();
-                showAuthMessage('signup-error', 'ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်သည်');
-                return;
-            }
-            
-            // Generate user ID
-            const userId = generateUserId();
-            
-            // Create user in auth_users table
-            const { error: authError } = await supabase
-                .from('auth_users')
-                .insert([
-                    {
-                        user_id: userId,
-                        email: email,
-                        password: password, // In a real app, this would be hashed
-                        created_at: new Date()
-                    }
-                ]);
-            
-            if (authError) throw authError;
-            
-            // Create user profile in users table
-            const { error: profileError } = await supabase
-                .from('users')
-                .insert([
-                    {
-                        user_id: userId,
-                        phone: phone,
-                        balance: 10000, // Starting balance for demo
-                        passport_status: 'pending',
-                        created_at: new Date()
-                    }
-                ]);
-            
-            if (profileError) throw profileError;
-            
-            // Signup successful
-            hideLoader();
-            showAuthMessage('signup-success', 'အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ အကောင့်ဝင်နိုင်ပါပြီ');
-            
-            // Switch to login tab after a delay
-            setTimeout(() => {
-                document.querySelector('.auth-tab[data-tab="login"]').click();
-            }, 2000);
-        } catch (error) {
-            hideLoader();
-            showAuthMessage('signup-error', 'အကောင့်ဖွင့်ရာတွင် အမှားရှိသည်');
-            console.error('Signup error:', error);
-        }
+            // Show corresponding page
+            pages.forEach(page => {
+                page.classList.remove('active');
+                if (page.id === `${pageName}-page`) {
+                    page.classList.add('active');
+                }
+            });
+        });
     });
     
-    // Sidebar Toggle
+    // Mobile menu toggle
     const menuToggle = document.getElementById('menu-toggle');
     const closeSidebar = document.getElementById('close-sidebar');
     const sidebar = document.getElementById('sidebar');
@@ -574,539 +478,1059 @@ function initializeUI() {
         sidebar.classList.remove('active');
     });
     
-    // Page Navigation
-    const navLinks = document.querySelectorAll('[data-page]');
+    // Profile dropdown
+    const profileDropdownTrigger = document.getElementById('profile-dropdown-trigger');
+    const profileDropdown = document.getElementById('profile-dropdown');
     
-    navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            const pageName = link.getAttribute('data-page');
-            
-            // Update active nav item
-            document.querySelectorAll('.sidebar-nav li').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            const navItem = link.closest('li');
-            if (navItem) {
-                navItem.classList.add('active');
-            }
-            
-            // Show corresponding page
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            document.getElementById(`${pageName}-page`).classList.add('active');
-            
-            // Close sidebar on mobile
-            if (window.innerWidth < 768) {
-                sidebar.classList.remove('active');
-            }
-        });
+    profileDropdownTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+        
+        // Position dropdown
+        const rect = profileDropdownTrigger.getBoundingClientRect();
+        profileDropdown.style.top = `${rect.bottom + 10}px`;
+        profileDropdown.style.right = `${window.innerWidth - rect.right}px`;
     });
     
-    // Balance Actions
-    const hideBalance = document.getElementById('hide-balance');
-    
-    let isBalanceHidden = false;
-    
-    hideBalance.addEventListener('click', () => {
-        const balanceAmount = document.getElementById('balance-amount');
-        
-        if (isBalanceHidden) {
-            balanceAmount.textContent = `${userBalance.toLocaleString()} Ks`;
-            hideBalance.innerHTML = '<i class="fas fa-eye-slash"></i>';
-        } else {
-            balanceAmount.textContent = '• • • • • • Ks';
-            hideBalance.innerHTML = '<i class="fas fa-eye"></i>';
-        }
-        
-        isBalanceHidden = !isBalanceHidden;
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        profileDropdown.classList.remove('active');
     });
     
-    const refreshBalance = document.getElementById('refresh-balance');
+    // Dropdown actions
+    document.getElementById('view-profile').addEventListener('click', () => {
+        // Show profile page (settings for now)
+        showPage('settings');
+    });
     
-    refreshBalance.addEventListener('click', async () => {
-        refreshBalance.querySelector('i').classList.add('fa-spin');
+    document.getElementById('go-to-settings').addEventListener('click', () => {
+        showPage('settings');
+    });
+    
+    document.getElementById('dropdown-logout').addEventListener('click', () => {
+        logout();
+    });
+    
+    // Logout button
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        logout();
+    });
+    
+    // Balance actions
+    document.getElementById('refresh-balance').addEventListener('click', async () => {
         await loadUserData();
-        setTimeout(() => {
-            refreshBalance.querySelector('i').classList.remove('fa-spin');
-        }, 1000);
     });
     
-    // History Filter Tabs
-    const filterTabs = document.querySelectorAll('.filter-tab');
+    document.getElementById('hide-balance').addEventListener('click', () => {
+        const balanceAmount = document.getElementById('balance-amount');
+        if (balanceAmount.classList.contains('hidden-balance')) {
+            balanceAmount.textContent = `${userBalance.toLocaleString()} Ks`;
+            balanceAmount.classList.remove('hidden-balance');
+            document.querySelector('#hide-balance i').classList.remove('fa-eye');
+            document.querySelector('#hide-balance i').classList.add('fa-eye-slash');
+        } else {
+            balanceAmount.textContent = '••••••';
+            balanceAmount.classList.add('hidden-balance');
+            document.querySelector('#hide-balance i').classList.remove('fa-eye-slash');
+            document.querySelector('#hide-balance i').classList.add('fa-eye');
+        }
+    });
     
-    filterTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const filter = tab.getAttribute('data-filter');
+    // File uploads preview
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    
+    fileInputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
             
-            // Update active tab
-            filterTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+            const previewId = input.id.replace('-upload', '-preview');
+            const preview = document.getElementById(previewId);
             
-            // Filter transactions
-            const transactions = document.querySelectorAll('.transaction-item');
-            
-            if (filter === 'all') {
-                transactions.forEach(item => item.style.display = 'flex');
-            } else if (filter === 'sent') {
-                transactions.forEach(item => {
-                    if (item.classList.contains('sent')) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            } else if (filter === 'received') {
-                transactions.forEach(item => {
-                    if (item.classList.contains('received')) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
         });
     });
     
-    // KYC Form
-    const idFrontBtn = document.getElementById('id-front-btn');
-    const idBackBtn = document.getElementById('id-back-btn');
-    const idFrontInput = document.getElementById('id-front');
-    const idBackInput = document.getElementById('id-back');
-    
-    idFrontBtn.addEventListener('click', () => {
-        idFrontInput.click();
-    });
-    
-    idBackBtn.addEventListener('click', () => {
-        idBackInput.click();
-    });
-    
-    // Theme options
+    // Theme selector
     const themeOptions = document.querySelectorAll('.theme-option');
     
     themeOptions.forEach(option => {
-        const theme = option.getAttribute('data-theme');
-        
-        if (theme === currentTheme) {
+        if (option.getAttribute('data-theme') === currentTheme) {
             option.classList.add('active');
         }
         
         option.addEventListener('click', () => {
+            const theme = option.getAttribute('data-theme');
+            
+            // Update active option
             themeOptions.forEach(o => o.classList.remove('active'));
             option.classList.add('active');
             
+            // Apply theme
             document.body.setAttribute('data-theme', theme);
-            currentTheme = theme;
             localStorage.setItem('theme', theme);
+            currentTheme = theme;
         });
     });
     
-    // Logout
-    const logoutBtn = document.getElementById('logout-btn');
+    // Modal handling
+    const modals = document.querySelectorAll('.modal');
+    const modalTriggers = {
+        'change-password-btn': 'change-password-modal',
+        'change-pin-btn': 'change-pin-modal',
+        'delete-account-btn': 'delete-account-modal'
+    };
     
-    logoutBtn.addEventListener('click', () => {
-        // Clear session
-        localStorage.removeItem('opperSession');
+    // Open modals
+    Object.keys(modalTriggers).forEach(triggerId => {
+        const trigger = document.getElementById(triggerId);
+        const modalId = modalTriggers[triggerId];
         
-        // Reset variables
-        currentUser = null;
-        userBalance = 0;
-        userKycStatus = 'pending';
-        
-        // Show auth container
-        showAuthContainer();
+        if (trigger) {
+            trigger.addEventListener('click', () => {
+                document.getElementById(modalId).classList.add('active');
+            });
+        }
     });
     
-    // Transfer page functionality
-    initializeTransferPage();
+    // Close modals
+    const modalCloseButtons = document.querySelectorAll('.modal-close, .modal-cancel');
+    
+    modalCloseButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal');
+            modal.classList.remove('active');
+        });
+    });
+    
+    // Close modal when clicking outside
+    modals.forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+    
+    // PIN Input handling
+    setupPinInputs();
+    
+    // Download receipt button
+    document.getElementById('download-receipt').addEventListener('click', downloadReceipt);
+    
+    // Form submissions
+    setupFormSubmissions();
 }
 
-// Initialize transfer page functionality
-function initializeTransferPage() {
-    const transferForm = document.getElementById('transfer-form');
-    const verifyBtn = document.getElementById('verify-btn');
-    const transferToInput = document.getElementById('transfer-to');
-    const transferAmountInput = document.getElementById('transfer-amount');
-    const amountInWords = document.getElementById('amount-in-words');
-    const receiverStatus = document.getElementById('receiver-status');
-    const verifiedUserInfo = document.getElementById('verified-user-info');
+// Setup PIN inputs
+function setupPinInputs() {
+    const pinInputs = document.querySelectorAll('.pin-input');
     
-    // Verify button click
-    verifyBtn.addEventListener('click', async () => {
-        const receiverPhone = transferToInput.value.trim();
+    pinInputs.forEach((input, index) => {
+        // Focus next input when a digit is entered
+        input.addEventListener('input', (e) => {
+            if (e.target.value) {
+                const nextInput = pinInputs[index + 1];
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            }
+        });
         
-        if (!receiverPhone) {
-            receiverStatus.textContent = "ဖုန်းနံပါတ်ထည့်ပါ";
-            receiverStatus.className = "input-status error";
+        // Handle backspace
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value) {
+                const prevInput = pinInputs[index - 1];
+                if (prevInput) {
+                    prevInput.focus();
+                }
+            }
+        });
+    });
+    
+    // Confirm PIN button
+    document.getElementById('confirm-pin-btn').addEventListener('click', () => {
+        let pin = '';
+        pinInputs.forEach(input => {
+            pin += input.value;
+        });
+        
+        if (pin.length !== 6) {
+            document.getElementById('pin-error').textContent = 'PIN ၆ လုံး ထည့်ပါ';
+            document.getElementById('pin-error').style.display = 'block';
             return;
         }
         
-        if (receiverPhone === userPhone) {
-            receiverStatus.textContent = "သင့်ကိုယ်ပိုင်အကောင့်ကို ငွေလွှဲ၍မရပါ";
-            receiverStatus.className = "input-status error";
+        // Process the transfer with the entered PIN
+        processTransfer(pin);
+    });
+}
+
+// Setup form submissions
+function setupFormSubmissions() {
+    // Login form
+    const loginBtn = document.getElementById('login-btn');
+    
+    loginBtn.addEventListener('click', async () => {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorElement = document.getElementById('login-error');
+        const successElement = document.getElementById('login-success');
+        
+        // Validate inputs
+        if (!email || !password) {
+            errorElement.textContent = 'အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
             return;
         }
-        
-        // Show verifying message
-        receiverStatus.textContent = "အကောင့်ရှာဖွေနေသည်...";
-        receiverStatus.className = "input-status";
         
         try {
-            // Check if receiver exists
-            const { data: receiver, error } = await supabase
-                .from('users')
-                .select('user_id, phone')
-                .eq('phone', receiverPhone)
-                .single();
-            
-            if (error || !receiver) {
-                receiverStatus.textContent = "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်မရှိပါ";
-                receiverStatus.className = "input-status error";
-                verifiedUserInfo.classList.add('hidden');
-                verifiedReceiver = null;
-                console.log("Account not found");
-                return;
-            }
-            
-            // Get user details
-            const { data: userData, error: userError } = await supabase
+            // Check if user exists
+            const { data: user, error } = await supabase
                 .from('auth_users')
                 .select('*')
-                .eq('user_id', receiver.user_id)
+                .eq('email', email)
                 .single();
             
-            if (userError || !userData) {
-                receiverStatus.textContent = "အကောင့်အချက်အလက်ရယူမရပါ";
-                receiverStatus.className = "input-status error";
+            if (error || !user) {
+                errorElement.textContent = 'အကောင့်မတွေ့ရှိပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
                 return;
             }
             
-            // Account found
-            receiverStatus.textContent = "အကောင့်ရှိပါသည်";
-            receiverStatus.className = "input-status success";
+            // Check password
+            if (user.password !== password) {
+                errorElement.textContent = 'စကားဝှက်မှားယွင်းနေပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
             
-            // Show verified user info
-            verifiedReceiver = {
-                user_id: receiver.user_id,
-                phone: receiver.phone,
-                email: userData.email
+            // Login successful
+            currentUser = user;
+            
+            // Save session
+            const sessionData = {
+                email: user.email,
+                user_id: user.user_id
             };
+            localStorage.setItem('opperSession', JSON.stringify(sessionData));
             
-            const receiverInitial = userData.email.charAt(0).toUpperCase();
-            const receiverName = userData.email.split('@')[0];
+            // Show success message
+            errorElement.style.display = 'none';
+            successElement.textContent = 'အကောင့်ဝင်ရောက်နေပါသည်...';
+            successElement.style.display = 'block';
             
-            document.getElementById('receiver-initial').textContent = receiverInitial;
-            document.getElementById('receiver-name').textContent = receiverName;
-            document.getElementById('receiver-id').textContent = `ID: ${receiver.user_id}`;
-            
-            verifiedUserInfo.classList.remove('hidden');
-            console.log("Account found:", receiverName);
+            // Load user data and show app
+            await loadUserData();
+            showAppContainer();
         } catch (error) {
-            receiverStatus.textContent = "အကောင့်ရှာဖွေရာတွင် အမှားရှိသည်";
-            receiverStatus.className = "input-status error";
-            console.error('Verify receiver error:', error);
+            console.error('Login error:', error);
+            errorElement.textContent = 'အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
         }
     });
     
-    // Amount input change
-    transferAmountInput.addEventListener('input', () => {
-        const amount = parseInt(transferAmountInput.value) || 0;
-        amountInWords.textContent = convertToWords(amount) + ' ကျပ်';
+    // Google login
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    
+    googleLoginBtn.addEventListener('click', () => {
+        // For demo purposes, we'll simulate Google login
+        simulateGoogleLogin('login');
     });
     
-    // Submit transfer form
-    transferForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+    // Signup form
+    const signupBtn = document.getElementById('signup-btn');
+    
+    signupBtn.addEventListener('click', async () => {
+        const email = document.getElementById('signup-email').value;
+        const phone = document.getElementById('signup-phone').value;
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const termsAgree = document.getElementById('terms-agree').checked;
+        const errorElement = document.getElementById('signup-error');
+        const successElement = document.getElementById('signup-success');
         
-        const receiverPhone = transferToInput.value.trim();
-        const amount = parseInt(transferAmountInput.value) || 0;
-        const note = document.getElementById('transfer-note').value.trim();
-        
-        if (!receiverPhone) {
-            receiverStatus.textContent = "ဖုန်းနံပါတ်ထည့်ပါ";
-            receiverStatus.className = "input-status error";
+        // Validate inputs
+        if (!email || !phone || !password || !confirmPassword) {
+            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
             return;
         }
         
-        if (!verifiedReceiver) {
-            receiverStatus.textContent = "အကောင့်အတည်ပြုပါ";
-            receiverStatus.className = "input-status error";
+        if (password !== confirmPassword) {
+            errorElement.textContent = 'စကားဝှက်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (!termsAgree) {
+            errorElement.textContent = 'စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check if email already exists
+            const { data: existingUser, error: checkError } = await supabase
+                .from('auth_users')
+                .select('email')
+                .eq('email', email)
+                .single();
+            
+            if (existingUser) {
+                errorElement.textContent = 'ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check if phone already exists
+            const { data: existingPhone, error: phoneError } = await supabase
+                .from('users')
+                .select('phone')
+                .eq('phone', phone)
+                .single();
+            
+            if (existingPhone) {
+                errorElement.textContent = 'ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Generate user ID (based on email)
+            const userId = generateUserId(email);
+            
+            // Create auth user
+            const { data: authUser, error: authError } = await supabase
+                .from('auth_users')
+                .insert([
+                    {
+                        email,
+                        password,
+                        user_id: userId
+                    }
+                ])
+                .select()
+                .single();
+            
+            if (authError) throw authError;
+            
+            // Create user profile
+            const { data: userProfile, error: profileError } = await supabase
+                .from('users')
+                .insert([
+                    {
+                        user_id: userId,
+                        phone,
+                        balance: 0,
+                        passport_status: 'pending'
+                    }
+                ])
+                .select()
+                .single();
+            
+            if (profileError) throw profileError;
+            
+            // Signup successful
+            errorElement.style.display = 'none';
+            successElement.textContent = 'အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။';
+            successElement.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('signup-email').value = '';
+            document.getElementById('signup-phone').value = '';
+            document.getElementById('signup-password').value = '';
+            document.getElementById('signup-confirm-password').value = '';
+            document.getElementById('terms-agree').checked = false;
+            
+            // Switch to login tab after a delay
+            setTimeout(() => {
+                document.querySelector('.auth-tab[data-tab="login"]').click();
+            }, 2000);
+        } catch (error) {
+            console.error('Signup error:', error);
+            errorElement.textContent = 'အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // Google signup
+    const googleSignupBtn = document.getElementById('google-signup-btn');
+    
+    googleSignupBtn.addEventListener('click', () => {
+        // For demo purposes, we'll simulate Google signup
+        simulateGoogleLogin('signup');
+    });
+    
+    // Transfer form
+    const transferBtn = document.getElementById('transfer-btn');
+    
+    transferBtn.addEventListener('click', async () => {
+        const phone = document.getElementById('transfer-phone').value;
+        const amount = parseInt(document.getElementById('transfer-amount').value);
+        const note = document.getElementById('transfer-note').value;
+        const errorElement = document.getElementById('transfer-error');
+        const successElement = document.getElementById('transfer-success');
+        
+        // Validate inputs
+        if (!phone || !amount) {
+            errorElement.textContent = 'ဖုန်းနံပါတ်နှင့် ငွေပမာဏ ထည့်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
             return;
         }
         
         if (amount < 1000) {
-            const errorEl = document.createElement('div');
-            errorEl.textContent = "အနည်းဆုံး 1,000 Ks လွှဲရပါမည်";
-            errorEl.className = "input-status error";
-            transferAmountInput.parentNode.parentNode.appendChild(errorEl);
-            
-            setTimeout(() => {
-                errorEl.remove();
-            }, 3000);
+            errorElement.textContent = 'ငွေပမာဏ အနည်းဆုံး 1,000 Ks ဖြစ်ရပါမည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
             return;
         }
         
-        if (amount > userBalance) {
-            const errorEl = document.createElement('div');
-            errorEl.textContent = "လက်ကျန်ငွေမလုံလောက်ပါ";
-            errorEl.className = "input-status error";
-            transferAmountInput.parentNode.parentNode.appendChild(errorEl);
-            
-            setTimeout(() => {
-                errorEl.remove();
-            }, 3000);
-            return;
-        }
-        
-        // Open PIN modal
-        openPinModal(receiverPhone, amount, note);
-    });
-}
-
-// PIN Modal functionality
-function openPinModal(receiverPhone, amount, note) {
-    const pinModal = document.getElementById('pin-modal');
-    const closePinModal = document.getElementById('close-pin-modal');
-    const pinInputs = document.querySelectorAll('.pin-input');
-    const pinKeys = document.querySelectorAll('.pin-key');
-    const pinKeyClear = document.querySelector('.pin-key-clear');
-    const pinKeySubmit = document.querySelector('.pin-key-submit');
-    const pinMessage = document.getElementById('pin-message');
-    
-    // Show modal
-    pinModal.classList.add('active');
-    
-    // Clear previous inputs
-    pinInputs.forEach(input => {
-        input.value = '';
-    });
-    
-    // Focus first input
-    pinInputs[0].focus();
-    
-    // Input events
-    pinInputs.forEach((input, index) => {
-        // Handle input
-        input.addEventListener('input', function() {
-            if (this.value) {
-                // Move to next input// Supabase Configuration
-const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
-
-// Global Variables
-let currentUser = null;
-let userBalance = 0;
-let userKycStatus = 'pending';
-let transfersEnabled = true;
-let currentTheme = localStorage.getItem('theme') || 'light';
-let userPin = '123456'; // Default PIN for demo purposes
-let transactions = []; // Store transactions for in-memory database
-
-// DOM Elements
-const loader = document.getElementById('loader');
-const authContainer = document.getElementById('auth-container');
-const appContainer = document.getElementById('app-container');
-
-// Initialize App
-document.addEventListener('DOMContentLoaded', async () => {
-    // Apply saved theme
-    document.body.setAttribute('data-theme', currentTheme);
-    
-    // Show loader
-    showLoader();
-    
-    // Check if user is logged in
-    await checkSession();
-    
-    // Initialize UI elements
-    initializeUI();
-    
-    // Hide loader after initialization
-    setTimeout(hideLoader, 1500);
-});
-
-// Check if user is logged in
-async function checkSession() {
-    try {
-        // Check local storage for session
-        const session = localStorage.getItem('opperSession');
-        
-        if (session) {
-            const sessionData = JSON.parse(session);
-            const { data: user, error } = await supabase
-                .from('auth_users')
-                .select('*')
-                .eq('email', sessionData.email)
-                .eq('user_id', sessionData.user_id)
-                .single();
-            
-            if (error || !user) {
-                // Invalid session
-                localStorage.removeItem('opperSession');
-                showAuthContainer();
+        try {
+            // Check if transfers are enabled
+            if (!transfersEnabled) {
+                errorElement.textContent = 'ငွေလွှဲခြင်းကို ယာယီပိတ်ထားပါသည်။ နောက်မှ ပြန်လည်ကြိုးစားပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
                 return;
             }
             
-            // Valid session, load user data
-            currentUser = user;
-            await loadUserData();
-            showAppContainer();
-        } else {
-            // No session found
-            showAuthContainer();
+            // Check if user has KYC approved
+            if (userKycStatus !== 'approved') {
+                errorElement.textContent = 'ငွေလွှဲရန် KYC အတည်ပြုရန် လိုအပ်ပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check balance
+            if (userBalance < amount) {
+                errorElement.textContent = 'လက်ကျန်ငွေ မလုံလောက်ပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check if recipient exists
+            const { data: userData } = await supabase
+                .from('users')
+                .select('phone')
+                .eq('user_id', currentUser.user_id)
+                .single();
+                
+            if (userData.phone === phone) {
+                errorElement.textContent = 'ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Check if recipient account exists
+            const { data: recipient, error: recipientError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+                
+            if (recipientError || !recipient) {
+                console.log('No account found for phone number:', phone);
+                errorElement.textContent = 'လက်ခံမည့်သူ မတွေ့ရှိပါ။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            console.log('Account found:', recipient);
+            
+            // Clear any previous errors
+            errorElement.style.display = 'none';
+            
+            // Show PIN entry modal
+            showPinEntryModal();
+        } catch (error) {
+            console.error('Transfer validation error:', error);
+            errorElement.textContent = 'ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
         }
-    } catch (error) {
-        console.error('Session check error:', error);
-        showAuthContainer();
-    }
+    });
+    
+    // KYC form
+    const kycSubmitBtn = document.getElementById('kyc-submit-btn');
+    
+    kycSubmitBtn.addEventListener('click', async () => {
+        const passportNumber = document.getElementById('kyc-passport').value;
+        const address = document.getElementById('kyc-address').value;
+        const pin = document.getElementById('kyc-pin').value;
+        const confirmPin = document.getElementById('kyc-confirm-pin').value;
+        const passportFile = document.getElementById('passport-upload').files[0];
+        const selfieFile = document.getElementById('selfie-upload').files[0];
+        const errorElement = document.getElementById('kyc-error');
+        const successElement = document.getElementById('kyc-success');
+        
+        // Validate inputs
+        if (!passportNumber || !address || !pin || !confirmPin || !passportFile || !selfieFile) {
+            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (pin !== confirmPin) {
+            errorElement.textContent = 'PIN နှင့် အတည်ပြု PIN မတူညီပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+            errorElement.textContent = 'PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Upload passport image
+            const passportFileName = `passport_${currentUser.user_id}_${Date.now()}`;
+            const { data: passportData, error: passportError } = await supabase.storage
+                .from('kyc-documents')
+                .upload(passportFileName, passportFile);
+            
+            if (passportError) throw passportError;
+            
+            // Get passport URL
+            const { data: passportUrl } = await supabase.storage
+                .from('kyc-documents')
+                .getPublicUrl(passportFileName);
+            
+            // Upload selfie image
+            const selfieFileName = `selfie_${currentUser.user_id}_${Date.now()}`;
+            const { data: selfieData, error: selfieError } = await supabase.storage
+                .from('kyc-documents')
+                .upload(selfieFileName, selfieFile);
+            
+            if (selfieError) throw selfieError;
+            
+            // Get selfie URL
+            const { data: selfieUrl } = await supabase.storage
+                .from('kyc-documents')
+                .getPublicUrl(selfieFileName);
+            
+            // Update user profile
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({
+                    passport_number: passportNumber,
+                    address,
+                    payment_pin: pin,
+                    passport_image: passportUrl.publicUrl,
+                    selfie_image: selfieUrl.publicUrl,
+                    passport_status: 'pending',
+                    submitted_at: new Date().toISOString()
+                })
+                .eq('user_id', currentUser.user_id);
+            
+            if (updateError) throw updateError;
+            
+            // KYC submission successful
+            errorElement.style.display = 'none';
+            successElement.textContent = 'KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။';
+            successElement.style.display = 'block';
+            
+            // Update KYC status
+            userKycStatus = 'pending';
+            updateKycStatus();
+            
+            // Clear form
+            document.getElementById('kyc-passport').value = '';
+            document.getElementById('kyc-address').value = '';
+            document.getElementById('kyc-pin').value = '';
+            document.getElementById('kyc-confirm-pin').value = '';
+            document.getElementById('passport-upload').value = '';
+            document.getElementById('selfie-upload').value = '';
+            document.getElementById('passport-preview').innerHTML = '';
+            document.getElementById('selfie-preview').innerHTML = '';
+        } catch (error) {
+            console.error('KYC submission error:', error);
+            errorElement.textContent = 'KYC တင်သွင်းရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
+    
+    // Change password form
+    const savePasswordBtn = document.getElementById('save-password-btn');
+    
+    savePasswordBtn.addEventListener('click', async () => {
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmNewPassword = document.getElementById('confirm-new-password').value;
+        const errorElement = document.getElementById('change-password-error');
+        const successElement = document.getElementById('change-password-success');
+        
+        // Validate inputs
+        if (!currentPassword || !newPassword || !confirmNewPassword) {
+            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        if (newPassword !== confirmNewPassword) {
+            errorElement.textContent = 'စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check current password
+            const { data: user, error } = await supabase
+                .from('auth_users')
+                .select('password')
+                .eq('user_id', currentUser.user_id)
+                .single();
+            
+            if (error) throw error;
+            
+            if (user.password !== currentPassword) {
+                errorElement.textContent = 'လက်ရှိစကားဝှက် မှားယွင်းနေပါသည်။';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                return;
+            }
+            
+            // Update password
+            const { error: updateError } = await supabase
+                .from('auth_users')
+                .update({ password: newPassword })
+                .eq('user_id', currentUser.user_id);
+            
+            if (updateError) throw updateError;
+            
+            // Password change successful
+            errorElement.style.display = 'none';
+            successElement.textContent = 'စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။';
+            successElement.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-new-password').value = '';
+            
+            // Close modal after a delay
+            setTimeout(() => {
+                document.getElementById('change-password-modal').classList.remove('active');
+            }, 2000);
+        } catch (error) {
+            console.error('Change password error:', error);
+            errorElement.textContent = 'စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    });
 }
 
-// Load user data
-async function loadUserData() {
+// Show PIN entry modal
+function showPinEntryModal() {
+    // Clear previous PIN inputs
+    document.querySelectorAll('.pin-input').forEach(input => {
+        input.value = '';
+    });
+    
+    // Clear error message
+    document.getElementById('pin-error').style.display = 'none';
+    
+    // Show modal
+    pinEntryModal.classList.add('active');
+    
+    // Focus first input
+    document.querySelector('.pin-input').focus();
+}
+
+// Process transfer with PIN
+async function processTransfer(pin) {
+    const phone = document.getElementById('transfer-phone').value;
+    const amount = parseInt(document.getElementById('transfer-amount').value);
+    const note = document.getElementById('transfer-note').value;
+    const errorElement = document.getElementById('transfer-error');
+    const successElement = document.getElementById('transfer-success');
+    
+    // Hide PIN modal
+    pinEntryModal.classList.remove('active');
+    
+    // Show processing overlay
+    processingOverlay.classList.add('active');
+    document.getElementById('processing-message').textContent = 'ငွေလွှဲလုပ်ဆောင်နေသည်...';
+    
     try {
-        if (!currentUser) return;
-        
-        // Get user profile data
-        const { data: userData, error: userError } = await supabase
+        // Get sender's data
+        const { data: sender, error: senderError } = await supabase
             .from('users')
             .select('*')
             .eq('user_id', currentUser.user_id)
             .single();
         
-        if (userError) throw userError;
+        if (senderError) throw senderError;
         
-        // Update global variables
-        userBalance = userData.balance || 0;
-        userKycStatus = userData.passport_status || 'pending';
+        // Check PIN
+        if (sender.payment_pin !== pin) {
+            processingOverlay.classList.remove('active');
+            errorElement.textContent = 'PIN မှားယွင်းနေပါသည်။';
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+            return;
+        }
         
-        // Update UI with user data
-        updateUserUI(userData);
-        
-        // Check system settings
-        const { data: settings, error: settingsError } = await supabase
-            .from('settings')
-            .select('allow_transfers')
-            .eq('id', 1)
+        // Get recipient data
+        const { data: recipient, error: recipientError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('phone', phone)
             .single();
         
-        if (!settingsError && settings) {
-            transfersEnabled = settings.allow_transfers;
-            updateTransferStatus();
-        }
+        if (recipientError) throw recipientError;
         
-        // Load transactions
-        loadTransactions();
+        // Generate transaction ID
+        const transactionId = `OPPER${Math.floor(1000000 + Math.random() * 9000000)}`;
         
-        // Load PIN from localStorage for demo
-        if (localStorage.getItem('userPin')) {
-            userPin = localStorage.getItem('userPin');
-        }
+        // Create transaction
+        const { data: transaction, error: transactionError } = await supabase
+            .from('transactions')
+            .insert([
+                {
+                    id: transactionId,
+                    from_phone: sender.phone,
+                    from_name: sender.name || sender.phone,
+                    to_phone: recipient.phone,
+                    to_name: recipient.name || recipient.phone,
+                    amount,
+                    note,
+                    created_at: new Date().toISOString()
+                }
+            ])
+            .select()
+            .single();
+        
+        if (transactionError) throw transactionError;
+        
+        // Update sender's balance
+        const { error: updateSenderError } = await supabase
+            .from('users')
+            .update({ balance: sender.balance - amount })
+            .eq('user_id', sender.user_id);
+        
+        if (updateSenderError) throw updateSenderError;
+        
+        // Update recipient's balance
+        const { error: updateRecipientError } = await supabase
+            .from('users')
+            .update({ balance: recipient.balance + amount })
+            .eq('user_id', recipient.user_id);
+        
+        if (updateRecipientError) throw updateRecipientError;
+        
+        // Update local balance
+        userBalance -= amount;
+        document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
+        document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
+        
+        // Simulate processing time
+        setTimeout(() => {
+            // Hide processing overlay
+            processingOverlay.classList.remove('active');
+            
+            // Show success message
+            errorElement.style.display = 'none';
+            successElement.textContent = `${amount.toLocaleString()} Ks ကို ${phone} သို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`;
+            successElement.style.display = 'block';
+            
+            // Show receipt
+            showTransactionReceipt(transaction);
+            
+            // Clear form
+            document.getElementById('transfer-phone').value = '';
+            document.getElementById('transfer-amount').value = '';
+            document.getElementById('transfer-note').value = '';
+            
+            // Refresh transactions
+            loadTransactions();
+        }, 2000);
     } catch (error) {
-        console.error('Load user data error:', error);
+        console.error('Transfer error:', error);
+        processingOverlay.classList.remove('active');
+        errorElement.textContent = 'ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။';
+        errorElement.style.display = 'block';
+        successElement.style.display = 'none';
     }
 }
 
-// Update UI with user data
-function updateUserUI(userData) {
-    // Update user name and ID in header and sidebar
-    const userInitial = currentUser.email.charAt(0).toUpperCase();
-    const userName = currentUser.email.split('@')[0];
-    
-    document.getElementById('user-initial').textContent = userInitial;
-    document.getElementById('user-initial-sidebar').textContent = userInitial;
-    document.getElementById('user-name').textContent = userName;
-    document.getElementById('user-name-sidebar').textContent = userName;
-    document.getElementById('user-id').textContent = `ID: ${currentUser.user_id}`;
-    document.getElementById('user-id-sidebar').textContent = `ID: ${currentUser.user_id}`;
-    document.getElementById('greeting-name').textContent = userName;
-    
-    // Update balance
-    document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
-    document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
-    
-    // Update KYC status
-    updateKycStatus();
-    
-    // Update settings page
-    document.getElementById('settings-phone').value = userData.phone || '';
-    document.getElementById('settings-email').value = currentUser.email || '';
+// Show transaction receipt
+function showTransactionReceipt(transaction) {
+    // Get user phone
+    supabase
+        .from('users')
+        .select('phone')
+        .eq('user_id', currentUser.user_id)
+        .single()
+        .then(({ data: userData }) => {
+            if (!userData) return;
+            
+            const userPhone = userData.phone;
+            const isSender = transaction.from_phone === userPhone;
+            
+            // Create receipt HTML
+            const receiptHTML = `
+                <div class="receipt">
+                    <div class="receipt-logo">
+                        <div class="receipt-logo-circle">
+                            <span class="receipt-logo-text">OPPER</span>
+                        </div>
+                        <div class="receipt-logo-subtitle">OPPER Pay</div>
+                    </div>
+                    
+                    <div class="receipt-status">
+                        <div class="receipt-status-icon ${isSender ? 'sent' : 'received'}">
+                            <i class="fas ${isSender ? 'fa-paper-plane' : 'fa-check-circle'}"></i>
+                        </div>
+                        <div class="receipt-status-text">
+                            ${isSender ? 'ငွေပေးပို့ပြီးပါပြီ' : 'ငွေလက်ခံရရှိပါပြီ'}
+                        </div>
+                    </div>
+                    
+                    <div class="receipt-amount">
+                        <div class="receipt-amount-label">ငွေပမာဏ</div>
+                        <div class="receipt-amount-value">${transaction.amount.toLocaleString()} Ks</div>
+                    </div>
+                    
+                    <div class="receipt-details">
+                        <div class="receipt-detail-row">
+                            <div class="receipt-detail-label">From</div>
+                            <div class="receipt-detail-value">${transaction.from_name} (${transaction.from_phone})</div>
+                        </div>
+                        <div class="receipt-detail-row">
+                            <div class="receipt-detail-label">To</div>
+                            <div class="receipt-detail-value">${transaction.to_name} (${transaction.to_phone})</div>
+                        </div>
+                        ${transaction.note ? `
+                        <div class="receipt-detail-row">
+                            <div class="receipt-detail-label">Note</div>
+                            <div class="receipt-detail-value">${transaction.note}</div>
+                        </div>
+                        ` : ''}
+                        <div class="receipt-detail-row">
+                            <div class="receipt-detail-label">Date</div>
+                            <div class="receipt-detail-value">${new Date(transaction.created_at).toLocaleString()}</div>
+                        </div>
+                        <div class="receipt-detail-row">
+                            <div class="receipt-detail-label">Payment Method</div>
+                            <div class="receipt-detail-value">OPPER Pay</div>
+                        </div>
+                    </div>
+                    
+                    <div class="receipt-transaction-id">
+                        <div class="receipt-transaction-id-label">ငွေလွှဲလုပ်ဆောင်ချက်အမှတ်စဥ်</div>
+                        <div class="receipt-transaction-id-value">${transaction.id || `OPPER${Math.floor(1000000 + Math.random() * 9000000)}`}</div>
+                    </div>
+                    
+                    <div class="receipt-footer">
+                        OPPER Payment ကိုအသုံးပြုသည့်အတွက် ကျေးဇူးတင်ပါသည်
+                    </div>
+                </div>
+            `;
+            
+            // Set receipt content
+            document.getElementById('receipt-container').innerHTML = receiptHTML;
+            
+            // Show receipt modal
+            receiptModal.classList.add('active');
+        });
 }
 
-// Update KYC status in UI
-function updateKycStatus() {
-    const kycStatusElement = document.getElementById('kyc-status');
-    const kycStatusCard = document.getElementById('kyc-status-card');
-    const kycForm = document.getElementById('kyc-form');
-    const kycStatusMessage = document.getElementById('kyc-status-message');
-    const kycStatusIcon = document.querySelector('.kyc-status-icon');
+// Download receipt as PNG
+function downloadReceipt() {
+    const receiptElement = document.getElementById('receipt-container');
     
-    // Remove all status classes
-    kycStatusIcon.classList.remove('pending', 'approved', 'rejected');
+    if (!receiptElement) return;
     
-    // Update based on status
-    if (userKycStatus === 'approved') {
-        kycStatusElement.textContent = 'KYC: အတည်ပြုပြီး';
-        kycStatusMessage.textContent = 'သင့် KYC အတည်ပြုပြီးဖြစ်ပါသည်။';
-        kycStatusIcon.classList.add('approved');
-        kycStatusIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-        kycForm.style.display = 'none';
-    } else if (userKycStatus === 'rejected') {
-        kycStatusElement.textContent = 'KYC: ငြင်းပယ်ခံရသည်';
-        kycStatusMessage.textContent = 'သင့် KYC ငြင်းပယ်ခံရပါသည်။ ပြန်လည်တင်သွင်းပါ။';
-        kycStatusIcon.classList.add('rejected');
-        kycStatusIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
-        kycForm.style.display = 'block';
-    } else {
-        kycStatusElement.textContent = 'KYC: စောင့်ဆိုင်းဆဲ';
-        kycStatusMessage.textContent = 'သင့် KYC စိစစ်နေဆဲဖြစ်ပါသည်။';
-        kycStatusIcon.classList.add('pending');
-        kycStatusIcon.innerHTML = '<i class="fas fa-clock"></i>';
-        
-        // Check if KYC data exists
-        if (currentUser) {
-            supabase
-                .from('users')
-                .select('passport_number, passport_image')
-                .eq('user_id', currentUser.user_id)
-                .single()
-                .then(({ data }) => {
-                    if (data && data.passport_number && data.passport_image) {
-                        kycForm.style.display = 'none';
-                    } else {
-                        kycForm.style.display = 'block';
-                    }
+    // Use html2canvas to convert receipt to image
+    html2canvas(receiptElement).then(canvas => {
+        // Create download link
+        const link = document.createElement('a');
+        link.download = `OPPER-Receipt-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+}
+
+// Simulate Google login/signup
+function simulateGoogleLogin(type) {
+    // For demo purposes, we'll use a mock Google account
+    const googleEmail = 'user@gmail.com';
+    const googleName = 'User';
+    
+    if (type === 'login') {
+        // Check if account exists
+        supabase
+            .from('auth_users')
+            .select('*')
+            .eq('email', googleEmail)
+            .single()
+            .then(({ data: user, error }) => {
+                if (error || !user) {
+                    // No account found, show error
+                    const errorElement = document.getElementById('login-error');
+                    errorElement.textContent = 'Google အကောင့်ဖြင့် အကောင့်မတွေ့ရှိပါ။ အကောင့်ဖွင့်ပါ။';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // Login successful
+                currentUser = user;
+                
+                // Save session
+                const sessionData = {
+                    email: user.email,
+                    user_id: user.user_id
+                };
+                localStorage.setItem('opperSession', JSON.stringify(sessionData));
+                
+                // Show success message
+                const successElement = document.getElementById('login-success');
+                successElement.textContent = 'Google ဖြင့် အကောင့်ဝင်ရောက်နေပါသည်...';
+                successElement.style.display = 'block';
+                
+                // Load user data and show app
+                loadUserData().then(() => {
+                    showAppContainer();
                 });
-        }
+            });
+    } else if (type === 'signup') {
+        // Check if account already exists
+        supabase
+            .from('auth_users')
+            .select('email')
+            .eq('email', googleEmail)
+            .single()
+            .then(({ data: existingUser, error: checkError }) => {
+                if (existingUser) {
+                    // Account already exists
+                    const errorElement = document.getElementById('signup-error');
+                    errorElement.textContent = 'ဤ Google အကောင့်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // Generate user ID
+                const userId = generateUserId(googleEmail);
+                
+                // Create auth user
+                supabase
+                    .from('auth_users')
+                    .insert([
+                        {
+                            email: googleEmail,
+                            password: 'google-auth', // Special password for Google auth
+                            user_id: userId
+                        }
+                    ])
+                    .select()
+                    .single()
+                    .then(({ data: authUser, error: authError }) => {
+                        if (authError) {
+                            console.error('Google signup error:', authError);
+                            const errorElement = document.getElementById('signup-error');
+                            errorElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
+                            errorElement.style.display = 'block';
+                            return;
+                        }
+                        
+                        // Create user profile
+                        supabase
+                            .from('users')
+                            .insert([
+                                {
+                                    user_id: userId,
+                                    balance: 0,
+                                    passport_status: 'pending'
+                                }
+                            ])
+                            .then(({ error: profileError }) => {
+                                if (profileError) {
+                                    console.error('Google signup profile error:', profileError);
+                                    const errorElement = document.getElementById('signup-error');
+                                    errorElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
+                                    errorElement.style.display = 'block';
+                                    return;
+                                }
+                                
+                                // Signup successful
+                                const successElement = document.getElementById('signup-success');
+                                successElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။';
+                                successElement.style.display = 'block';
+                                
+                                // Switch to login tab after a delay
+                                setTimeout(() => {
+                                    document.querySelector('.auth-tab[data-tab="login"]').click();
+                                }, 2000);
+                            });
+                    });
+            });
     }
 }
 
-// Update transfer status in UI
-function updateTransferStatus() {
-    const transferStatusElement = document.getElementById('transfer-status');
+// Generate user ID based on email
+function generateUserId(email) {
+    // Extract username from email
+    const username = email.split('@')[0];
     
-    if (transfersEnabled) {
-        transferStatusElement.textContent = 'ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်';
-        transferStatusElement.classList.remove('disabled');
-        transferStatusElement.classList.add('enabled');
-    } else {
-        transferStatusElement.textContent = 'ငွေလွှဲခြင်း: ပိတ်ထားသည်';
-        transferStatusElement.classList.remove('enabled');
-        transferStatusElement.classList.add('disabled');
-    }
+    // Generate random number
+    const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    
+    // Combine with timestamp
+    const timestamp = Date.now().toString().slice(-4);
+    
+    // Create user ID
+    return `${username.slice(0, 4)}${randomNum}${timestamp}`;
 }
 
-// Show loader
-function showLoader() {
-    loader.classList.add('active');
-}
-
-// Hide loader
-function hideLoader() {
-    loader.classList.remove('active');
+// Show specific page
+function showPage(pageName) {
+    // Update active link in sidebar
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    sidebarLinks.forEach(link => {
+        link.parentElement.classList.remove('active');
+        if (link.getAttribute('data-page') === pageName) {
+            link.parentElement.classList.add('active');
+        }
+    });
+    
+    // Show corresponding page
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(page => {
+        page.classList.remove('active');
+        if (page.id === `${pageName}-page`) {
+            page.classList.add('active');
+        }
+    });
+    
+    // Close dropdown
+    document.getElementById('profile-dropdown').classList.remove('active');
 }
 
 // Show auth container
@@ -1121,1197 +1545,52 @@ function showAppContainer() {
     appContainer.classList.remove('hidden');
 }
 
-// Initialize UI elements
-function initializeUI() {
-    // Auth tabs
-    const authTabs = document.querySelectorAll('.auth-tab');
-    const authForms = document.querySelectorAll('.auth-form');
+// Show loader
+function showLoader() {
+    loader.classList.add('active');
+}
+
+// Hide loader
+function hideLoader() {
+    loader.classList.remove('active');
+}
+
+// Logout
+function logout() {
+    // Clear session
+    localStorage.removeItem('opperSession');
     
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const formId = tab.getAttribute('data-tab');
-            
-            // Update tabs
-            authTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Update forms
-            authForms.forEach(form => form.classList.remove('active'));
-            document.getElementById(`${formId}-form`).classList.add('active');
-        });
-    });
+    // Reset variables
+    currentUser = null;
+    userBalance = 0;
+    userKycStatus = 'pending';
+    transactions = [];
     
-    // Toggle password visibility
-    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
-    
-    togglePasswordButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const input = this.parentNode.querySelector('input');
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            
-            input.setAttribute('type', type);
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
-        });
-    });
-    
-    // Login form
-    const loginForm = document.getElementById('login-btn');
-    
-    loginForm.addEventListener('click', async (e) => {
-        e.preventDefault();
-        
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        
-        if (!email || !password) {
-            showMessage('login-error', 'အီးမေးလ်နှင့် စကားဝှက်ကို ဖြည့်ပါ');
-            return;
-        }
-        
+    // Show auth container
+    showAuthContainer();
+}
+
+// Account verification by phone number
+document.getElementById('transfer-phone').addEventListener('input', async function() {
+    const phone = this.value;
+    if (phone && phone.length >= 10)  async function() {
+    const phone = this.value;
+    if (phone && phone.length >= 10) {
         try {
-            showLoader();
-            
-            const { data, error } = await supabase
-                .from('auth_users')
+            // Check if recipient account exists
+            const { data: recipient, error: recipientError } = await supabase
+                .from('users')
                 .select('*')
-                .eq('email', email)
+                .eq('phone', phone)
                 .single();
-            
-            if (error || !data) {
-                hideLoader();
-                showMessage('login-error', 'အကောင့်မတွေ့ရှိပါ');
-                return;
-            }
-            
-            // Simple password check (in real app, use proper hashing)
-            if (data.password !== password) {
-                hideLoader();
-                showMessage('login-error', 'စကားဝှက် မှားယွင်းနေပါသည်');
-                return;
-            }
-            
-            // Save session
-            currentUser = data;
-            localStorage.setItem('opperSession', JSON.stringify({
-                email: data.email,
-                user_id: data.user_id
-            }));
-            
-            await loadUserData();
-            
-            hideLoader();
-            showAppContainer();
-            
-        } catch (error) {
-            hideLoader();
-            showMessage('login-error', 'အကောင့်ဝင်ရာတွင် အမှားရှိပါသည်');
-            console.error('Login error:', error);
-        }
-    });
-    
-    // Signup form
-    const signupForm = document.getElementById('signup-btn');
-    
-    signupForm.addEventListener('click', async (e) => {
-        e.preventDefault();
-        
-        const email = document.getElementById('signup-email').value;
-        const phone = document.getElementById('signup-phone').value;
-        const password = document.getElementById('signup-password').value;
-        const confirmPassword = document.getElementById('signup-confirm-password').value;
-        const termsAgree = document.getElementById('terms-agree').checked;
-        
-        if (!email || !phone || !password || !confirmPassword) {
-            showMessage('signup-error', 'အချက်အလက်အားလုံးဖြည့်ပါ');
-            return;
-        }
-        
-        if (password !== confirmPassword) {
-            showMessage('signup-error', 'စကားဝှက်နှစ်ခု မတူညီပါ');
-            return;
-        }
-        
-        if (!termsAgree) {
-            showMessage('signup-error', 'စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန်လိုအပ်ပါသည်');
-            return;
-        }
-        
-        try {
-            showLoader();
-            
-            // Check if email already exists
-            const { data: existingUser, error: checkError } = await supabase
-                .from('auth_users')
-                .select('email')
-                .eq('email', email)
-                .single();
-            
-            if (existingUser) {
-                hideLoader();
-                showMessage('signup-error', 'အီးမေးလ်ရှိပြီးဖြစ်ပါသည်');
-                return;
-            }
-            
-            // Generate user ID
-            const userId = 'U' + Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
-            
-            // Create user
-            const { error: insertError } = await supabase
-                .from('auth_users')
-                .insert([
-                    { 
-                        email: email,
-                        password: password,
-                        user_id: userId
-                    }
-                ]);
-            
-            if (insertError) {
-                hideLoader();
-                showMessage('signup-error', 'အကောင့်ဖွင့်ရာတွင် အမှားရှိပါသည်');
-                console.error('Signup error:', insertError);
-                return;
-            }
-            
-            // Create user profile
-            const { error: profileError } = await supabase
-                .from('users')
-                .insert([
-                    {
-                        user_id: userId,
-                        phone: phone,
-                        balance: 100000,  // Initial balance
-                        passport_status: 'pending'
-                    }
-                ]);
-            
-            if (profileError) {
-                hideLoader();
-                showMessage('signup-error', 'ပရိုဖိုင်ဖန်တီးရာတွင် အမှားရှိပါသည်');
-                console.error('Profile creation error:', profileError);
-                return;
-            }
-            
-            hideLoader();
-            showMessage('signup-success', 'အကောင့်ဖွင့်ပြီးပါပြီ');
-            
-            // Switch to login tab
-            document.querySelector('.auth-tab[data-tab="login"]').click();
-            
-        } catch (error) {
-            hideLoader();
-            showMessage('signup-error', 'အကောင့်ဖွင့်ရာတွင် အမှားရှိပါသည်');
-            console.error('Signup error:', error);
-        }
-    });
-    
-    // Sidebar toggle
-    const menuToggle = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-    const closeSidebar = document.getElementById('close-sidebar');
-    
-    menuToggle.addEventListener('click', () => {
-        sidebar.classList.add('active');
-    });
-    
-    closeSidebar.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-    });
-    
-    // Navigation
-    const navLinks = document.querySelectorAll('.sidebar-nav a, .action-button[data-page]');
-    const pages = document.querySelectorAll('.page');
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            const pageId = link.getAttribute('data-page');
-            
-            // Update active nav link
-            document.querySelectorAll('.sidebar-nav li').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            const parentLi = link.closest('li');
-            if (parentLi) parentLi.classList.add('active');
-            
-            // Show page
-            pages.forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            document.getElementById(`${pageId}-page`).classList.add('active');
-            
-            // Close sidebar on mobile
-            sidebar.classList.remove('active');
-        });
-    });
-    
-    // Logout button
-    const logoutBtn = document.getElementById('logout-btn');
-    
-    logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('opperSession');
-        currentUser = null;
-        showAuthContainer();
-    });
-    
-    // Theme toggler
-    const themeOptions = document.querySelectorAll('.theme-option');
-    
-    themeOptions.forEach(option => {
-        if (option.getAttribute('data-theme') === currentTheme) {
-            option.classList.add('active');
-        }
-        
-        option.addEventListener('click', () => {
-            const theme = option.getAttribute('data-theme');
-            
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            currentTheme = theme;
-            
-            themeOptions.forEach(o => o.classList.remove('active'));
-            option.classList.add('active');
-        });
-    });
-    
-    // Balance actions
-    const hideBalanceBtn = document.getElementById('hide-balance');
-    const balanceAmount = document.getElementById('balance-amount');
-    
-    hideBalanceBtn.addEventListener('click', () => {
-        if (balanceAmount.textContent.includes('*')) {
-            balanceAmount.textContent = `${userBalance.toLocaleString()} Ks`;
-            hideBalanceBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-        } else {
-            balanceAmount.textContent = '******** Ks';
-            hideBalanceBtn.innerHTML = '<i class="fas fa-eye"></i>';
-        }
-    });
-    
-    const refreshBalanceBtn = document.getElementById('refresh-balance');
-    
-    refreshBalanceBtn.addEventListener('click', async () => {
-        try {
-            refreshBalanceBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
-            
-            const { data, error } = await supabase
-                .from('users')
-                .select('balance')
-                .eq('user_id', currentUser.user_id)
-                .single();
-            
-            if (error) throw error;
-            
-            userBalance = data.balance;
-            document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
-            balanceAmount.textContent = `${userBalance.toLocaleString()} Ks`;
-            
-            setTimeout(() => {
-                refreshBalanceBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-            }, 1000);
-            
-        } catch (error) {
-            console.error('Refresh balance error:', error);
-            refreshBalanceBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-        }
-    });
-    
-    // Initialize transfer related functionality
-    initializeTransferUI();
-    
-    // Initialize transaction history functionality
-    initializeHistoryUI();
-    
-    // Initialize KYC form
-    initializeKycUI();
-    
-    // Initialize settings
-    initializeSettingsUI();
-}
-
-// Show message in auth forms
-function showMessage(elementId, message) {
-    const element = document.getElementById(elementId);
-    element.textContent = message;
-    element.classList.add('show');
-    
-    setTimeout(() => {
-        element.classList.remove('show');
-    }, 5000);
-}
-
-// Load transactions
-async function loadTransactions() {
-    try {
-        if (!currentUser) return;
-        
-        // Get user phone number
-        const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('phone')
-            .eq('user_id', currentUser.user_id)
-            .single();
-        
-        if (userError || !userData || !userData.phone) return;
-        
-        const userPhone = userData.phone;
-        
-        // Get transactions from memory or initialize with sample data for demo
-        if (transactions.length === 0) {
-            // Initialize with sample transactions if empty
-            const currentDate = new Date();
-            
-            // Create sample transactions for demo - these will be replaced by actual transactions
-            transactions = [
-                {
-                    id: 'OPPER1234567',
-                    from_phone: userPhone,
-                    to_phone: '09987654321',
-                    amount: 50000,
-                    note: 'အိမ်ငှားခ',
-                    created_at: new Date(currentDate.getTime() - 86400000).toISOString(), // 1 day ago
-                    status: 'completed'
-                },
-                {
-                    id: 'OPPER7654321',
-                    from_phone: '09123456789',
-                    to_phone: userPhone,
-                    amount: 25000,
-                    note: 'ကားခ',
-                    created_at: new Date(currentDate.getTime() - 172800000).toISOString(), // 2 days ago
-                    status: 'completed'
-                }
-            ];
-        }
-        
-        // Update UI with transactions
-        updateTransactionsUI(transactions, userPhone);
-    } catch (error) {
-        console.error('Load transactions error:', error);
-    }
-}
-
-// Update transactions UI
-function updateTransactionsUI(transactionsList, userPhone) {
-    const recentTransactionsList = document.getElementById('recent-transactions-list');
-    const historyTransactionsList = document.getElementById('history-transactions-list');
-    
-    // Clear lists
-    recentTransactionsList.innerHTML = '';
-    historyTransactionsList.innerHTML = '';
-    
-    if (!transactionsList || transactionsList.length === 0) {
-        // Show empty state
-        const emptyState = `
-            <div class="empty-state">
-                <i class="fas fa-history"></i>
-                <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
-            </div>
-        `;
-        recentTransactionsList.innerHTML = emptyState;
-        historyTransactionsList.innerHTML = emptyState;
-        return;
-    }
-    
-    // Sort transactions by date descending
-    const sortedTransactions = [...transactionsList].sort((a, b) => {
-        return new Date(b.created_at) - new Date(a.created_at);
-    });
-    
-    // Create transaction items for recent transactions (limit to 5)
-    const recentTransactions = sortedTransactions.slice(0, 5);
-    
-    recentTransactions.forEach(transaction => {
-        const isSender = transaction.from_phone === userPhone;
-        const otherParty = isSender ? transaction.to_phone : transaction.from_phone;
-        const transactionDate = new Date(transaction.created_at).toLocaleString();
-        
-        const transactionItem = `
-            <div class="transaction-item ${isSender ? 'sent' : 'received'}" data-transaction-id="${transaction.id}">
-                <div class="transaction-icon">
-                    <i class="fas ${isSender ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
-                </div>
-                <div class="transaction-details">
-                    <div class="transaction-title">
-                        ${isSender ? 'ပို့ထားသော' : 'လက်ခံရရှိသော'}
-                    </div>
-                    <div class="transaction-subtitle">
-                        ${otherParty} ${transaction.note ? `- ${transaction.note}` : ''}
-                    </div>
-                    <div class="transaction-date">${transactionDate}</div>
-                </div>
-                <div class="transaction-amount">
-                    ${isSender ? '-' : '+'} ${transaction.amount.toLocaleString()} Ks
-                </div>
-                <div class="transaction-actions">
-                    <button class="view-receipt-btn" data-transaction-id="${transaction.id}">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        recentTransactionsList.innerHTML += transactionItem;
-    });
-    
-    // Create transaction items for history page (all transactions)
-    sortedTransactions.forEach(transaction => {
-        const isSender = transaction.from_phone === userPhone;
-        const otherParty = isSender ? transaction.to_phone : transaction.from_phone;
-        const transactionDate = new Date(transaction.created_at).toLocaleString();
-        
-        const transactionItem = `
-            <div class="transaction-item ${isSender ? 'sent' : 'received'}" data-transaction-id="${transaction.id}" data-type="${isSender ? 'sent' : 'received'}">
-                <div class="transaction-icon">
-                    <i class="fas ${isSender ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
-                </div>
-                <div class="transaction-details">
-                    <div class="transaction-title">
-                        ${isSender ? 'ပို့ထားသော' : 'လက်ခံရရှိသော'}
-                    </div>
-                    <div class="transaction-subtitle">
-                        ${otherParty} ${transaction.note ? `- ${transaction.note}` : ''}
-                    </div>
-                    <div class="transaction-date">${transactionDate}</div>
-                </div>
-                <div class="transaction-amount">
-                    ${isSender ? '-' : '+'} ${transaction.amount.toLocaleString()} Ks
-                </div>
-                <div class="transaction-actions">
-                    <button class="view-receipt-btn" data-transaction-id="${transaction.id}">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        historyTransactionsList.innerHTML += transactionItem;
-    });
-    
-    // Add event listeners to view receipt buttons
-    document.querySelectorAll('.view-receipt-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const transactionId = button.getAttribute('data-transaction-id');
-            showTransactionReceipt(transactionId);
-        });
-    });
-}
-
-// Initialize transfer UI
-function initializeTransferUI() {
-    const transferForm = document.getElementById('transfer-form');
-    const verifyBtn = document.getElementById('verify-btn');
-    const transferToInput = document.getElementById('transfer-to');
-    const receiverStatus = document.getElementById('receiver-status');
-    const verifiedUserInfo = document.getElementById('verified-user-info');
-    const transferAmountInput = document.getElementById('transfer-amount');
-    const amountInWords = document.getElementById('amount-in-words');
-    const submitTransferBtn = document.getElementById('submit-transfer-btn');
-    const pinModal = document.getElementById('pin-modal');
-    const closePinModal = document.getElementById('close-pin-modal');
-    const pinInputs = document.querySelectorAll('.pin-input');
-    const pinKeys = document.querySelectorAll('.pin-key');
-    const pinKeyClear = document.querySelector('.pin-key-clear');
-    const pinKeySubmit = document.querySelector('.pin-key-submit');
-    const pinMessage = document.getElementById('pin-message');
-    const receiptModal = document.getElementById('receipt-modal');
-    const closeReceiptModal = document.getElementById('close-receipt-modal');
-    const downloadReceiptBtn = document.getElementById('download-receipt');
-    const closeReceiptBtn = document.getElementById('close-receipt');
-    
-    let verifiedReceiver = null;
-    let currentPinIndex = 0;
-    let enteredPin = '';
-    
-    // Verify recipient
-    verifyBtn.addEventListener('click', async () => {
-        const recipientPhone = transferToInput.value.trim();
-        
-        if (!recipientPhone) {
-            receiverStatus.textContent = 'ဖုန်းနံပါတ်ထည့်ပါ';
-            receiverStatus.className = 'input-status error';
-            verifiedUserInfo.classList.add('hidden');
-            verifiedReceiver = null;
-            return;
-        }
-        
-        try {
-            // Check if user exists with this phone
-            // In real app, this would be an API call
-            console.log(`Verifying phone number: ${recipientPhone}`);
-            
-            // For demo, we'll create a simple check
-            if (recipientPhone.startsWith('09') && recipientPhone.length === 11) {
-                // Get user by phone
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('phone', recipientPhone)
-                    .single();
                 
-                if (error || !data) {
-                    receiverStatus.textContent = 'အကောင့်မတွေ့ရှိပါ';
-                    receiverStatus.className = 'input-status error';
-                    verifiedUserInfo.classList.add('hidden');
-                    verifiedReceiver = null;
-                    console.log('Account not found');
-                    return;
-                }
-                
-                // Get user details
-                const { data: userData, error: userError } = await supabase
-                    .from('auth_users')
-                    .select('*')
-                    .eq('user_id', data.user_id)
-                    .single();
-                
-                if (userError || !userData) {
-                    receiverStatus.textContent = 'အကောင့်အချက်အလက်မတွေ့ရှိပါ';
-                    receiverStatus.className = 'input-status error';
-                    verifiedUserInfo.classList.add('hidden');
-                    verifiedReceiver = null;
-                    return;
-                }
-                
-                // Cannot transfer to self
-                if (data.user_id === currentUser.user_id) {
-                    receiverStatus.textContent = 'မိမိကိုယ်တိုင်ထံ ငွေလွှဲ၍မရပါ';
-                    receiverStatus.className = 'input-status error';
-                    verifiedUserInfo.classList.add('hidden');
-                    verifiedReceiver = null;
-                    return;
-                }
-                
-                // Success - user found
-                receiverStatus.textContent = 'အကောင့်တွေ့ရှိပါသည်';
-                receiverStatus.className = 'input-status success';
-                
-                // Update verified user info
-                verifiedReceiver = {
-                    ...data,
-                    email: userData.email
-                };
-                
-                const receiverInitial = userData.email.charAt(0).toUpperCase();
-                const receiverName = userData.email.split('@')[0];
-                
-                document.getElementById('receiver-initial').textContent = receiverInitial;
-                document.getElementById('receiver-name').textContent = receiverName;
-                document.getElementById('receiver-id').textContent = `ID: ${data.user_id}`;
-                
-                verifiedUserInfo.classList.remove('hidden');
-                console.log('Account found:', receiverName);
+            if (recipientError || !recipient) {
+                console.log('No account found for phone number:', phone);
             } else {
-                receiverStatus.textContent = 'ဖုန်းနံပါတ်ပုံစံမှားယွင်းနေပါသည်';
-                receiverStatus.className = 'input-status error';
-                verifiedUserInfo.classList.add('hidden');
-                verifiedReceiver = null;
-                console.log('Invalid phone number format');
+                console.log('Account found:', recipient);
             }
         } catch (error) {
-            console.error('Verify recipient error:', error);
-            receiverStatus.textContent = 'အကောင့်စစ်ဆေးရာတွင် အမှားရှိပါသည်';
-            receiverStatus.className = 'input-status error';
-            verifiedUserInfo.classList.add('hidden');
-            verifiedReceiver = null;
-        }
-    });
-    
-    // Amount to words converter
-    transferAmountInput.addEventListener('input', function() {
-        const amount = parseInt(this.value) || 0;
-        amountInWords.textContent = convertToMyanmarWords(amount) + ' ကျပ်';
-    });
-    
-    // Submit transfer
-    transferForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const amount = parseInt(transferAmountInput.value) || 0;
-        const note = document.getElementById('transfer-note').value;
-        
-        // Validate
-        if (!verifiedReceiver) {
-            alert('လက်ခံမည့်သူကို အတည်ပြုပါ');
-            return;
-        }
-        
-        if (amount < 1000) {
-            alert('အနည်းဆုံး 1,000 ကျပ် လွှဲပို့ရပါမည်');
-            return;
-        }
-        
-        if (amount > userBalance) {
-            alert('လက်ကျန်ငွေမလုံလောက်ပါ');
-            return;
-        }
-        
-        // Show PIN modal
-        showPinModal();
-    });
-    
-    // PIN modal related
-    function showPinModal() {
-        pinModal.classList.add('active');
-        currentPinIndex = 0;
-        enteredPin = '';
-        
-        // Clear PIN inputs
-        pinInputs.forEach(input => {
-            input.value = '';
-        });
-        
-        // Focus on first PIN input
-        pinInputs[0].focus();
-        
-        // Clear PIN message
-        pinMessage.textContent = '';
-        pinMessage.className = 'pin-message';
-    }
-    
-    function hidePinModal() {
-        pinModal.classList.remove('active');
-    }
-    
-    // Close PIN modal
-    closePinModal.addEventListener('click', hidePinModal);
-    
-    // PIN input handling
-    pinInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            if (this.value) {
-                const index = parseInt(this.getAttribute('data-index'));
-                enteredPin += this.value;
-                
-                // Move to next input
-                if (index < 5) {
-                    currentPinIndex = index + 1;
-                    pinInputs[currentPinIndex].focus();
-                }
-                
-                // Mask the input
-                this.value = '*';
-                
-                // If all inputs filled, auto submit
-                if (index === 5) {
-                    validatePin();
-                }
-            }
-        });
-        
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Backspace' && !this.value) {
-                const index = parseInt(this.getAttribute('data-index'));
-                
-                // Move to previous input
-                if (index > 0) {
-                    currentPinIndex = index - 1;
-                    pinInputs[currentPinIndex].focus();
-                    pinInputs[currentPinIndex].value = '';
-                    enteredPin = enteredPin.slice(0, -1);
-                }
-            }
-        });
-    });
-    
-    // PIN keypad
-    pinKeys.forEach(key => {
-        key.addEventListener('click', function() {
-            if (currentPinIndex > 5) return;
-            
-            const value = this.getAttribute('data-value');
-            if (value) {
-                pinInputs[currentPinIndex].value = '*';
-                enteredPin += value;
-                
-                if (currentPinIndex < 5) {
-                    currentPinIndex++;
-                    pinInputs[currentPinIndex].focus();
-                } else {
-                    // All inputs filled
-                    validatePin();
-                }
-            }
-        });
-    });
-    
-    // Clear PIN
-    pinKeyClear.addEventListener('click', function() {
-        if (currentPinIndex > 0) {
-            currentPinIndex--;
-            pinInputs[currentPinIndex].value = '';
-            enteredPin = enteredPin.slice(0, -1);
-            pinInputs[currentPinIndex].focus();
-        }
-    });
-    
-    // Submit PIN
-    pinKeySubmit.addEventListener('click', validatePin);
-    
-    // Validate PIN
-    function validatePin() {
-        if (enteredPin.length !== 6) {
-            pinMessage.textContent = 'PIN ကုဒ် 6 လုံး ဖြည့်ပါ';
-            pinMessage.className = 'pin-message error';
-            return;
-        }
-        
-        // In real app, this would validate against stored PIN
-        // For demo, we'll check against the dummy PIN
-        if (enteredPin !== userPin) {
-            pinMessage.textContent = 'PIN ကုဒ်မှားယွင်းနေပါသည်';
-            pinMessage.className = 'pin-message error';
-            
-            // Clear PIN inputs
-            pinInputs.forEach(input => {
-                input.value = '';
-            });
-            
-            enteredPin = '';
-            currentPinIndex = 0;
-            pinInputs[0].focus();
-            
-            return;
-        }
-        
-        // PIN is correct, process transfer
-        pinMessage.textContent = 'အတည်ပြုပြီးပါပြီ...';
-        pinMessage.className = 'pin-message success';
-        
-        // Process transfer after short delay
-        setTimeout(() => {
-            processTransfer();
-            hidePinModal();
-        }, 1000);
-    }
-    
-    // Process transfer
-    async function processTransfer() {
-        const amount = parseInt(transferAmountInput.value) || 0;
-        const note = document.getElementById('transfer-note').value;
-        const recipientPhone = transferToInput.value.trim();
-        
-        try {
-            showLoader();
-            
-            console.log('OPPER intro - ငွေလွှဲလုပ်ဆောင်နေသည်');
-            
-            // Get sender phone
-            const { data: senderData, error: senderError } = await supabase
-                .from('users')
-                .select('phone')
-                .eq('user_id', currentUser.user_id)
-                .single();
-            
-            if (senderError) throw senderError;
-            
-            const senderPhone = senderData.phone;
-            
-            // Generate transaction ID
-            const transactionId = 'OPPER' + Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
-            
-            // Create transaction in memory
-            const transaction = {
-                id: transactionId,
-                from_phone: senderPhone,
-                to_phone: recipientPhone,
-                amount: amount,
-                note: note,
-                created_at: new Date().toISOString(),
-                status: 'completed'
-            };
-            
-            // Add to transactions array
-            transactions.push(transaction);
-            
-            // Update balances
-            userBalance -= amount;
-            
-            // Update user balance in Supabase
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({ balance: userBalance })
-                .eq('user_id', currentUser.user_id);
-            
-            if (updateError) throw updateError;
-            
-            // Update UI
-            document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
-            document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
-            
-            // Update transactions UI
-            updateTransactionsUI(transactions, senderPhone);
-            
-            hideLoader();
-            
-            // Show receipt
-            showReceipt(transaction, true);
-            
-            // Reset form
-            transferForm.reset();
-            verifiedUserInfo.classList.add('hidden');
-            verifiedReceiver = null;
-            receiverStatus.textContent = '';
-            receiverStatus.className = 'input-status';
-            amountInWords.textContent = 'သုည ကျပ်';
-            
-        } catch (error) {
-            hideLoader();
-            console.error('Transfer error:', error);
-            alert('ငွေလွှဲရာတွင် အမှားရှိပါသည်');
+            console.error('Phone verification error:', error);
         }
     }
-    
-    // Show receipt
-    function showReceipt(transaction, isSender = true) {
-        // Update receipt UI
-        document.getElementById('receipt-amount').textContent = `${transaction.amount.toLocaleString()} Ks`;
-        document.getElementById('receipt-amount-words').textContent = convertToMyanmarWords(transaction.amount) + ' ကျပ်';
-        document.getElementById('receipt-transaction-id').textContent = transaction.id;
-        document.getElementById('receipt-from').textContent = transaction.from_phone;
-        document.getElementById('receipt-to').textContent = transaction.to_phone;
-        document.getElementById('receipt-date').textContent = new Date(transaction.created_at).toLocaleString();
-        
-        const receiptStatusBadge = document.getElementById('receipt-status-badge');
-        if (isSender) {
-            receiptStatusBadge.textContent = 'ပို့ထားသော';
-            receiptStatusBadge.className = 'receipt-status-badge sent';
-        } else {
-            receiptStatusBadge.textContent = 'လက်ခံရရှိသော';
-            receiptStatusBadge.className = 'receipt-status-badge received';
-        }
-        
-        // Handle note
-        const receiptNoteContainer = document.getElementById('receipt-note-container');
-        const receiptNote = document.getElementById('receipt-note');
-        
-        if (transaction.note) {
-            receiptNote.textContent = transaction.note;
-            receiptNoteContainer.style.display = 'flex';
-        } else {
-            receiptNoteContainer.style.display = 'none';
-        }
-        
-        // Show receipt modal
-        receiptModal.classList.add('active');
-    }
-    
-    // Close receipt modal
-    closeReceiptModal.addEventListener('click', () => {
-        receiptModal.classList.remove('active');
-    });
-    
-    closeReceiptBtn.addEventListener('click', () => {
-        receiptModal.classList.remove('active');
-    });
-    
-    // Download receipt
-    downloadReceiptBtn.addEventListener('click', () => {
-        const receiptContainer = document.getElementById('receipt-container');
-        
-        html2canvas(receiptContainer, {
-            scale: 2,
-            backgroundColor: 'white',
-            logging: false
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = `OPPER_payment_receipt_${document.getElementById('receipt-transaction-id').textContent}.png`;
-            link.click();
-        });
-    });
-}
-
-// Initialize history UI
-function initializeHistoryUI() {
-    const filterTabs = document.querySelectorAll('.filter-tab');
-    
-    filterTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const filter = tab.getAttribute('data-filter');
-            
-            // Update active tab
-            filterTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Filter transactions
-            const transactionItems = document.querySelectorAll('#history-transactions-list .transaction-item');
-            
-            transactionItems.forEach(item => {
-                if (filter === 'all' || item.getAttribute('data-type') === filter) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    });
-}
-
-// Show transaction receipt from history
-function showTransactionReceipt(transactionId) {
-    const transaction = transactions.find(t => t.id === transactionId);
-    
-    if (!transaction) return;
-    
-    // Get current user phone
-    if (!currentUser) return;
-    
-    supabase
-        .from('users')
-        .select('phone')
-        .eq('user_id', currentUser.user_id)
-        .single()
-        .then(({ data }) => {
-            if (!data || !data.phone) return;
-            
-            const isSender = transaction.from_phone === data.phone;
-            showReceipt(transaction, isSender);
-        });
-}
-
-// Show receipt (used by both transfer and history)
-function showReceipt(transaction, isSender = true) {
-    // Update receipt UI
-    document.getElementById('receipt-amount').textContent = `${transaction.amount.toLocaleString()} Ks`;
-    document.getElementById('receipt-amount-words').textContent = convertToMyanmarWords(transaction.amount) + ' ကျပ်';
-    document.getElementById('receipt-transaction-id').textContent = transaction.id;
-    document.getElementById('receipt-from').textContent = transaction.from_phone;
-    document.getElementById('receipt-to').textContent = transaction.to_phone;
-    document.getElementById('receipt-date').textContent = new Date(transaction.created_at).toLocaleString();
-    
-    const receiptStatusBadge = document.getElementById('receipt-status-badge');
-    if (isSender) {
-        receiptStatusBadge.textContent = 'ပို့ထားသော';
-        receiptStatusBadge.className = 'receipt-status-badge sent';
-    } else {
-        receiptStatusBadge.textContent = 'ငွေလက်ခံရရှိသည်';
-        receiptStatusBadge.className = 'receipt-status-badge received';
-    }
-    
-    // Handle note
-    const receiptNoteContainer = document.getElementById('receipt-note-container');
-    const receiptNote = document.getElementById('receipt-note');
-    
-    if (transaction.note) {
-        receiptNote.textContent = transaction.note;
-        receiptNoteContainer.style.display = 'flex';
-    } else {
-        receiptNoteContainer.style.display = 'none';
-    }
-    
-    // Show receipt modal
-    document.getElementById('receipt-modal').classList.add('active');
-}
-
-// Initialize KYC UI
-function initializeKycUI() {
-    const idFrontBtn = document.getElementById('id-front-btn');
-    const idBackBtn = document.getElementById('id-back-btn');
-    const idFrontInput = document.getElementById('id-front');
-    const idBackInput = document.getElementById('id-back');
-    const idFrontPlaceholder = document.getElementById('id-front-placeholder');
-    const idBackPlaceholder = document.getElementById('id-back-placeholder');
-    const submitKycBtn = document.getElementById('submit-kyc-btn');
-    
-    idFrontBtn.addEventListener('click', () => {
-        idFrontInput.click();
-    });
-    
-    idBackBtn.addEventListener('click', () => {
-        idBackInput.click();
-    });
-    
-    idFrontInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            idFrontPlaceholder.innerHTML = `<p>${this.files[0].name}</p>`;
-        }
-    });
-    
-    idBackInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            idBackPlaceholder.innerHTML = `<p>${this.files[0].name}</p>`;
-        }
-    });
-    
-    submitKycBtn.addEventListener('click', async () => {
-        const passportNumber = document.getElementById('passport-number').value;
-        
-        if (!passportNumber) {
-            alert('ကတ်ပြားနံပါတ်ထည့်ပါ');
-            return;
-        }
-        
-        if (!idFrontInput.files || !idFrontInput.files[0]) {
-            alert('ကတ်ပြား (ရှေ့) ဓာတ်ပုံရွေးပါ');
-            return;
-        }
-        
-        if (!idBackInput.files || !idBackInput.files[0]) {
-            alert('ကတ်ပြား (နောက်) ဓာတ်ပုံရွေးပါ');
-            return;
-        }
-        
-        try {
-            showLoader();
-            
-            // In real app, this would upload images to storage
-            // For demo, we'll just update the status
-            
-            // Update user KYC status
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({
-                    passport_number: passportNumber,
-                    passport_image: 'uploaded',
-                    passport_status: 'pending'
-                })
-                .eq('user_id', currentUser.user_id);
-            
-            if (updateError) throw updateError;
-            
-            // Update UI
-            userKycStatus = 'pending';
-            updateKycStatus();
-            
-            hideLoader();
-            alert('KYC အချက်အလက်များ အောင်မြင်စွာတင်သွင်းပြီးပါပြီ');
-            
-        } catch (error) {
-            hideLoader();
-            console.error('KYC submission error:', error);
-            alert('KYC တင်သွင်းရာတွင် အမှားရှိပါသည်');
-        }
-    });
-}
-
-// Initialize settings UI
-function initializeSettingsUI() {
-    const updateProfileBtn = document.getElementById('update-profile-btn');
-    const changePasswordBtn = document.getElementById('change-password-btn');
-    const setPaymentPinBtn = document.getElementById('set-payment-pin-btn');
-    
-    updateProfileBtn.addEventListener('click', async () => {
-        const name = document.getElementById('settings-name').value;
-        
-        try {
-            showLoader();
-            
-            // Update user profile
-            const { error } = await supabase
-                .from('users')
-                .update({ name: name })
-                .eq('user_id', currentUser.user_id);
-            
-            if (error) throw error;
-            
-            hideLoader();
-            alert('ပရိုဖိုင်မွမ်းမံပြီးပါပြီ');
-            
-        } catch (error) {
-            hideLoader();
-            console.error('Update profile error:', error);
-            alert('ပရိုဖိုင်မွမ်းမံရာတွင် အမှားရှိပါသည်');
-        }
-    });
-    
-    changePasswordBtn.addEventListener('click', async () => {
-        const currentPassword = document.getElementById('current-password').value;
-        const newPassword = document.getElementById('new-password').value;
-        const confirmNewPassword = document.getElementById('confirm-new-password').value;
-        
-        if (!currentPassword || !newPassword || !confirmNewPassword) {
-            alert('အချက်အလက်အားလုံးဖြည့်ပါ');
-            return;
-        }
-        
-        if (newPassword !== confirmNewPassword) {
-            alert('စကားဝှက်အသစ် နှစ်ခု မတူညီပါ');
-            return;
-        }
-        
-        try {
-            showLoader();
-            
-            // Verify current password
-            const { data, error } = await supabase
-                .from('auth_users')
-                .select('password')
-                .eq('user_id', currentUser.user_id)
-                .single();
-            
-            if (error) throw error;
-            
-            if (data.password !== currentPassword) {
-                hideLoader();
-                alert('လက်ရှိစကားဝှက် မမှန်ကန်ပါ');
-                return;
-            }
-            
-            // Update password
-            const { error: updateError } = await supabase
-                .from('auth_users')
-                .update({ password: newPassword })
-                .eq('user_id', currentUser.user_id);
-            
-            if (updateError) throw updateError;
-            
-            hideLoader();
-            alert('စကားဝှက်ပြောင်းပြီးပါပြီ');
-            
-            // Clear form
-            document.getElementById('current-password').value = '';
-            document.getElementById('new-password').value = '';
-            document.getElementById('confirm-new-password').value = '';
-            
-        } catch (error) {
-            hideLoader();
-            console.error('Change password error:', error);
-            alert('စကားဝှက်ပြောင်းရာတွင် အမှားရှိပါသည်');
-        }
-    });
-    
-    setPaymentPinBtn.addEventListener('click', () => {
-        // Prompt for payment PIN
-        const pinInput = prompt('သင်၏ 6 လုံးပါ Payment PIN ကို ထည့်ပါ:');
-        
-        if (!pinInput) return;
-        
-        if (pinInput.length !== 6 || !/^\d+$/.test(pinInput)) {
-            alert('PIN ကုဒ်သည် ဂဏန်း 6 လုံး ဖြစ်ရပါမည်');
-            return;
-        }
-        
-        // Set PIN
-        userPin = pinInput;
-        localStorage.setItem('userPin', userPin);
-        
-        alert('Payment PIN သတ်မှတ်ပြီးပါပြီ');
-    });
-}
-
-// Helper function to convert numbers to Myanmar words
-function convertToMyanmarWords(num) {
-    if (num === 0) return 'သုည';
-    
-    const units = ['', 'တစ်', 'နှစ်', 'သုံး', 'လေး', 'ငါး', 'ခြောက်', 'ခုနစ်', 'ရှစ်', 'ကိုး'];
-    const teens = ['ဆယ်', 'ဆယ့်တစ်', 'ဆယ့်နှစ်', 'ဆယ့်သုံး', 'ဆယ့်လေး', 'ဆယ့်ငါး', 'ဆယ့်ခြောက်', 'ဆယ့်ခုနစ်', 'ဆယ့်ရှစ်', 'ဆယ့်ကိုး'];
-    const tens = ['', 'ဆယ်', 'နှစ်ဆယ်', 'သုံးဆယ်', 'လေးဆယ်', 'ငါးဆယ်', 'ခြောက်ဆယ်', 'ခုနစ်ဆယ်', 'ရှစ်ဆယ်', 'ကိုးဆယ်'];
-    
-    function process(n) {
-        if (n < 10) return units[n];
-        if (n < 20) return teens[n - 10];
-        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? units[n % 10] : '');
-        if (n < 1000) return units[Math.floor(n / 100)] + 'ရာ' + (n % 100 ? process(n % 100) : '');
-        if (n < 1000000) return process(Math.floor(n / 1000)) + 'ထောင်' + (n % 1000 ? process(n % 1000) : '');
-        if (n < 10000000) return process(Math.floor(n / 100000)) + 'သိန်း' + (n % 100000 ? process(n % 100000) : '');
-        return process(Math.floor(n / 10000000)) + 'ကုဋေ' + (n % 10000000 ? process(n % 10000000) : '');
-    }
-    
-    return process(num);
-}
+});
