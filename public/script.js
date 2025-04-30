@@ -1,11 +1,3 @@
-ကျွန်တော် ပြင်ဆင်ထားတဲ့ အပြည့်စုံ script.js ဖိုင်ကို ပေးပို့ပါမယ်။ ဒီဖိုင်မှာ အောက်ပါ လုပ်ဆောင်ချက်များ ပါဝင်ပါတယ်:
-
-1. User တွေ profile ပုံထည့်နိုင်အောင် လုပ်ဆောင်ထားပါတယ်
-2. Imgur API (client ID: 5befa9dd970c7d0) ကို အသုံးပြုထားပါတယ်
-3. ငွေလွှဲတဲ့အခါ ဖုန်းနံပါတ်ရိုက်ထည့်ရင် အကောင့်ရှိပါက ထိုဖုန်းနံပါတ်ပိုင်ရှင်ရဲ့ profile ပုံနဲ့ အမည်ကို ပြပေးပါတယ်
-
-
-```javascript
 // Supabase Configuration
 const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
