@@ -230,7 +230,7 @@ function setupRealtimeSubscriptions() {
             }
         })
         .subscribe();
-
+    
     // Subscribe to system settings changes
     const settingsChannel = supabase
         .channel('settings-updates')
@@ -245,7 +245,7 @@ function setupRealtimeSubscriptions() {
             }
         })
         .subscribe();
-
+    
     // Subscribe to new transactions
     const transactionsChannel = supabase
         .channel('transactions-updates')
@@ -1176,7 +1176,6 @@ async function processTransfer(pin) {
     
     // Show processing overlay
     processingOverlay.classList.add('active');
-    document.getElementById('processing-message').textContent = 'ငွေလွှဲလုပ်ဆောင်နေသည်...';
     
     try {
         // Get sender's data
@@ -1345,7 +1344,7 @@ function showTransactionReceipt(transaction) {
                     
                     <div class="receipt-transaction-id">
                         <div class="receipt-transaction-id-label">ငွေလွှဲလုပ်ဆောင်ချက်အမှတ်စဥ်</div>
-                        <div class="receipt-transaction-id-value">${transaction.id || `OPPER${Math.floor(1000000 + Math.random() * 9000000)}`}</div>
+                        <div class="receipt-transaction-id-value">${transaction.id}</div>
                     </div>
                     
                     <div class="receipt-footer">
@@ -1531,6 +1530,31 @@ function showPage(pageName) {
     
     // Close dropdown
     document.getElementById('profile-dropdown').classList.remove('active');
+    
+    // Close sidebar on mobile
+    if (window.innerWidth < 992) {
+        document.getElementById('sidebar').classList.remove('active');
+    }
+}
+
+// Logout function
+function logout() {
+    // Clear session
+    localStorage.removeItem('opperSession');
+    currentUser = null;
+    
+    // Show auth container
+    showAuthContainer();
+}
+
+// Show loader
+function showLoader() {
+    loader.classList.add('active');
+}
+
+// Hide loader
+function hideLoader() {
+    loader.classList.remove('active');
 }
 
 // Show auth container
@@ -1544,53 +1568,3 @@ function showAppContainer() {
     authContainer.classList.add('hidden');
     appContainer.classList.remove('hidden');
 }
-
-// Show loader
-function showLoader() {
-    loader.classList.add('active');
-}
-
-// Hide loader
-function hideLoader() {
-    loader.classList.remove('active');
-}
-
-// Logout
-function logout() {
-    // Clear session
-    localStorage.removeItem('opperSession');
-    
-    // Reset variables
-    currentUser = null;
-    userBalance = 0;
-    userKycStatus = 'pending';
-    transactions = [];
-    
-    // Show auth container
-    showAuthContainer();
-}
-
-// Account verification by phone number
-document.getElementById('transfer-phone').addEventListener('input', async function() {
-    const phone = this.value;
-    if (phone && phone.length >= 10)  async function() {
-    const phone = this.value;
-    if (phone && phone.length >= 10) {
-        try {
-            // Check if recipient account exists
-            const { data: recipient, error: recipientError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('phone', phone)
-                .single();
-                
-            if (recipientError || !recipient) {
-                console.log('No account found for phone number:', phone);
-            } else {
-                console.log('Account found:', recipient);
-            }
-        } catch (error) {
-            console.error('Phone verification error:', error);
-        }
-    }
-});
