@@ -10,7 +10,6 @@ let userKycStatus = 'pending';
 let transfersEnabled = true;
 let currentTheme = localStorage.getItem('theme') || 'light';
 let transactions = [];
-const imgurClientId = '5befa9dd970c7d0';
 
 // DOM Elements
 const loader = document.getElementById('loader');
@@ -117,21 +116,6 @@ async function loadUserData() {
     }
 }
 
-// Update profile images in UI
-function updateProfileImages(imageUrl) {
-    const profileImages = document.querySelectorAll('.profile-image');
-    profileImages.forEach(img => {
-        img.src = imageUrl;
-        img.style.display = 'block';
-    });
-    
-    // Hide initials when profile image is available
-    const userInitials = document.querySelectorAll('.user-initial-container');
-    userInitials.forEach(initial => {
-        initial.style.display = 'none';
-    });
-}
-
 // Update UI with user data
 function updateUserUI(userData) {
     // Update user name and ID in header and sidebar
@@ -156,17 +140,6 @@ function updateUserUI(userData) {
     // Update settings page
     document.getElementById('settings-phone').value = userData.phone || '';
     document.getElementById('settings-email').value = currentUser.email || '';
-    
-    // Update profile image if available
-    if (userData.profile_image) {
-        updateProfileImages(userData.profile_image);
-        
-        // Update profile picture preview in settings
-        const profilePicturePreview = document.getElementById('profile-picture-preview');
-        if (profilePicturePreview) {
-            profilePicturePreview.innerHTML = `<img src="${userData.profile_image}" alt="Profile Picture">`;
-        }
-    }
 }
 
 // Update KYC status in UI
@@ -582,46 +555,6 @@ function initializeUI() {
         });
     });
     
-    // Profile picture upload
-    const profilePictureUpload = document.getElementById('profile-picture-upload');
-    if (profilePictureUpload) {
-        profilePictureUpload.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const preview = document.getElementById('profile-picture-preview');
-            if (preview) {
-                // Show loading state
-                preview.innerHTML = '<div class="loading-spinner"></div>';
-                
-                // Upload to Imgur
-                const imageUrl = await uploadToImgur(file);
-                
-                if (imageUrl) {
-                    // Update preview
-                    preview.innerHTML = `<img src="${imageUrl}" alt="Profile Picture">`;
-                    
-                    // Save to database
-                    if (currentUser) {
-                        const { error } = await supabase
-                            .from('users')
-                            .update({ profile_image: imageUrl })
-                            .eq('user_id', currentUser.user_id);
-                        
-                        if (error) {
-                            console.error('Profile image update error:', error);
-                        } else {
-                            // Update profile images in UI
-                            updateProfileImages(imageUrl);
-                        }
-                    }
-                } else {
-                    preview.innerHTML = '<div class="upload-error">Upload failed</div>';
-                }
-            }
-        });
-    }
-    
     // Theme selector
     const themeOptions = document.querySelectorAll('.theme-option');
     
@@ -799,8 +732,6 @@ function setupFormSubmissions() {
             showAppContainer();
         } catch (error) {
             console.error('Login error:', error);
-            errorElement.textContent = 'အကောင့်ဝင်ရာတွင  {
-            console.error('Login error:', error);
             errorElement.textContent = 'အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။';
             errorElement.style.display = 'block';
             successElement.style.display = 'none';
@@ -946,76 +877,6 @@ function setupFormSubmissions() {
     
     // Transfer form
     const transferBtn = document.getElementById('transfer-btn');
-    const transferPhoneInput = document.getElementById('transfer-phone');
-    const recipientProfileContainer = document.getElementById('recipient-profile-container');
-    
-    // Add phone number lookup
-    if (transferPhoneInput) {
-        transferPhoneInput.addEventListener('input', async (e) => {
-            const phone = e.target.value.trim();
-            
-            if (phone.length >= 9) {
-                // Look up recipient
-                try {
-                    const { data: recipient, error } = await supabase
-                        .from('users')
-                        .select('name, phone, profile_image')
-                        .eq('phone', phone)
-                        .single();
-                    
-                    if (recipient && recipientProfileContainer) {
-                        // Show recipient profile
-                        let profileHtml = '';
-                        
-                        if (recipient.profile_image) {
-                            profileHtml = `
-                                <div class="recipient-profile approved">
-                                    <img src="${recipient.profile_image}" alt="Recipient" class="recipient-image">
-                                    <div class="recipient-info">
-                                        <div class="recipient-name">${recipient.name || recipient.phone}</div>
-                                        <div class="recipient-status">အတည်ပြုပြီးအကောင့်</div>
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            // No profile image, show initials
-                            const initial = (recipient.name || recipient.phone).charAt(0).toUpperCase();
-                            profileHtml = `
-                                <div class="recipient-profile approved">
-                                    <div class="recipient-initial">${initial}</div>
-                                    <div class="recipient-info">
-                                        <div class="recipient-name">${recipient.name || recipient.phone}</div>
-                                        <div class="recipient-status">အတည်ပြုပြီးအကောင့်</div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                        
-                        recipientProfileContainer.innerHTML = profileHtml;
-                        recipientProfileContainer.style.display = 'block';
-                    } else {
-                        // No recipient found
-                        if (recipientProfileContainer) {
-                            recipientProfileContainer.innerHTML = '';
-                            recipientProfileContainer.style.display = 'none';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Recipient lookup error:', error);
-                    if (recipientProfileContainer) {
-                        recipientProfileContainer.innerHTML = '';
-                        recipientProfileContainer.style.display = 'none';
-                    }
-                }
-            } else {
-                // Clear recipient profile
-                if (recipientProfileContainer) {
-                    recipientProfileContainer.innerHTML = '';
-                    recipientProfileContainer.style.display = 'none';
-                }
-            }
-        });
-    }
     
     transferBtn.addEventListener('click', async () => {
         const phone = document.getElementById('transfer-phone').value;
@@ -1514,33 +1375,6 @@ function downloadReceipt() {
         link.href = canvas.toDataURL('image/png');
         link.click();
     });
-}
-
-// Upload image to Imgur
-async function uploadToImgur(file) {
-    try {
-        const formData = new FormData();
-        formData.append('image', file);
-        
-        const response = await fetch('https://api.imgur.com/3/image', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Client-ID ${imgurClientId}`
-            },
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            return result.data.link;
-        } else {
-            throw new Error('Image upload failed');
-        }
-    } catch (error) {
-        console.error('Imgur upload error:', error);
-        return null;
-    }
 }
 
 // Simulate Google login/signup
