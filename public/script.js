@@ -81,7 +81,7 @@ async function loadUserData() {
         // Get user profile data
         const { data: userData, error: userError } = await supabase
             .from('users')
-            .select('*, profile_picture')
+            .select('*')
             .eq('user_id', currentUser.user_id)
             .single();
         
@@ -140,11 +140,6 @@ function updateUserUI(userData) {
     // Update settings page
     document.getElementById('settings-phone').value = userData.phone || '';
     document.getElementById('settings-email').value = currentUser.email || '';
-    
-    // Update profile picture
-    if (userData.profile_picture) {
-        document.getElementById('profile-picture-preview').innerHTML = `<img src="${userData.profile_picture}" alt="Profile Picture">`;
-    }
 }
 
 // Update KYC status in UI
@@ -232,11 +227,6 @@ function setupRealtimeSubscriptions() {
             if (payload.new.passport_status !== userKycStatus) {
                 userKycStatus = payload.new.passport_status;
                 updateKycStatus();
-            }
-            
-            // Update profile picture if changed
-            if (payload.new.profile_picture) {
-                document.getElementById('profile-picture-preview').innerHTML = `<img src="${payload.new.profile_picture}" alt="Profile Picture">`;
             }
         })
         .subscribe();
@@ -509,6 +499,7 @@ function initializeUI() {
     
     // Dropdown actions
     document.getElementById('view-profile').addEventListener('click', () => {
+        // Show profile page (settings for now)
         showPage('settings');
     });
     
@@ -844,8 +835,7 @@ function setupFormSubmissions() {
                         user_id: userId,
                         phone,
                         balance: 0,
-                        passport_status: 'pending',
-                        profile_picture: null
+                        passport_status: 'pending'
                     }
                 ])
                 .select()
@@ -886,84 +876,6 @@ function setupFormSubmissions() {
     });
     
     // Transfer form
-    const transferPhoneInput = document.getElementById('transfer-phone');
-    const recipientInfo = document.getElementById('recipient-info');
-    
-    // Add input event listener for real-time phone number checking
-    transferPhoneInput.addEventListener('input', async () => {
-        const phone = transferPhoneInput.value;
-        const errorElement = document.getElementById('transfer-error');
-        
-        if (phone.length >= 8) { // Assuming minimum phone number length
-            try {
-                // Check if recipient exists
-                const { data: recipient, error: recipientError } = await supabase
-                    .from('users')
-                    .select('phone, name, profile_picture')
-                    .eq('phone', phone)
-                    .single();
-                
-                if (recipientError || !recipient) {
-                    recipientInfo.innerHTML = `
-                        <div class="recipient-error">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>ဤဖုန်းနံပါတ်ဖြင့် အကောင့်မတွေ့ရှိပါ</span>
-                        </div>
-                    `;
-                    recipientInfo.style.display = 'block';
-                    return;
-                }
-                
-                // Check if it's not the user's own phone
-                const { data: userData } = await supabase
-                    .from('users')
-                    .select('phone')
-                    .eq('user_id', currentUser.user_id)
-                    .single();
-                
-                if (userData.phone === phone) {
-                    recipientInfo.innerHTML = `
-                        <div class="recipient-error">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ</span>
-                        </div>
-                    `;
-                    recipientInfo.style.display = 'block';
-                    return;
-                }
-                
-                // Show recipient info
-                recipientInfo.innerHTML = `
-                    <div class="recipient-profile">
-                        <div class="recipient-profile-picture">
-                            ${recipient.profile_picture ? 
-                                `<img src="${recipient.profile_picture}" alt="Profile">` : 
-                                `<div class="default-profile">${recipient.name ? recipient.name.charAt(0).toUpperCase() : 'U'}</div>`
-                            }
-                        </div>
-                        <div class="recipient-details">
-                            <div class="recipient-name">${recipient.name || recipient.phone}</div>
-                            <div class="recipient-phone">${recipient.phone}</div>
-                        </div>
-                    </div>
-                `;
-                recipientInfo.style.display = 'block';
-                errorElement.style.display = 'none';
-            } catch (error) {
-                console.error('Phone check error:', error);
-                recipientInfo.innerHTML = `
-                    <div class="recipient-error">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>အကောင့်စစ်ဆေးရာတွင် အမှားရှိပါသည်</span>
-                    </div>
-                `;
-                recipientInfo.style.display = 'block';
-            }
-        } else {
-            recipientInfo.style.display = 'none';
-        }
-    });
-    
     const transferBtn = document.getElementById('transfer-btn');
     
     transferBtn.addEventListener('click', async () => {
@@ -1035,11 +947,14 @@ function setupFormSubmissions() {
                 .single();
                 
             if (recipientError || !recipient) {
+                console.log('No account found for phone number:', phone);
                 errorElement.textContent = 'လက်ခံမည့်သူ မတွေ့ရှိပါ။';
                 errorElement.style.display = 'block';
                 successElement.style.display = 'none';
                 return;
             }
+            
+            console.log('Account found:', recipient);
             
             // Clear any previous errors
             errorElement.style.display = 'none';
@@ -1125,7 +1040,7 @@ function setupFormSubmissions() {
                     payment_pin: pin,
                     passport_image: passportUrl.publicUrl,
                     selfie_image: selfieUrl.publicUrl,
-                    passport_status: 'pendingระบบတက်စဥ်ပေးပါ',
+                    passport_status: 'pending',
                     submitted_at: new Date().toISOString()
                 })
                 .eq('user_id', currentUser.user_id);
@@ -1225,84 +1140,6 @@ function setupFormSubmissions() {
         } catch (error) {
             console.error('Change password error:', error);
             errorElement.textContent = 'စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-        }
-    });
-    
-    // Profile picture upload
-    const profilePictureUpload = document.getElementById('profile-picture-upload');
-    const profilePictureBtn = document.getElementById('profile-picture-btn');
-    
-    profilePictureBtn.addEventListener('click', async () => {
-        const file = profilePictureUpload.files[0];
-        const errorElement = document.getElementById('profile-picture-error');
-        const successElement = document.getElementById('profile-picture-success');
-        
-        if (!file) {
-            errorElement.textContent = 'ပရိုဖိုင်ပုံ ရွေးချယ်ပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        try {
-            // Validate file type
-            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            if (!validTypes.includes(file.type)) {
-                errorElement.textContent = 'ခွင့်ပြုထားသောဖိုင်အမျိုးအစားများမှာ JPG, PNG, GIF သာဖြစ်ပါသည်။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                errorElement.textContent = 'ဖိုင်အရွယ်အစားသည် 5MB ထက်မကြီးရပါ။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Upload profile picture
-            const fileName = `profile_${currentUser.user_id}_${Date.now()}`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('profile-pictures')
-                .upload(fileName, file);
-            
-            if (uploadError) throw uploadError;
-            
-            // Get public URL
-            const { data: urlData } = await supabase.storage
-                .from('profile-pictures')
-                .getPublicUrl(fileName);
-            
-            // Update user profile
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({ profile_picture: urlData.publicUrl })
-                .eq('user_id', currentUser.user_id);
-            
-            if (updateError) throw updateError;
-            
-            // Update UI
-            document.getElementById('profile-picture-preview').innerHTML = `<img src="${urlData.publicUrl}" alt="Profile Picture">`;
-            
-            // Show success message
-            errorElement.style.display = 'none';
-            successElement.textContent = 'ပရိုဖိုင်ပုံ အောင်မြင်စွာ အပ်လုဒ်လုပ်ပြီးပါပြီ။';
-            successElement.style.display = 'block';
-            
-            // Clear input
-            profilePictureUpload.value = '';
-            
-            // Hide success message after delay
-            setTimeout(() => {
-                successElement.style.display = 'none';
-            }, 3000);
-        } catch (error) {
-            console.error('Profile picture upload error:', error);
-            errorElement.textContent = 'ပရိုဖိုင်ပုံ အပ်လုဒ်လုပ်ရာတွင် အမှားရှိပါသည်။';
             errorElement.style.display = 'block';
             successElement.style.display = 'none';
         }
@@ -1429,7 +1266,6 @@ async function processTransfer(pin) {
             document.getElementById('transfer-phone').value = '';
             document.getElementById('transfer-amount').value = '';
             document.getElementById('transfer-note').value = '';
-            document.getElementById('recipient-info').style.display = 'none';
             
             // Refresh transactions
             loadTransactions();
@@ -1630,8 +1466,7 @@ function simulateGoogleLogin(type) {
                                 {
                                     user_id: userId,
                                     balance: 0,
-                                    passport_status: 'pending',
-                                    profile_picture: null
+                                    passport_status: 'pending'
                                 }
                             ])
                             .then(({ error: profileError }) => {
