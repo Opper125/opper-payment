@@ -3,12 +3,14 @@ const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
 
+// Imgur API Configuration
+const imgurClientId = '5befa9dd970c7d0';
+
 // Global Variables
 let currentUser = null;
 let userBalance = 0;
 let userKycStatus = 'pending';
 let transfersEnabled = true;
-let currentTheme = localStorage.getItem('theme') || 'light';
 let transactions = [];
 
 // DOM Elements
@@ -122,8 +124,19 @@ function updateUserUI(userData) {
     const userInitial = currentUser.email.charAt(0).toUpperCase();
     const userName = currentUser.email.split('@')[0];
     
-    document.getElementById('user-initial').textContent = userInitial;
-    document.getElementById('user-initial-sidebar').textContent = userInitial;
+    // Check if user has profile image
+    if (userData.profile_image) {
+        // Update avatar with profile image
+        document.querySelectorAll('.user-avatar').forEach(avatar => {
+            avatar.innerHTML = `<img src="${userData.profile_image}" alt="${userName}" class="avatar-image">`;
+            avatar.classList.add('has-image');
+        });
+    } else {
+        // Use initial as avatar
+        document.getElementById('user-initial').textContent = userInitial;
+        document.getElementById('user-initial-sidebar').textContent = userInitial;
+    }
+    
     document.getElementById('user-name').textContent = userName;
     document.getElementById('user-name-sidebar').textContent = userName;
     document.getElementById('user-id').textContent = `ID: ${currentUser.user_id}`;
@@ -227,6 +240,11 @@ function setupRealtimeSubscriptions() {
             if (payload.new.passport_status !== userKycStatus) {
                 userKycStatus = payload.new.passport_status;
                 updateKycStatus();
+            }
+            
+            // Update profile image if changed
+            if (payload.new.profile_image !== currentUser.profile_image) {
+                updateUserUI(payload.new);
             }
         })
         .subscribe();
@@ -624,6 +642,273 @@ function initializeUI() {
     
     // Form submissions
     setupFormSubmissions();
+    
+    // Add profile image upload button to settings
+    addProfileImageUpload();
+    
+    // Setup recipient verification in transfer form
+    setupRecipientVerification();
+}
+
+// Add profile image upload to settings
+function addProfileImageUpload() {
+    // Create profile image upload section
+    const settingsForm = document.querySelector('.settings-form');
+    
+    if (settingsForm) {
+        // Create profile image section before the first form group
+        const profileImageSection = document.createElement('div');
+        profileImageSection.className = 'profile-image-section';
+        profileImageSection.innerHTML = `
+            <div class="profile-image-container">
+                <div class="profile-image" id="settings-profile-image">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-image-actions">
+                    <button class="btn btn-sm btn-outline" id="upload-profile-image">
+                        <i class="fas fa-upload"></i> ပရိုဖိုင်ဓာတ်ပုံတင်ရန်
+                    </button>
+                    <button class="btn btn-sm btn-outline" id="remove-profile-image" style="display: none;">
+                        <i class="fas fa-trash-alt"></i> ဖျက်ရန်
+                    </button>
+                </div>
+                <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+            </div>
+        `;
+        
+        // Insert at the beginning of the form
+        settingsForm.insertBefore(profileImageSection, settingsForm.firstChild);
+        
+        // Update profile image if user has one
+        if (currentUser) {
+            supabase
+                .from('users')
+                .select('profile_image')
+                .eq('user_id', currentUser.user_id)
+                .single()
+                .then(({ data }) => {
+                    if (data && data.profile_image) {
+                        const profileImage = document.getElementById('settings-profile-image');
+                        profileImage.innerHTML = `<img src="${data.profile_image}" alt="Profile Image" class="profile-img">`;
+                        profileImage.classList.add('has-image');
+                        document.getElementById('remove-profile-image').style.display = 'block';
+                    }
+                });
+        }
+        
+        // Add event listeners for profile image upload
+        document.getElementById('upload-profile-image').addEventListener('click', () => {
+            document.getElementById('profile-image-input').click();
+        });
+        
+        document.getElementById('profile-image-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Show loading state
+            const uploadBtn = document.getElementById('upload-profile-image');
+            const originalBtnText = uploadBtn.innerHTML;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> တင်နေသည်...';
+            uploadBtn.disabled = true;
+            
+            try {
+                // Upload to Imgur
+                const imgurUrl = await uploadImageToImgur(file);
+                
+                if (imgurUrl) {
+                    // Update profile image in database
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ profile_image: imgurUrl })
+                        .eq('user_id', currentUser.user_id);
+                    
+                    if (error) throw error;
+                    
+                    // Update UI
+                    const profileImage = document.getElementById('settings-profile-image');
+                    profileImage.innerHTML = `<img src="${imgurUrl}" alt="Profile Image" class="profile-img">`;
+                    profileImage.classList.add('has-image');
+                    
+                    // Update all user avatars
+                    document.querySelectorAll('.user-avatar').forEach(avatar => {
+                        avatar.innerHTML = `<img src="${imgurUrl}" alt="Profile" class="avatar-image">`;
+                        avatar.classList.add('has-image');
+                    });
+                    
+                    // Show remove button
+                    document.getElementById('remove-profile-image').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Profile image upload error:', error);
+                alert('ပရိုဖိုင်ဓာတ်ပုံတင်ရာတွင် အမှားရှိနေပါသည်။');
+            } finally {
+                // Reset button
+                uploadBtn.innerHTML = originalBtnText;
+                uploadBtn.disabled = false;
+            }
+        });
+        
+        // Add event listener for profile image removal
+        document.getElementById('remove-profile-image').addEventListener('click', async () => {
+            if (confirm('ပရိုဖိုင်ဓာတ်ပုံကို ဖျက်မှာသေချာပါသလား?')) {
+                try {
+                    // Update profile image in database
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ profile_image: null })
+                        .eq('user_id', currentUser.user_id);
+                    
+                    if (error) throw error;
+                    
+                    // Update UI
+                    const profileImage = document.getElementById('settings-profile-image');
+                    profileImage.innerHTML = `<i class="fas fa-user"></i>`;
+                    profileImage.classList.remove('has-image');
+                    
+                    // Update all user avatars with initials
+                    const userInitial = currentUser.email.charAt(0).toUpperCase();
+                    document.querySelectorAll('.user-avatar').forEach(avatar => {
+                        avatar.innerHTML = userInitial;
+                        avatar.classList.remove('has-image');
+                    });
+                    
+                    // Hide remove button
+                    document.getElementById('remove-profile-image').style.display = 'none';
+                } catch (error) {
+                    console.error('Profile image removal error:', error);
+                    alert('ပရိုဖိုင်ဓာတ်ပုံဖျက်ရာတွင် အမှားရှိနေပါသည်။');
+                }
+            }
+        });
+    }
+}
+
+// Upload image to Imgur
+async function uploadImageToImgur(file) {
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await fetch('https://api.imgur.com/3/image', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Client-ID ${imgurClientId}`
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            return data.data.link;
+        } else {
+            throw new Error('Image upload failed: ' + (data.data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Imgur upload error:', error);
+        throw error;
+    }
+}
+
+// Setup recipient verification in transfer form
+function setupRecipientVerification() {
+    const phoneInput = document.getElementById('transfer-phone');
+    
+    if (phoneInput) {
+        // Create recipient info container
+        const transferForm = phoneInput.closest('.transfer-form');
+        const recipientInfoContainer = document.createElement('div');
+        recipientInfoContainer.className = 'recipient-info-container';
+        recipientInfoContainer.style.display = 'none';
+        
+        // Insert after phone input group
+        const phoneGroup = phoneInput.closest('.form-group');
+        phoneGroup.parentNode.insertBefore(recipientInfoContainer, phoneGroup.nextSibling);
+        
+        // Add input event with debounce
+        let debounceTimeout;
+        phoneInput.addEventListener('input', () => {
+            clearTimeout(debounceTimeout);
+            
+            // Hide recipient info while typing
+            recipientInfoContainer.style.display = 'none';
+            
+            // Set debounce timeout
+            debounceTimeout = setTimeout(async () => {
+                const phoneNumber = phoneInput.value.trim();
+                
+                // Check if phone number is valid
+                if (phoneNumber.length >= 9) {
+                    try {
+                        // Check if recipient exists
+                        const { data: recipient, error } = await supabase
+                            .from('users')
+                            .select('*')
+                            .eq('phone', phoneNumber)
+                            .single();
+                        
+                        if (error || !recipient) {
+                            // Recipient not found
+                            recipientInfoContainer.innerHTML = `
+                                <div class="recipient-not-found">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <p>ဤဖုန်းနံပါတ်ဖြင့် အကောင့်မတွေ့ရှိပါ</p>
+                                </div>
+                            `;
+                            recipientInfoContainer.style.display = 'block';
+                            return;
+                        }
+                        
+                        // Check if trying to send to self
+                        if (currentUser && recipient.user_id === currentUser.user_id) {
+                            recipientInfoContainer.innerHTML = `
+                                <div class="recipient-not-found">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <p>ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ</p>
+                                </div>
+                            `;
+                            recipientInfoContainer.style.display = 'block';
+                            return;
+                        }
+                        
+                        // Recipient found, show info
+                        const { data: userData } = await supabase
+                            .from('auth_users')
+                            .select('email')
+                            .eq('user_id', recipient.user_id)
+                            .single();
+                        
+                        const userName = userData?.email ? userData.email.split('@')[0] : recipient.phone;
+                        const profileImage = recipient.profile_image;
+                        const isVerified = recipient.passport_status === 'approved';
+                        
+                        recipientInfoContainer.innerHTML = `
+                            <div class="recipient-found">
+                                <div class="recipient-avatar ${profileImage ? 'has-image' : ''}">
+                                    ${profileImage 
+                                        ? `<img src="${profileImage}" alt="${userName}" class="avatar-image">` 
+                                        : `<span>${userName.charAt(0).toUpperCase()}</span>`}
+                                    ${isVerified ? '<div class="verified-badge"><i class="fas fa-check"></i></div>' : ''}
+                                </div>
+                                <div class="recipient-details">
+                                    <h4>${userName}</h4>
+                                    <p>${recipient.phone}</p>
+                                    <div class="recipient-status">
+                                        ${isVerified 
+                                            ? '<span class="status-verified"><i class="fas fa-shield-alt"></i> အတည်ပြုပြီး</span>' 
+                                            : '<span class="status-unverified"><i class="fas fa-exclamation-triangle"></i> အတည်မပြုရသေး</span>'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        recipientInfoContainer.style.display = 'block';
+                    } catch (error) {
+                        console.error('Recipient verification error:', error);
+                    }
+                }
+            }, 500); // 500ms debounce
+        });
+    }
 }
 
 // Setup PIN inputs
@@ -1567,4 +1852,204 @@ function showAuthContainer() {
 function showAppContainer() {
     authContainer.classList.add('hidden');
     appContainer.classList.remove('hidden');
+}
+
+Now here's the updated CSS to support the new profile image functionality:
+
+```css type="code"
+/* Profile Image Styles */
+.profile-image-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.profile-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 77, 77, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: var(--primary);
+  overflow: hidden;
+  position: relative;
+  border: 3px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-normal);
+}
+
+.profile-image:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.profile-image.has-image i {
+  display: none;
+}
+
+.profile-image .profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-image-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* User Avatar with Image */
+.user-avatar.has-image {
+  overflow: hidden;
+  padding: 0;
+}
+
+.user-avatar .avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Recipient Verification Styles */
+.recipient-info-container {
+  margin: 15px 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: var(--transition-normal);
+  animation: fade-in 0.3s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.recipient-not-found {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: rgba(255, 51, 51, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+}
+
+.recipient-not-found i {
+  font-size: 20px;
+  color: var(--danger);
+}
+
+.recipient-not-found p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+.recipient-found {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(51, 204, 51, 0.1);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-md);
+}
+
+.recipient-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text-light);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--success);
+}
+
+.recipient-avatar.has-image span {
+  display: none;
+}
+
+.recipient-avatar .avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.verified-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: var(--success);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: white;
+  border: 2px solid white;
+}
+
+.recipient-details {
+  flex: 1;
+}
+
+.recipient-details h4 {
+  margin: 0 0 5px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.recipient-details p {
+  margin: 0 0 5px;
+  font-size: 14px;
+  color: var(--text-light);
+  opacity: 0.8;
+}
+
+.recipient-status {
+  display: flex;
+  gap: 10px;
+}
+
+.recipient-status span {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-verified {
+  color: var(--success);
+}
+
+.status-unverified {
+  color: var(--warning);
 }
