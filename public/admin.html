@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OPPER Payment Admin</title>
+    <link rel="icon" type="image/png" href="https://github.com/Opper125/opper-payment/raw/main/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="background-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader-container" id="loader">
+        <div class="loader">
+            <svg viewBox="0 0 80 80">
+                <circle id="loader-circle" cx="40" cy="40" r="32"></circle>
+            </svg>
+            <div class="loader-text">OPPER</div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                    <h2>OPPER Admin</h2>
+                </div>
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>ဒိုင်ခွက်</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>ငွေသွင်း/ငွေထုတ်</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>သုံးစွဲသူများ</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>ဆက်တင်များ</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="admin-info">
+                    <div class="admin-avatar">A</div>
+                    <div class="admin-details">
+                        <h3 class="admin-name">အက်ဒမင်</h3>
+                        <p class="admin-role">စီမံခန့်ခွဲသူ</p>
+                    </div>
+                </div>
+                <button class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>ထွက်ရန်</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1 class="page-title">အက်ဒမင် ဒိုင်ခွက်</h1>
+                <div class="header-actions">
+                    <button class="btn btn-outline refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>အသစ်ဖြစ်စေရန်</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">စုစုပေါင်း သုံးစွဲသူများ</span>
+                        <div class="stat-icon users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="total-users">0</div>
+                    <div class="stat-description">မှတ်ပုံတင်ထားသော သုံးစွဲသူများ</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">အတည်ပြုပြီး ငွေလွှဲမှုများ</span>
+                        <div class="stat-icon approved">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="approved-transactions">0</div>
+                    <div class="stat-description">အတည်ပြုပြီး ငွေသွင်း/ငွေထုတ်များ</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">စောင့်ဆိုင်းဆဲ ငွေလွှဲမှုများ</span>
+                        <div class="stat-icon pending">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="pending-transactions">0</div>
+                    <div class="stat-description">အတည်မပြုရသေးသော ငွေလွှဲမှုများ</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">ငြင်းပယ်ထားသော ငွေလွှဲမှုများ</span>
+                        <div class="stat-icon rejected">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="rejected-transactions">0</div>
+                    <div class="stat-description">ငြင်းပယ်ထားသော ငွေလွှဲမှုများ</div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">ငွေလွှဲမှု ဆက်တင်များ</h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-sm btn-outline" id="refresh-settings">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transfer-status">
+                    <div class="status-indicator">
+                        <span class="indicator on" id="transfer-indicator"></span>
+                        <span id="transfer-status-text">ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်</span>
+                    </div>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="btn btn-danger" id="disable-transfers">
+                        <i class="fas fa-ban"></i>
+                        <span>ငွေလွှဲခြင်း ပိတ်ထားမည်</span>
+                    </button>
+                    <button class="btn btn-success" id="enable-transfers">
+                        <i class="fas fa-check"></i>
+                        <span>ငွေလွှဲခြင်း ခွင့်ပြုမည်</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <div class="panel-header">
+                    <h2 class="panel-title">ငွေလွှဲမှုများ ရှာဖွေရန်</h2>
+                </div>
+
+                <form class="search-form">
+                    <div class="search-grid">
+                        <div class="form-group">
+                            <label for="search-type">ငွေလွှဲအမျိုးအစား</label>
+                            <select id="search-type" class="form-control">
+                                <option value="all">အားလုံး</option>
+                                <option value="deposit">ငွေသွင်း</option>
+                                <option value="withdraw">ငွေထုတ်</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="search-status">အခြေအနေ</label>
+                            <select id="search-status" class="form-control">
+                                <option value="all">အားလုံး</option>
+                                <option value="pending">စောင့်ဆိုင်းဆဲ</option>
+                                <option value="approved">အတည်ပြုပြီး</option>
+                                <option value="rejected">ငြင်းပယ်ထားသည်</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="search-payment">ငွေပေးချေမှုနည်းလမ်း</label>
+                            <select id="search-payment" class="form-control">
+                                <option value="all">အားလုံး</option>
+                                <option value="kpay">KPay</option>
+                                <option value="wave">Wave</option>
+                            </select>
+                        </div>
+                        <div class="search-btn-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                                <span>ရှာဖွေမည်</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pending Transactions -->
+            <div class="pending-transactions">
+                <div class="section-header">
+                    <h2 class="section-title">စောင့်ဆိုင်းဆဲ ငွေသွင်း/ငွေထုတ် တောင်းဆိုမှုများ</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-sm btn-outline" id="refresh-transactions">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>အသစ်ဖြစ်စေရန်</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active" data-tab="all-tab">အားလုံး</div>
+                    <div class="tab" data-tab="deposit-tab">ငွေသွင်း</div>
+                    <div class="tab" data-tab="withdraw-tab">ငွေထုတ်</div>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-pane active" id="all-tab">
+                        <div class="transactions-list" id="all-transactions">
+                            <!-- Transactions will be loaded here -->
+                            <div class="empty-message">စောင့်ဆိုင်းဆဲ ငွေလွှဲမှုများ မရှိပါ</div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="deposit-tab">
+                        <div class="transactions-list" id="deposit-transactions">
+                            <!-- Deposit transactions will be loaded here -->
+                            <div class="empty-message">စောင့်ဆိုင်းဆဲ ငွေသွင်းမှုများ မရှိပါ</div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="withdraw-tab">
+                        <div class="transactions-list" id="withdraw-transactions">
+                            <!-- Withdraw transactions will be loaded here -->
+                            <div class="empty-message">စောင့်ဆိုင်းဆဲ ငွေထုတ်မှုများ မရှိပါ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Transaction Detail Modal -->
+    <div class="modal" id="transaction-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ငွေလွှဲမှု အသေးစိတ်</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="transaction-details">
+                <!-- Transaction details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="reject-transaction">
+                    <i class="fas fa-times"></i>
+                    <span>ငြင်းပယ်မည်</span>
+                </button>
+                <button class="btn btn-success" id="approve-transaction">
+                    <i class="fas fa-check"></i>
+                    <span>အတည်ပြုမည်</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">အတည်ပြုရန်</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">ဤလုပ်ဆောင်ချက်ကို သေချာပြုလုပ်လိုပါသလား?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-confirm">
+                    <span>ပယ်ဖျက်ရန်</span>
+                </button>
+                <button class="btn btn-primary" id="ok-confirm">
+                    <span>အိုကေ</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div class="processing-overlay" id="processing-overlay">
+        <div class="processing-content">
+            <div class="loader">
+                <svg viewBox="0 0 80 80">
+                    <circle id="processing-circle" cx="40" cy="40" r="32"></circle>
+                </svg>
+                <div class="loader-text">လုပ်ဆောင်နေသည်...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Admin JS -->
+    <script src="admin.js"></script>
+</body>
+</html>
