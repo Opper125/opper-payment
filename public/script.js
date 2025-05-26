@@ -141,11 +141,14 @@ function initEventListeners() {
   })
 
   // Login Form
-  document.getElementById("login-btn").addEventListener("click", handleLogin)
+  const loginBtn = document.getElementById("login-btn")
+  const signupBtn = document.getElementById("signup-btn")
+  // Login Form
+  //document.getElementById("login-btn").addEventListener("click", handleLogin)
   document.getElementById("google-login-btn").addEventListener("click", handleGoogleLogin)
 
   // Signup Form
-  document.getElementById("signup-btn").addEventListener("click", handleSignup)
+  //document.getElementById("signup-btn").addEventListener("click", handleSignup)
   document.getElementById("google-signup-btn").addEventListener("click", handleGoogleSignup)
 
   // Toggle Password Visibility
@@ -424,28 +427,16 @@ async function fetchUserData() {
 }
 
 // Create User Profile
-async function createUserProfile() {
-  try {
-    addConsoleLog("system", "Creating new user profile...")
-
-    const { error } = await supabase.from("profiles").insert({
-      user_id: currentUser.id,
-      email: currentUser.email,
-      phone: "",
-      balance: 10000, // Starting balance for new users
-      kyc_status: "pending",
-      transfer_enabled: true,
-      created_at: new Date(),
-    })
-
-    if (error) throw error
-
-    addConsoleLog("success", "User profile created successfully!")
-    await fetchUserData()
-  } catch (error) {
-    addConsoleLog("error", "Failed to create user profile: " + error.message)
-    showErrorNotification("ပရိုဖိုင်ဖန်တီးရာတွင် အမှားရှိနေပါသည်။")
-  }
+function createUserProfile() {
+  return supabase.from("profiles").insert({
+    user_id: currentUser.id,
+    email: currentUser.email,
+    phone: "",
+    balance: 10000, // Starting balance for new users
+    kyc_status: "pending",
+    transfer_enabled: true,
+    created_at: new Date(),
+  })
 }
 
 // Update User Info in UI
@@ -1229,34 +1220,34 @@ async function handleTransfer() {
 }
 
 // Process Transfer
-async function processTransfer() {
-  const phone = transferPhoneInput.value
-  const amount = Number.parseFloat(transferAmountInput.value)
-  const note = transferNoteInput.value
+async function processTransfer(pin) {
+  const phone = document.getElementById("transfer-phone").value
+  const amount = Number.parseInt(document.getElementById("transfer-amount").value)
+  const note = document.getElementById("transfer-note").value
+  const errorElement = document.getElementById("transfer-error")
+  const successElement = document.getElementById("transfer-success")
 
   try {
-    showProcessing("ငွေလွှဲနေသည်...")
+    // Verify PIN
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("payment_pin")
+      .eq("user_id", currentUser.id)
+      .single()
 
-    // Add robotic transfer animation to processing overlay
-    const processingContent = document.querySelector(".processing-content")
-    const robotAnimation = document.createElement("div")
-    robotAnimation.className = "robot-transfer-animation"
-    robotAnimation.innerHTML = `
-            <div class="robot-head">
-                <div class="robot-eye left"></div>
-                <div class="robot-eye right"></div>
-                <div class="robot-antenna"></div>
-            </div>
-            <div class="robot-body"></div>
-            <div class="robot-arm left"></div>
-            <div class="robot-arm right"></div>
-            <div class="money-particle"></div>
-            <div class="money-particle"></div>
-            <div class="money-particle"></div>
-            <div class="money-particle"></div>
-            <div class="money-particle"></div>
-        `
-    processingContent.insertBefore(robotAnimation, processingContent.firstChild)
+    if (profileError) throw profileError
+
+    if (profile.payment_pin !== pin) {
+      document.getElementById("pin-error").textContent = "PIN မမှန်ကန်ပါ။"
+      document.getElementById("pin-error").style.display = "block"
+      return
+    }
+
+    // Close PIN modal
+    closeModal(pinEntryModal)
+
+    // Show processing overlay
+    showProcessing("ငွေလွှဲနေသည်...")
 
     // Get recipient
     const { data: recipient, error: recipientError } = await supabase
@@ -1267,7 +1258,7 @@ async function processTransfer() {
 
     if (recipientError) throw recipientError
 
-    // Start a Supabase transaction
+    // Call transfer_money function
     const { data, error } = await supabase.rpc("transfer_money", {
       sender_id: currentUser.id,
       recipient_id: recipient.user_id,
@@ -1284,16 +1275,16 @@ async function processTransfer() {
     // Show success message
     hideProcessing()
     showMessage(
-      transferSuccessMsg,
+      successElement,
       `${formatCurrency(amount)} ကို ${recipient.full_name || recipient.email || recipient.phone} ထံသို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`,
     )
     playSound(successSound)
 
     // Clear form
-    transferPhoneInput.value = ""
-    transferAmountInput.value = ""
-    transferNoteInput.value = ""
-    recipientInfoDiv.style.display = "none"
+    document.getElementById("transfer-phone").value = ""
+    document.getElementById("transfer-amount").value = ""
+    document.getElementById("transfer-note").value = ""
+    document.getElementById("recipient-info").style.display = "none"
 
     // Refresh transactions
     await fetchTransactions()
@@ -1310,7 +1301,7 @@ async function processTransfer() {
     })
   } catch (error) {
     hideProcessing()
-    showMessage(transferErrorMsg, `ငွေလွှဲခြင်း မအောင်မြင်ပါ: ${error.message}`)
+    showMessage(errorElement, `ငွေလွှဲခြင်း မအောင်မြင်ပါ: ${error.message}`)
     playSound(errorSound)
   }
 }
@@ -1620,13 +1611,13 @@ function showSuccessNotification(message) {
   const notification = document.createElement("div")
   notification.className = "notification-item"
   notification.innerHTML = `
-        <div class="notification-title">
-            <i class="fas fa-check-circle" style="color: var(--success);"></i> 
-            အောင်မြင်မှု
-        </div>
-        <div class="notification-content">${message}</div>
-        <div class="notification-time">ယခုအတွင်း</div>
-    `
+    <div class="notification-title">
+      <i class="fas fa-check-circle" style="color: var(--success);"></i> 
+      အောင်မြင်မှု
+    </div>
+    <div class="notification-content">${message}</div>
+    <div class="notification-time">ယခုအတွင်း</div>
+  `
 
   // Add to notifications list
   notificationsList.insertBefore(notification, notificationsList.firstChild)
@@ -1661,13 +1652,13 @@ function showErrorNotification(message) {
   const notification = document.createElement("div")
   notification.className = "notification-item"
   notification.innerHTML = `
-        <div class="notification-title">
-            <i class="fas fa-exclamation-circle" style="color: var(--danger);"></i> 
-            အမှား
-        </div>
-        <div class="notification-content">${message}</div>
-        <div class="notification-time">ယခုအတွင်း</div>
-    `
+    <div class="notification-title">
+      <i class="fas fa-exclamation-circle" style="color: var(--danger);"></i> 
+      အမှား
+    </div>
+    <div class="notification-content">${message}</div>
+    <div class="notification-time">ယခုအတွင်း</div>
+  `
 
   // Add to notifications list
   notificationsList.insertBefore(notification, notificationsList.firstChild)
@@ -1785,11 +1776,11 @@ async function fetchNotifications() {
 function renderNotifications(notifications) {
   if (!notifications || notifications.length === 0) {
     notificationsList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-bell-slash"></i>
-                <p>အသိပေးချက်များ မရှိသေးပါ</p>
-            </div>
-        `
+      <div class="empty-state">
+        <i class="fas fa-bell-slash"></i>
+        <p>အသိပေးချက်များ မရှိသေးပါ</p>
+      </div>
+    `
     return
   }
 
@@ -1814,13 +1805,13 @@ function renderNotifications(notifications) {
     }
 
     notificationItem.innerHTML = `
-            <div class="notification-title">
-                <i class="${iconClass}" style="color: ${iconColor};"></i> 
-                ${notification.title}
-            </div>
-            <div class="notification-content">${notification.message}</div>
-            <div class="notification-time">${formatTimeAgo(new Date(notification.created_at))}</div>
-        `
+      <div class="notification-title">
+        <i class="${iconClass}" style="color: ${iconColor};"></i> 
+        ${notification.title}
+      </div>
+      <div class="notification-content">${notification.message}</div>
+      <div class="notification-time">${formatTimeAgo(new Date(notification.created_at))}</div>
+    `
 
     notificationsList.appendChild(notificationItem)
   })
@@ -1833,10 +1824,10 @@ async function fetchTransactions() {
     const { data, error } = await supabase
       .from("transactions")
       .select(`
-                *,
-                sender:profiles!sender_id(full_name, email, phone),
-                recipient:profiles!recipient_id(full_name, email, phone)
-            `)
+        *,
+        sender:profiles!sender_id(full_name, email, phone),
+        recipient:profiles!recipient_id(full_name, email, phone)
+      `)
       .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
       .order("created_at", { ascending: false })
       .limit(50)
@@ -2078,10 +2069,10 @@ async function fetchAnnouncements() {
     const { data, error } = await supabase
       .from("announcements")
       .select(`
-                *,
-                likes:announcement_likes(user_id),
-                comments:announcement_comments(*)
-            `)
+        *,
+        likes:announcement_likes(user_id),
+        comments:announcement_comments(*)
+      `)
       .order("created_at", { ascending: false })
       .limit(20)
 
@@ -2104,36 +2095,36 @@ function renderAnnouncements(announcements) {
   if (dashboardAnnouncement) {
     if (!announcements || announcements.length === 0) {
       dashboardAnnouncement.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-bullhorn"></i>
-                    <p>ကြေညာချက်များ မရှိသေးပါ</p>
-                </div>
-            `
+        <div class="empty-state">
+          <i class="fas fa-bullhorn"></i>
+          <p>ကြေညာချက်များ မရှိသေးပါ</p>
+        </div>
+      `
     } else {
       const latestAnnouncement = announcements[0]
 
       dashboardAnnouncement.innerHTML = `
-                <div class="announcement-header">
-                    <div class="announcement-title">${latestAnnouncement.title}</div>
-                    <div class="announcement-date">${formatDate(new Date(latestAnnouncement.created_at))}</div>
-                </div>
-                <div class="announcement-content">${latestAnnouncement.content.substring(0, 150)}${latestAnnouncement.content.length > 150 ? "..." : ""}</div>
-                <div class="announcement-footer">
-                    <div class="announcement-meta">
-                        <div class="announcement-meta-item">
-                            <i class="far fa-thumbs-up"></i>
-                            <span>${latestAnnouncement.likes ? latestAnnouncement.likes.length : 0}</span>
-                        </div>
-                        <div class="announcement-meta-item">
-                            <i class="far fa-comment"></i>
-                            <span>${latestAnnouncement.comments ? latestAnnouncement.comments.length : 0}</span>
-                        </div>
-                    </div>
-                    <a href="#" class="announcement-read-more" data-id="${latestAnnouncement.id}">
-                        ဆက်လက်ဖတ်ရှုရန် <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-            `
+        <div class="announcement-header">
+          <div class="announcement-title">${latestAnnouncement.title}</div>
+          <div class="announcement-date">${formatDate(new Date(latestAnnouncement.created_at))}</div>
+        </div>
+        <div class="announcement-content">${latestAnnouncement.content.substring(0, 150)}${latestAnnouncement.content.length > 150 ? "..." : ""}</div>
+        <div class="announcement-footer">
+          <div class="announcement-meta">
+            <div class="announcement-meta-item">
+              <i class="far fa-thumbs-up"></i>
+              <span>${latestAnnouncement.likes ? latestAnnouncement.likes.length : 0}</span>
+            </div>
+            <div class="announcement-meta-item">
+              <i class="far fa-comment"></i>
+              <span>${latestAnnouncement.comments ? latestAnnouncement.comments.length : 0}</span>
+            </div>
+          </div>
+          <a href="#" class="announcement-read-more" data-id="${latestAnnouncement.id}">
+            ဆက်လက်ဖတ်ရှုရန် <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      `
 
       // Add click event to read more
       dashboardAnnouncement.querySelector(".announcement-read-more").addEventListener("click", (e) => {
@@ -2155,11 +2146,11 @@ function renderAnnouncements(announcements) {
   if (announcementsContainer) {
     if (!announcements || announcements.length === 0) {
       announcementsContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-bullhorn"></i>
-                    <p>ကြေညာချက်များ မရှိသေးပါ</p>
-                </div>
-            `
+        <div class="empty-state">
+          <i class="fas fa-bullhorn"></i>
+          <p>ကြေညာချက်များ မရှိသေးပါ</p>
+        </div>
+      `
     } else {
       announcementsContainer.innerHTML = ""
 
@@ -2167,27 +2158,27 @@ function renderAnnouncements(announcements) {
         const announcementItem = document.createElement("div")
         announcementItem.className = "announcement-item"
         announcementItem.innerHTML = `
-                    <div class="announcement-header">
-                        <div class="announcement-title">${announcement.title}</div>
-                        <div class="announcement-date">${formatDate(new Date(announcement.created_at))}</div>
-                    </div>
-                    <div class="announcement-content">${announcement.content.substring(0, 200)}${announcement.content.length > 200 ? "..." : ""}</div>
-                    <div class="announcement-footer">
-                        <div class="announcement-meta">
-                            <div class="announcement-meta-item">
-                                <i class="far fa-thumbs-up"></i>
-                                <span>${announcement.likes ? announcement.likes.length : 0}</span>
-                            </div>
-                            <div class="announcement-meta-item">
-                                <i class="far fa-comment"></i>
-                                <span>${announcement.comments ? announcement.comments.length : 0}</span>
-                            </div>
-                        </div>
-                        <a href="#" class="announcement-read-more" data-id="${announcement.id}">
-                            ဆက်လက်ဖတ်ရှုရန် <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </div>
-                `
+          <div class="announcement-header">
+            <div class="announcement-title">${announcement.title}</div>
+            <div class="announcement-date">${formatDate(new Date(announcement.created_at))}</div>
+          </div>
+          <div class="announcement-content">${announcement.content.substring(0, 200)}${announcement.content.length > 200 ? "..." : ""}</div>
+          <div class="announcement-footer">
+            <div class="announcement-meta">
+              <div class="announcement-meta-item">
+                <i class="far fa-thumbs-up"></i>
+                <span>${announcement.likes ? announcement.likes.length : 0}</span>
+              </div>
+              <div class="announcement-meta-item">
+                <i class="far fa-comment"></i>
+                <span>${announcement.comments ? announcement.comments.length : 0}</span>
+              </div>
+            </div>
+            <a href="#" class="announcement-read-more" data-id="${announcement.id}">
+              ဆက်လက်ဖတ်ရှုရန် <i class="fas fa-chevron-right"></i>
+            </a>
+          </div>
+        `
 
         // Add click event to read more
         announcementItem.querySelector(".announcement-read-more").addEventListener("click", (e) => {
@@ -2216,13 +2207,13 @@ async function showAnnouncementDetail(announcementId) {
     const { data, error } = await supabase
       .from("announcements")
       .select(`
-                *,
-                likes:announcement_likes(user_id),
-                comments:announcement_comments(
-                    *,
-                    profile:profiles(full_name, email)
-                )
-            `)
+        *,
+        likes:announcement_likes(user_id),
+        comments:announcement_comments(
+          *,
+          profile:profiles(full_name, email)
+        )
+      `)
       .eq("id", announcementId)
       .single()
 
@@ -2237,9 +2228,9 @@ async function showAnnouncementDetail(announcementId) {
     // Update like button state
     likeBtn.classList.toggle("active", userLiked)
     likeBtn.innerHTML = `
-            <i class="${userLiked ? "fas" : "far"} fa-thumbs-up"></i>
-            <span id="like-count">${data.likes.length}</span>
-        `
+      <i class="${userLiked ? "fas" : "far"} fa-thumbs-up"></i>
+      <span id="like-count">${data.likes.length}</span>
+    `
 
     // Update comment count
     commentCount.textContent = data.comments.length
@@ -2248,16 +2239,16 @@ async function showAnnouncementDetail(announcementId) {
     document.getElementById("announcement-title").textContent = data.title
 
     document.getElementById("announcement-detail-container").innerHTML = `
-            <div class="announcement-detail-header">
-                <div class="announcement-detail-title">${data.title}</div>
-                <div class="announcement-detail-meta">
-                    <div>${formatDate(new Date(data.created_at))}</div>
-                    <div>OPPER Admin</div>
-                </div>
-            </div>
-            ${data.image_url ? `<img src="${data.image_url}" alt="${data.title}" class="announcement-detail-image">` : ""}
-            <div class="announcement-detail-content">${data.content}</div>
-        `
+      <div class="announcement-detail-header">
+        <div class="announcement-detail-title">${data.title}</div>
+        <div class="announcement-detail-meta">
+          <div>${formatDate(new Date(data.created_at))}</div>
+          <div>OPPER Admin</div>
+        </div>
+      </div>
+      ${data.image_url ? `<img src="${data.image_url}" alt="${data.title}" class="announcement-detail-image">` : ""}
+      <div class="announcement-detail-content">${data.content}</div>
+    `
 
     // Render comments
     renderComments(data.comments)
@@ -2274,11 +2265,11 @@ async function showAnnouncementDetail(announcementId) {
 function renderComments(comments) {
   if (!comments || comments.length === 0) {
     commentsList.innerHTML = `
-            <div class="empty-state">
-                <i class="far fa-comment"></i>
-                <p>မှတ်ချက်များ မရှိသေးပါ</p>
-            </div>
-        `
+      <div class="empty-state">
+        <i class="far fa-comment"></i>
+        <p>မှတ်ချက်များ မရှိသေးပါ</p>
+      </div>
+    `
     return
   }
 
@@ -2295,15 +2286,15 @@ function renderComments(comments) {
     const userInitial = userName.charAt(0).toUpperCase()
 
     commentItem.innerHTML = `
-            <div class="comment-avatar">${userInitial}</div>
-            <div class="comment-content">
-                <div class="comment-header">
-                    <div class="comment-author">${userName}</div>
-                    <div class="comment-time">${formatTimeAgo(new Date(comment.created_at))}</div>
-                </div>
-                <div class="comment-text">${comment.content}</div>
-            </div>
-        `
+      <div class="comment-avatar">${userInitial}</div>
+      <div class="comment-content">
+        <div class="comment-header">
+          <div class="comment-author">${userName}</div>
+          <div class="comment-time">${formatTimeAgo(new Date(comment.created_at))}</div>
+        </div>
+        <div class="comment-text">${comment.content}</div>
+      </div>
+    `
 
     commentsList.appendChild(commentItem)
   })
@@ -2372,9 +2363,9 @@ async function submitComment() {
         content,
       })
       .select(`
-                *,
-                profile:profiles(full_name, email)
-            `)
+        *,
+        profile:profiles(full_name, email)
+      `)
       .single()
 
     if (error) throw error
@@ -2390,15 +2381,15 @@ async function submitComment() {
     const userInitial = userName.charAt(0).toUpperCase()
 
     commentItem.innerHTML = `
-            <div class="comment-avatar">${userInitial}</div>
-            <div class="comment-content">
-                <div class="comment-header">
-                    <div class="comment-author">${userName}</div>
-                    <div class="comment-time">ယခုအတွင်း</div>
-                </div>
-                <div class="comment-text">${data.content}</div>
-            </div>
-        `
+      <div class="comment-avatar">${userInitial}</div>
+      <div class="comment-content">
+        <div class="comment-header">
+          <div class="comment-author">${userName}</div>
+          <div class="comment-time">ယခုအတွင်း</div>
+        </div>
+        <div class="comment-text">${data.content}</div>
+      </div>
+    `
 
     // Remove empty state if it exists
     const emptyState = commentsList.querySelector(".empty-state")
@@ -2448,11 +2439,11 @@ function renderMedia(mediaItems, type = "all") {
 
   if (!filteredMedia || filteredMedia.length === 0) {
     mediaGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-photo-video"></i>
-                <p>မီဒီယာများ မရှိသေးပါ</p>
-            </div>
-        `
+      <div class="empty-state">
+        <i class="fas fa-photo-video"></i>
+        <p>မီဒီယာများ မရှိသေးပါ</p>
+      </div>
+    `
     return
   }
 
@@ -2465,24 +2456,24 @@ function renderMedia(mediaItems, type = "all") {
     const isVideo = item.type === "video"
 
     mediaItem.innerHTML = `
-            <div class="media-thumbnail">
-                <img src="${item.thumbnail_url || item.url}" alt="${item.title}">
-                <div class="media-type-badge">${isVideo ? "ဗီဒီယို" : "ဓာတ်ပုံ"}</div>
-                ${
-                  isVideo
-                    ? `
-                <div class="media-play-button">
-                    <i class="fas fa-play"></i>
-                </div>
-                `
-                    : ""
-                }
-            </div>
-            <div class="media-info">
-                <div class="media-title">${item.title}</div>
-                <div class="media-date">${formatDate(new Date(item.created_at))}</div>
-            </div>
+      <div class="media-thumbnail">
+        <img src="${item.thumbnail_url || item.url}" alt="${item.title}">
+        <div class="media-type-badge">${isVideo ? "ဗီဒီယို" : "ဓာတ်ပုံ"}</div>
+        ${
+          isVideo
+            ? `
+        <div class="media-play-button">
+          <i class="fas fa-play"></i>
+        </div>
         `
+            : ""
+        }
+      </div>
+      <div class="media-info">
+        <div class="media-title">${item.title}</div>
+        <div class="media-date">${formatDate(new Date(item.created_at))}</div>
+      </div>
+    `
 
     // Add click event to show media
     mediaItem.addEventListener("click", () => {
@@ -2501,15 +2492,15 @@ function showMediaViewer(media) {
 
   if (media.type === "video") {
     viewerContainer.innerHTML = `
-            <video controls autoplay>
-                <source src="${media.url}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        `
+      <video controls autoplay>
+        <source src="${media.url}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    `
   } else {
     viewerContainer.innerHTML = `
-            <img src="${media.url}" alt="${media.title}">
-        `
+      <img src="${media.url}" alt="${media.title}">
+    `
   }
 
   openModal(mediaViewerModal)
@@ -2547,60 +2538,1018 @@ function refreshMedia(type = "all") {
 
 // Subscribe to Realtime Updates
 function subscribeToRealtimeUpdates() {
-    // Unsubscribe from any existing subscription
-    if (realtimeSubscription) {
-        realtimeSubscription.unsubscribe();
+  // Unsubscribe from any existing subscription
+  if (realtimeSubscription) {
+    realtimeSubscription.unsubscribe()
+  }
+
+  // Subscribe to profiles table for balance updates
+  realtimeSubscription = supabase
+    .channel("schema-db-changes")
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "profiles",
+        filter: `user_id=eq.${currentUser.id}`,
+      },
+      (payload) => {
+        // Update balance if changed
+        if (payload.new.balance !== userBalance) {
+          const oldBalance = userBalance
+          updateBalance(payload.new.balance)
+
+          // Show notification for balance change
+          const difference = payload.new.balance - oldBalance
+          if (difference > 0) {
+            showSuccessNotification(`${formatCurrency(difference)} ရရှိပါသည်။`)
+            playSound(moneyReceivedSound)
+          }
+        }
+
+        // Update KYC status if changed
+        if (payload.new.kyc_status !== userKycStatus) {
+          updateKycStatus(payload.new.kyc_status)
+
+          // Show notification for KYC status change
+          if (payload.new.kyc_status === "approved") {
+            showSuccessNotification("သင့် KYC အတည်ပြုချက် အောင်မြင်ပါသည်။")
+          } else if (payload.new.kyc_status === "rejected") {
+            showErrorNotification("သင့် KYC အတည်ပြုချက် ငြင်းပယ်ခံရပါသည်။")
+          }
+        }
+
+        // Update transfer status if changed
+        if (payload.new.transfer_enabled !== userTransferStatus) {
+          updateTransferStatus(payload.new.transfer_enabled)
+
+          // Show notification for transfer status change
+          if (payload.new.transfer_enabled) {
+            showSuccessNotification("သင့်ငွေလွှဲခြင်း လုပ်ဆောင်ချက် ပြန်လည်ဖွင့်ပြီးပါပြီ။")
+          } else {
+            showErrorNotification("သင့်ငွေလွှဲခြင်း လုပ်ဆောင်ချက် ယာယီပိတ်ထားပါသည်။")
+          }
+        }
+      },
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "transactions",
+        filter: `recipient_id=eq.${currentUser.id}`,
+      },
+      (payload) => {
+        // Show notification for new transaction
+        const amount = payload.new.amount
+        showSuccessNotification(`${formatCurrency(amount)} လက်ခံရရှိပါသည်။`)
+        playSound(moneyReceivedSound)
+
+        // Refresh transactions
+        fetchTransactions()
+      },
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${currentUser.id}`,
+      },
+      (payload) => {
+        // Update notification count
+        updateNotificationCount(1)
+
+        // Play notification sound
+        playSound(notificationSound)
+
+        // Refresh notifications
+        fetchNotifications()
+      },
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "announcements",
+      },
+      (payload) => {
+        // Refresh announcements
+        fetchAnnouncements()
+      },
+    )
+    .subscribe()
+}
+
+// Replace loadTransactions with fetchTransactions to match the SQL schema
+// Replace the entire loadTransactions function with:
+async function fetchTransactions() {
+  try {
+    // Fetch transactions from database
+    const { data, error } = await supabase
+      .from("transactions")
+      .select(`
+        *,
+        sender:profiles!sender_id(full_name, email, phone),
+        recipient:profiles!recipient_id(full_name, email, phone)
+      `)
+      .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+      .order("created_at", { ascending: false })
+      .limit(50)
+
+    if (error) throw error
+
+    // Store transactions
+    transactions = data
+
+    // Render transactions
+    renderTransactions(data)
+  } catch (error) {
+    console.error("Error fetching transactions:", error)
+    showErrorNotification("ငွေလွှဲမှတ်တမ်းများ ရယူရာတွင် အမှားရှိနေပါသည်။")
+  }
+}
+
+// Add the fetchNotifications function
+async function fetchNotifications() {
+  try {
+    // Fetch notifications from database
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
+      .limit(20)
+
+    if (error) throw error
+
+    // Update notifications list
+    renderNotifications(data)
+
+    // Update notification count
+    const unreadCount = data.filter((notification) => !notification.read).length
+    updateNotificationCount(unreadCount)
+  } catch (error) {
+    console.error("Error fetching notifications:", error)
+  }
+}
+
+// Add the fetchAnnouncements function
+async function fetchAnnouncements() {
+  try {
+    // Fetch announcements from database
+    const { data, error } = await supabase
+      .from("announcements")
+      .select(`
+        *,
+        likes:announcement_likes(user_id),
+        comments:announcement_comments(*)
+      `)
+      .order("created_at", { ascending: false })
+      .limit(20)
+
+    if (error) throw error
+
+    // Store announcements
+    announcements = data
+
+    // Render announcements
+    renderAnnouncements(data)
+  } catch (error) {
+    console.error("Error fetching announcements:", error)
+    showErrorNotification("ကြေညာချက်များ ရယူရာတွင် အမှားရှိနေပါသည်။")
+  }
+}
+
+// Add the fetchMedia function
+async function fetchMedia() {
+  try {
+    // Fetch media from database
+    const { data, error } = await supabase.from("media").select("*").order("created_at", { ascending: false }).limit(20)
+
+    if (error) throw error
+
+    // Store media
+    media = data
+
+    // Render media
+    renderMedia(data)
+  } catch (error) {
+    console.error("Error fetching media:", error)
+    showErrorNotification("မီဒီယာများ ရယူရာတွင် အမှားရှိနေပါသည်။")
+  }
+}
+
+// Add the renderNotifications function
+function renderNotifications(notifications) {
+  if (!notifications || notifications.length === 0) {
+    notificationsList.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-bell-slash"></i>
+        <p>အသိပေးချက်များ မရှိသေးပါ</p>
+      </div>
+    `
+    return
+  }
+
+  notificationsList.innerHTML = ""
+
+  notifications.forEach((notification) => {
+    const notificationItem = document.createElement("div")
+    notificationItem.className = `notification-item ${notification.read ? "" : "unread"}`
+
+    let iconClass = "fas fa-info-circle"
+    let iconColor = "var(--info)"
+
+    if (notification.type === "success") {
+      iconClass = "fas fa-check-circle"
+      iconColor = "var(--success)"
+    } else if (notification.type === "error") {
+      iconClass = "fas fa-exclamation-circle"
+      iconColor = "var(--danger)"
+    } else if (notification.type === "warning") {
+      iconClass = "fas fa-exclamation-triangle"
+      iconColor = "var(--warning)"
     }
-    
-    // Subscribe to profiles table for balance updates
-    realtimeSubscription = supabase
-        .channel('schema-db-changes')
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `user_id=eq.${currentUser.id}`
-        }, payload => {
-            // Update balance if changed
-            if (payload.new.balance !== userBalance) {
-                const oldBalance = userBalance;
-                updateBalance(payload.new.balance);
-                
-                // Show notification for balance change
-                const difference = payload.new.balance - oldBalance;
-                if (difference > 0) {
-                    showSuccessNotification(`${formatCurrency(difference)} ရရှိပါသည်။`);
-                    playSound(moneyReceivedSound);
-                }
-            }
-            
-            // Update KYC status if changed
-            if (payload.new.kyc_status !== userKycStatus) {
-                updateKycStatus(payload.new.kyc_status);
-                
-                // Show notification for KYC status change
-                if (payload.new.kyc_status === "approved") {
-                    showSuccessNotification("သင့် KYC အတည်ပြုချက် အောင်မြင်ပါသည်။");
-                } else if (payload.new.kyc_status === "rejected") {
-                    showErrorNotification("သင့် KYC အတည်ပြုချက် ငြင်းပယ်ခံရပါသည်။");
-                }
-            }
-            
-            // Update transfer status if changed
-            if (payload.new.transfer_enabled !== userTransferStatus) {
-                updateTransferStatus(payload.new.transfer_enabled);
-                
-                // Show notification for transfer status change
-                if (payload.new.transfer_enabled) {
-                    showSuccessNotification("သင့်ငွေလွှဲခြင်း လုပ်ဆောင်ချက် ပြန်လည်ဖွင့်ပြီးပါပြီ။");
-                } else {
-                    showErrorNotification("သင့်ငွေလွှဲခြင်း လုပ်ဆောင်ချက် ယာယီပိတ်ထားပါသည်။");
-                }
-            }
+
+    notificationItem.innerHTML = `
+      <div class="notification-title">
+        <i class="${iconClass}" style="color: ${iconColor};"></i> 
+        ${notification.title}
+      </div>
+      <div class="notification-content">${notification.message}</div>
+      <div class="notification-time">${formatTimeAgo(new Date(notification.created_at))}</div>
+    `
+
+    notificationsList.appendChild(notificationItem)
+  })
+}
+
+// Add the renderAnnouncements function
+function renderAnnouncements(announcements) {
+  // Render latest announcement on dashboard
+  if (dashboardAnnouncement) {
+    if (!announcements || announcements.length === 0) {
+      dashboardAnnouncement.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-bullhorn"></i>
+          <p>ကြေညာချက်များ မရှိသေးပါ</p>
+        </div>
+      `
+    } else {
+      const latestAnnouncement = announcements[0]
+
+      dashboardAnnouncement.innerHTML = `
+        <div class="announcement-header">
+          <div class="announcement-title">${latestAnnouncement.title}</div>
+          <div class="announcement-date">${formatDate(new Date(latestAnnouncement.created_at))}</div>
+        </div>
+        <div class="announcement-content">${latestAnnouncement.content.substring(0, 150)}${latestAnnouncement.content.length > 150 ? "..." : ""}</div>
+        <div class="announcement-footer">
+          <div class="announcement-meta">
+            <div class="announcement-meta-item">
+              <i class="far fa-thumbs-up"></i>
+              <span>${latestAnnouncement.likes ? latestAnnouncement.likes.length : 0}</span>
+            </div>
+            <div class="announcement-meta-item">
+              <i class="far fa-comment"></i>
+              <span>${latestAnnouncement.comments ? latestAnnouncement.comments.length : 0}</span>
+            </div>
+          </div>
+          <a href="#" class="announcement-read-more" data-id="${latestAnnouncement.id}">
+            ဆက်လက်ဖတ်ရှုရန် <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      `
+
+      // Add click event to read more
+      dashboardAnnouncement.querySelector(".announcement-read-more").addEventListener("click", (e) => {
+        e.preventDefault()
+        const announcementId = e.currentTarget.getAttribute("data-id")
+        showAnnouncementDetail(announcementId)
+      })
+
+      // Make the entire card clickable
+      dashboardAnnouncement.addEventListener("click", (e) => {
+        if (!e.target.closest(".announcement-read-more")) {
+          showAnnouncementDetail(latestAnnouncement.id)
+        }
+      })
+    }
+  }
+
+  // Render all announcements on announcements page
+  if (announcementsContainer) {
+    if (!announcements || announcements.length === 0) {
+      announcementsContainer.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-bullhorn"></i>
+          <p>ကြေညာချက်များ မရှိသေးပါ</p>
+        </div>
+      `
+    } else {
+      announcementsContainer.innerHTML = ""
+
+      announcements.forEach((announcement) => {
+        const announcementItem = document.createElement("div")
+        announcementItem.className = "announcement-item"
+        announcementItem.innerHTML = `
+          <div class="announcement-header">
+            <div class="announcement-title">${announcement.title}</div>
+            <div class="announcement-date">${formatDate(new Date(announcement.created_at))}</div>
+          </div>
+          <div class="announcement-content">${announcement.content.substring(0, 200)}${announcement.content.length > 200 ? "..." : ""}</div>
+          <div class="announcement-footer">
+            <div class="announcement-meta">
+              <div class="announcement-meta-item">
+                <i class="far fa-thumbs-up"></i>
+                <span>${announcement.likes ? announcement.likes.length : 0}</span>
+              </div>
+              <div class="announcement-meta-item">
+                <i class="far fa-comment"></i>
+                <span>${announcement.comments ? announcement.comments.length : 0}</span>
+              </div>
+            </div>
+            <a href="#" class="announcement-read-more" data-id="${announcement.id}">
+              ဆက်လက်ဖတ်ရှုရန် <i class="fas fa-chevron-right"></i>
+            </a>
+          </div>
+        `
+
+        // Add click event to read more
+        announcementItem.querySelector(".announcement-read-more").addEventListener("click", (e) => {
+          e.preventDefault()
+          const announcementId = e.currentTarget.getAttribute("data-id")
+          showAnnouncementDetail(announcementId)
         })
-        .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'transactions',
-            filter: `recipient_id=eq.${currentUser.id}`
-        }, payload => {
+
+        // Make the entire card clickable
+        announcementItem.addEventListener("click", (e) => {
+          if (!e.target.closest(".announcement-read-more")) {
+            showAnnouncementDetail(announcement.id)
+          }
+        })
+
+        announcementsContainer.appendChild(announcementItem)
+      })
+    }
+  }
+}
+
+// Add the renderMedia function
+function renderMedia(mediaItems, type = "all") {
+  if (!mediaGrid) return
+
+  // Filter media by type if specified
+  let filteredMedia = mediaItems
+  if (type !== "all") {
+    filteredMedia = mediaItems.filter((item) => item.type === type)
+  }
+
+  if (!filteredMedia || filteredMedia.length === 0) {
+    mediaGrid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-photo-video"></i>
+        <p>မီဒီယာများ မရှိသေးပါ</p>
+      </div>
+    `
+    return
+  }
+
+  mediaGrid.innerHTML = ""
+
+  filteredMedia.forEach((item) => {
+    const mediaItem = document.createElement("div")
+    mediaItem.className = "media-item"
+
+    const isVideo = item.type === "video"
+
+    mediaItem.innerHTML = `
+      <div class="media-thumbnail">
+        <img src="${item.thumbnail_url || item.url}" alt="${item.title}">
+        <div class="media-type-badge">${isVideo ? "ဗီဒီယို" : "ဓာတ်ပုံ"}</div>
+        ${
+          isVideo
+            ? `
+        <div class="media-play-button">
+          <i class="fas fa-play"></i>
+        </div>
+        `
+            : ""
+        }
+      </div>
+      <div class="media-info">
+        <div class="media-title">${item.title}</div>
+        <div class="media-date">${formatDate(new Date(item.created_at))}</div>
+      </div>
+    `
+
+    // Add click event to show media
+    mediaItem.addEventListener("click", () => {
+      showMediaViewer(item)
+    })
+
+    mediaGrid.appendChild(mediaItem)
+  })
+}
+
+// Add the showAnnouncementDetail function
+async function showAnnouncementDetail(announcementId) {
+  try {
+    // Fetch announcement details
+    const { data, error } = await supabase
+      .from("announcements")
+      .select(`
+        *,
+        likes:announcement_likes(user_id),
+        comments:announcement_comments(
+          *,
+          profile:profiles(full_name, email)
+        )
+      `)
+      .eq("id", announcementId)
+      .single()
+
+    if (error) throw error
+
+    // Store current announcement ID
+    currentAnnouncementId = announcementId
+
+    // Check if user has liked this announcement
+    const userLiked = data.likes.some((like) => like.user_id === currentUser.id)
+
+    // Update like button state
+    likeBtn.classList.toggle("active", userLiked)
+    likeBtn.innerHTML = `
+      <i class="${userLiked ? "fas" : "far"} fa-thumbs-up"></i>
+      <span id="like-count">${data.likes.length}</span>
+    `
+
+    // Update comment count
+    commentCount.textContent = data.comments.length
+
+    // Set announcement details
+    document.getElementById("announcement-title").textContent = data.title
+
+    document.getElementById("announcement-detail-container").innerHTML = `
+      <div class="announcement-detail-header">
+        <div class="announcement-detail-title">${data.title}</div>
+        <div class="announcement-detail-meta">
+          <div>${formatDate(new Date(data.created_at))}</div>
+          <div>OPPER Admin</div>
+        </div>
+      </div>
+      ${data.image_url ? `<img src="${data.image_url}" alt="${data.title}" class="announcement-detail-image">` : ""}
+      <div class="announcement-detail-content">${data.content}</div>
+    `
+
+    // Render comments
+    renderComments(data.comments)
+
+    // Show announcement detail modal
+    openModal(announcementDetailModal)
+  } catch (error) {
+    console.error("Error fetching announcement details:", error)
+    showErrorNotification("ကြေညာချက်အသေးစိတ် ရယူရာတွင် အမှားရှိနေပါသည်။")
+  }
+}
+
+// Add the showMediaViewer function
+function showMediaViewer(media) {
+  document.getElementById("media-title").textContent = media.title
+
+  const viewerContainer = document.getElementById("media-viewer-container")
+
+  if (media.type === "video") {
+    viewerContainer.innerHTML = `
+      <video controls autoplay>
+        <source src="${media.url}" type="video/mp4">
+        Your browser does not support the video tag
+      </video>
+    `
+  } else {
+    viewerContainer.innerHTML = `
+      <img src="${media.url}" alt="${media.title}">
+    `
+  }
+
+  openModal(mediaViewerModal)
+}
+
+// Add the renderComments function
+function renderComments(comments) {
+  if (!comments || comments.length === 0) {
+    commentsList.innerHTML = `
+      <div class="empty-state">
+        <i class="far fa-comment"></i>
+        <p>မှတ်ချက်များ မရှိသေးပါ</p>
+      </div>
+    `
+    return
+  }
+
+  commentsList.innerHTML = ""
+
+  // Sort comments by date (newest first)
+  comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+
+  comments.forEach((comment) => {
+    const commentItem = document.createElement("div")
+    commentItem.className = "comment-item"
+
+    const userName = comment.profile.full_name || comment.profile.email || "အကောင့်"
+    const userInitial = userName.charAt(0).toUpperCase()
+
+    commentItem.innerHTML = `
+      <div class="comment-avatar">${userInitial}</div>
+      <div class="comment-content">
+        <div class="comment-header">
+          <div class="comment-author">${userName}</div>
+          <div class="comment-time">${formatTimeAgo(new Date(comment.created_at))}</div>
+        </div>
+        <div class="comment-text">${comment.content}</div>
+      </div>
+    `
+
+    commentsList.appendChild(commentItem)
+  })
+}
+
+// Add the updateNotificationCount function
+function updateNotificationCount(increment = 0) {
+  let count = Number.parseInt(notificationCount.textContent) || 0
+
+  if (increment) {
+    count += increment
+  }
+
+  notificationCount.textContent = count
+
+  if (count > 0) {
+    notificationCount.style.display = "flex"
+    notificationBell.classList.add("glow-effect")
+  } else {
+    notificationCount.style.display = "none"
+    notificationBell.classList.remove("glow-effect")
+  }
+}
+
+// Add the formatCurrency function
+function formatCurrency(amount) {
+  return new Intl.NumberFormat("en-US").format(amount)
+}
+
+// Add the formatDate function
+function formatDate(date) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date)
+}
+
+// Add the formatTime function
+function formatTime(date) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date)
+}
+
+// Add the formatTimeAgo function
+function formatTimeAgo(date) {
+  const now = new Date()
+  const diffInSeconds = Math.floor((now - date) / 1000)
+
+  if (diffInSeconds < 60) {
+    return "ယခုအတွင်း"
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60)
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} မိနစ်အကြာက`
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  if (diffInHours < 24) {
+    return `${diffInHours} နာရီအကြာက`
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24)
+  if (diffInDays < 30) {
+    return `${diffInDays} ရက်အကြာက`
+  }
+
+  const diffInMonths = Math.floor(diffInDays / 30)
+  if (diffInMonths < 12) {
+    return `${diffInMonths} လအကြာက`
+  }
+
+  const diffInYears = Math.floor(diffInMonths / 12)
+  return `${diffInYears} နှစ်အကြာက`
+}
+
+// Add the addConsoleLog function
+function addConsoleLog(type, message) {
+  consoleLines.push({ type, message })
+
+  // Create console display if it doesn't exist
+  if (!document.querySelector(".console-display")) {
+    const consoleDisplay = document.createElement("div")
+    consoleDisplay.className = "console-display"
+    loader.querySelector(".loader").insertAdjacentElement("afterend", consoleDisplay)
+  }
+
+  const consoleDisplay = document.querySelector(".console-display")
+  const consoleLine = document.createElement("div")
+  consoleLine.className = `console-line ${type}`
+
+  // Create typing effect
+  const messageSpan = document.createElement("span")
+  messageSpan.className = "typing-effect"
+  messageSpan.textContent = message
+
+  consoleLine.appendChild(messageSpan)
+  consoleDisplay.appendChild(consoleLine)
+  consoleDisplay.scrollTop = consoleDisplay.scrollHeight
+}
+
+// Add the playSound function
+function playSound(sound) {
+  if (soundsEnabled && sound) {
+    sound.currentTime = 0
+    sound.play().catch((error) => console.error("Sound play error:", error))
+  }
+}
+
+// Add the showSuccessNotification function
+function showSuccessNotification(message) {
+  // Create notification element
+  const notification = document.createElement("div")
+  notification.className = "notification-item"
+  notification.innerHTML = `
+    <div class="notification-title">
+      <i class="fas fa-check-circle" style="color: var(--success);"></i> 
+      အောင်မြင်မှု
+    </div>
+    <div class="notification-content">${message}</div>
+    <div class="notification-time">ယခုအတွင်း</div>
+  `
+
+  // Add to notifications list
+  notificationsList.insertBefore(notification, notificationsList.firstChild)
+
+  // Remove empty state if it exists
+  const emptyState = notificationsList.querySelector(".empty-state")
+  if (emptyState) {
+    emptyState.remove()
+  }
+
+  // Update notification count
+  updateNotificationCount(1)
+
+  // Play notification sound
+  playSound(successSound)
+
+  // Show browser notification if enabled
+  if (notificationsEnabled && Notification.permission === "granted") {
+    new Notification("OPPER Payment", {
+      body: message,
+      icon: "https://github.com/Opper125/opper-payment/raw/main/logo.png",
+    })
+  }
+
+  // Save notification to database
+  saveNotification("success", "အောင်မြင်မှု", message)
+}
+
+// Add the showErrorNotification function
+function showErrorNotification(message) {
+  // Create notification element
+  const notification = document.createElement("div")
+  notification.className = "notification-item"
+  notification.innerHTML = `
+    <div class="notification-title">
+      <i class="fas fa-exclamation-circle" style="color: var(--danger);"></i> 
+      အမှား
+    </div>
+    <div class="notification-content">${message}</div>
+    <div class="notification-time">ယခုအတွင်း</div>
+  `
+
+  // Add to notifications list
+  notificationsList.insertBefore(notification, notificationsList.firstChild)
+
+  // Remove empty state if it exists
+  const emptyState = notificationsList.querySelector(".empty-state")
+  if (emptyState) {
+    emptyState.remove()
+  }
+
+  // Update notification count
+  updateNotificationCount(1)
+
+  // Play notification sound
+  playSound(errorSound)
+
+  // Show browser notification if enabled
+  if (notificationsEnabled && Notification.permission === "granted") {
+    new Notification("OPPER Payment", {
+      body: message,
+      icon: "https://github.com/Opper125/opper-payment/raw/main/logo.png",
+    })
+  }
+
+  // Save notification to database
+  saveNotification("error", "အမှား", message)
+}
+
+// Add the saveNotification function
+async function saveNotification(type, title, message) {
+  try {
+    const { error } = await supabase.from("notifications").insert({
+      user_id: currentUser.id,
+      type,
+      title,
+      message,
+      read: false,
+      created_at: new Date(),
+    })
+
+    if (error) throw error
+  } catch (error) {
+    console.error("Error saving notification:", error)
+  }
+}
+
+// Replace the processTransfer function to use the SQL schema's transfer_money function
+// Replace the entire processTransfer function with:
+async function processTransfer(pin) {
+  const phone = document.getElementById("transfer-phone").value
+  const amount = Number.parseInt(document.getElementById("transfer-amount").value)
+  const note = document.getElementById("transfer-note").value
+  const errorElement = document.getElementById("transfer-error")
+  const successElement = document.getElementById("transfer-success")
+
+  try {
+    // Verify PIN
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("payment_pin")
+      .eq("user_id", currentUser.id)
+      .single()
+
+    if (profileError) throw profileError
+
+    if (profile.payment_pin !== pin) {
+      document.getElementById("pin-error").textContent = "PIN မမှန်ကန်ပါ။"
+      document.getElementById("pin-error").style.display = "block"
+      return
+    }
+
+    // Close PIN modal
+    closeModal(pinEntryModal)
+
+    // Show processing overlay
+    showProcessing("ငွေလွှဲနေသည်...")
+
+    // Get recipient
+    const { data: recipient, error: recipientError } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, email, phone, balance")
+      .eq("phone", phone)
+      .single()
+
+    if (recipientError) throw recipientError
+
+    // Call transfer_money function
+    const { data, error } = await supabase.rpc("transfer_money", {
+      sender_id: currentUser.id,
+      recipient_id: recipient.user_id,
+      amount: amount,
+      note: note || null,
+    })
+
+    if (error) throw error
+
+    // Update local balance
+    userBalance -= amount
+    updateBalance(userBalance)
+
+    // Show success message
+    hideProcessing()
+    showMessage(
+      successElement,
+      `${formatCurrency(amount)} ကို ${recipient.full_name || recipient.email || recipient.phone} ထံသို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`,
+    )
+    playSound(successSound)
+
+    // Clear form
+    document.getElementById("transfer-phone").value = ""
+    document.getElementById("transfer-amount").value = ""
+    document.getElementById("transfer-note").value = ""
+    document.getElementById("recipient-info").style.display = "none"
+
+    // Refresh transactions
+    await fetchTransactions()
+
+    // Show receipt
+    showTransferReceipt({
+      id: data.transaction_id,
+      recipient: recipient.full_name || recipient.email || recipient.phone,
+      recipient_phone: recipient.phone,
+      amount: amount,
+      note: note,
+      date: new Date(),
+      status: "success",
+    })
+  } catch (error) {
+    hideProcessing()
+    showMessage(errorElement, `ငွေလွှဲခြင်း မအောင်မြင်ပါ: ${error.message}`)
+    playSound(errorSound)
+  }
+}
+
+// Add the showProcessing function
+function showProcessing(message) {
+  document.getElementById("processing-message").textContent = message
+  processingOverlay.classList.add("active")
+}
+
+// Add the hideProcessing function
+function hideProcessing() {
+  processingOverlay.classList.remove("active")
+}
+
+// Add the openModal function
+function openModal(modal) {
+  modal.classList.add("active")
+}
+
+// Add the closeModal function
+function closeModal(modal) {
+  modal.classList.remove("active")
+}
+
+// Add the showMessage function
+function showMessage(element, message) {
+  if (!element) return
+
+  element.textContent = message
+  element.style.display = "block"
+
+  // Hide message after 5 seconds
+  setTimeout(() => {
+    element.style.display = "none"
+  }, 5000)
+}
+
+// Replace the login and signup functions to use Supabase auth
+// Replace the login form event listener with:
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("login-email").value
+  const password = document.getElementById("login-password").value
+  const errorMsg = document.getElementById("login-error")
+  const successMsg = document.getElementById("login-success")
+
+  // Validate inputs
+  if (!email || !password) {
+    showMessage(errorMsg, "အီးမေးလ်နှင့် စကားဝှက် ထည့်သွင်းပါ။")
+    return
+  }
+
+  try {
+    // Show processing
+    showProcessing("အကောင့်ဝင်ရောက်နေသည်...")
+
+    // Sign in with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) throw error
+
+    // Success
+    showMessage(successMsg, "အကောင့်ဝင်ရောက်ခြင်း အောင်မြင်ပါသည်!")
+    currentUser = data.user
+
+    // Fetch user data and show app
+    await fetchUserData()
+    hideProcessing()
+    showApp()
+
+    // Play success sound
+    playSound(successSound)
+  } catch (error) {
+    hideProcessing()
+    showMessage(errorMsg, `အကောင့်ဝင်ရောက်ခြင်း မအောင်မြင်ပါ: ${error.message}`)
+    playSound(errorSound)
+  }
+})
+
+// Replace the signup form event listener with:
+signupBtn.addEventListener("click", async () => {
+  const email = document.getElementById("signup-email").value
+  const phone = document.getElementById("signup-phone").value
+  const password = document.getElementById("signup-password").value
+  const confirmPassword = document.getElementById("signup-confirm-password").value
+  const termsAgree = document.getElementById("terms-agree").checked
+  const errorMsg = document.getElementById("signup-error")
+  const successMsg = document.getElementById("signup-success")
+
+  // Validate inputs
+  if (!email || !phone || !password || !confirmPassword) {
+    showMessage(errorMsg, "ကွက်လပ်အားလုံး ဖြည့်စွက်ပါ။")
+    return
+  }
+
+  if (password !== confirmPassword) {
+    showMessage(errorMsg, "စကားဝှက်များ မတူညီပါ။")
+    return
+  }
+
+  if (!termsAgree) {
+    showMessage(errorMsg, "စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။")
+    return
+  }
+
+  try {
+    // Show processing
+    showProcessing("အကောင့်ဖွင့်နေသည်...")
+
+    // Sign up with Supabase
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          phone,
+        },
+      },
+    })
+
+    if (error) throw error
+
+    // Success
+    showMessage(successMsg, "အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်! အီးမေးလ်တွင် အတည်ပြုချက်ကို စစ်ဆေးပါ။")
+
+    // If auto-confirm is enabled in Supabase
+    if (data.session) {
+      currentUser = data.user
+      await fetchUserData()
+      hideProcessing()
+      showApp()
+    } else {
+      hideProcessing()
+      // Switch to login tab after 2 seconds
+      setTimeout(() => {
+        switchAuthTab("login")
+      }, 2000)
+    }
+
+    // Play success sound
+    playSound(successSound)
+  } catch (error) {
+    hideProcessing()
+    showMessage(errorMsg, `အကောင့်ဖွင့်ခြင်း မအောင်မြင်ပါ: ${error.message}`)
+    playSound(errorSound)
+  }
+})
+
+// Replace the logout function to use Supabase auth
+// Replace the logout function with:
+async function logout() {
+  try {
+    showProcessing("အကောင့်ထွက်နေသည်...")
+
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut()
+
+    if (error) throw error
+
+    // Unsubscribe from realtime
+    if (realtimeSubscription) {
+      realtimeSubscription.unsubscribe()
+    }
+
+    // Reset user data
+    currentUser = null
+    userBalance = 0
+    userKycStatus = "pending"
+    userTransferStatus = true
+
+    // Show auth screen
+    hideProcessing()
+    showAuth()
+  } catch (error) {
+    hideProcessing()
+    showErrorNotification(`အကောင့်ထွက်ခြင်း မအောင်မြင်ပါ: ${error.message}`)
+    playSound(errorSound)
+  }
+}
