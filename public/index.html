@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="icon" type="image/png" href="https://github.com/Opper125/opper-payment/raw/main/logo.png">
 </head>
 <body>
     <!-- Background Elements -->
@@ -153,9 +154,9 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="notification-bell">
+                <div class="notification-bell" id="notification-bell">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">2</span>
+                    <span class="notification-badge" id="notification-count">0</span>
                 </div>
                 <div class="user-profile" id="profile-dropdown-trigger">
                     <div class="user-avatar">
@@ -209,6 +210,18 @@
                         <a href="#history" data-page="history">
                             <i class="fas fa-history"></i>
                             <span>မှတ်တမ်းများ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#announcements" data-page="announcements">
+                            <i class="fas fa-bullhorn"></i>
+                            <span>ကြေညာချက်များ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#media" data-page="media">
+                            <i class="fas fa-photo-video"></i>
+                            <span>မီဒီယာများ</span>
                         </a>
                     </li>
                     <li>
@@ -268,6 +281,20 @@
                     </div>
                 </div>
 
+                <!-- Latest Announcement -->
+                <div class="announcement-preview" id="latest-announcement">
+                    <div class="section-header">
+                        <h3>နောက်ဆုံးကြေညာချက်</h3>
+                        <a href="#announcements" class="view-all" data-page="announcements">အားလုံးကြည့်ရန် <i class="fas fa-chevron-right"></i></a>
+                    </div>
+                    <div class="announcement-card" id="dashboard-announcement">
+                        <div class="announcement-loading">
+                            <div class="spinner"></div>
+                            <p>ကြေညာချက်များ ရယူနေသည်...</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Quick Actions -->
                 <div class="quick-actions">
                     <h3>အမြန်လုပ်ဆောင်ချက်များ</h3>
@@ -284,17 +311,17 @@
                             </div>
                             <div class="action-text">မှတ်တမ်းများ</div>
                         </div>
+                        <div class="action-card" data-page="media">
+                            <div class="action-icon">
+                                <i class="fas fa-photo-video"></i>
+                            </div>
+                            <div class="action-text">မီဒီယာများ</div>
+                        </div>
                         <div class="action-card" data-page="kyc">
                             <div class="action-icon">
                                 <i class="fas fa-id-card"></i>
                             </div>
                             <div class="action-text">KYC အတည်ပြုရန်</div>
-                        </div>
-                        <div class="action-card" data-page="settings">
-                            <div class="action-icon">
-                                <i class="fas fa-cog"></i>
-                            </div>
-                            <div class="action-text">ဆက်တင်များ</div>
                         </div>
                     </div>
                 </div>
@@ -384,6 +411,47 @@
                     <div class="empty-state">
                         <i class="fas fa-history"></i>
                         <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Announcements Page -->
+            <section class="page" id="announcements-page">
+                <div class="page-header">
+                    <h2>ကြေညာချက်များ</h2>
+                    <p>နောက်ဆုံးရ သတင်းနှင့် ကြေညာချက်များ</p>
+                </div>
+
+                <div class="announcements-container" id="announcements-container">
+                    <div class="empty-state">
+                        <i class="fas fa-bullhorn"></i>
+                        <p>ကြေညာချက်များ မရှိသေးပါ</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Media Page -->
+            <section class="page" id="media-page">
+                <div class="page-header">
+                    <h2>မီဒီယာများ</h2>
+                    <p>ဗီဒီယိုနှင့် ဓာတ်ပုံများ</p>
+                </div>
+
+                <div class="media-filters">
+                    <div class="filter-group">
+                        <label for="media-type">အမျိုးအစား</label>
+                        <select id="media-type">
+                            <option value="all">အားလုံး</option>
+                            <option value="video">ဗီဒီယို</option>
+                            <option value="photo">ဓာတ်ပုံ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="media-grid" id="media-grid">
+                    <div class="empty-state">
+                        <i class="fas fa-photo-video"></i>
+                        <p>မီဒီယာများ မရှိသေးပါ</p>
                     </div>
                 </div>
             </section>
@@ -521,6 +589,22 @@
                 </div>
 
                 <div class="settings-card">
+                    <h3>အသံဆက်တင်များ</h3>
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="enable-sounds" checked>
+                            <label for="enable-sounds">အသံများဖွင့်ထားမည်</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="enable-notifications" checked>
+                            <label for="enable-notifications">အသိပေးချက်များဖွင့်ထားမည်</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
                         <p>OPPER Payment v1.0</p>
@@ -553,6 +637,22 @@
         <div class="dropdown-item" id="dropdown-logout">
             <i class="fas fa-sign-out-alt"></i>
             <span>အကောင့်ထွက်ရန်</span>
+        </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div class="notifications-panel" id="notifications-panel">
+        <div class="notifications-header">
+            <h3>အသိပေးချက်များ</h3>
+            <button class="close-notifications" id="close-notifications">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <p>အသိပေးချက်များ မရှိသေးပါ</p>
+            </div>
         </div>
     </div>
 
@@ -739,6 +839,68 @@
         </div>
     </div>
 
+    <!-- Media Viewer Modal -->
+    <div class="modal" id="media-viewer-modal">
+        <div class="modal-content media-viewer-content">
+            <div class="modal-header">
+                <h3 id="media-title">မီဒီယာကြည့်ရှုရန်</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body media-viewer-body" id="media-viewer-container">
+                <!-- Media content will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Detail Modal -->
+    <div class="modal" id="announcement-detail-modal">
+        <div class="modal-content announcement-detail-content">
+            <div class="modal-header">
+                <h3 id="announcement-title">ကြေညာချက်အသေးစိတ်</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body announcement-detail-body" id="announcement-detail-container">
+                <!-- Announcement content will be dynamically generated -->
+            </div>
+            <div class="modal-footer announcement-actions">
+                <div class="announcement-reactions">
+                    <button class="reaction-btn" id="like-btn">
+                        <i class="far fa-thumbs-up"></i>
+                        <span id="like-count">0</span>
+                    </button>
+                    <button class="reaction-btn" id="comment-btn">
+                        <i class="far fa-comment"></i>
+                        <span id="comment-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Section Modal -->
+    <div class="modal" id="comments-modal">
+        <div class="modal-content comments-content">
+            <div class="modal-header">
+                <h3>မှတ်ချက်များ</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body comments-body">
+                <div class="comments-list" id="comments-list">
+                    <!-- Comments will be dynamically generated -->
+                </div>
+                <div class="comment-form">
+                    <div class="input-with-icon">
+                        <i class="fas fa-comment"></i>
+                        <input type="text" id="comment-input" placeholder="မှတ်ချက်ရေးပါ...">
+                    </div>
+                    <button class="btn btn-primary" id="submit-comment-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Processing Overlay -->
     <div class="processing-overlay" id="processing-overlay">
         <div class="processing-content">
@@ -751,6 +913,20 @@
             <p id="processing-message">ငွေလွှဲလုပ်ဆောင်နေသည်...</p>
         </div>
     </div>
+
+    <!-- Audio Elements for Notifications -->
+    <audio id="success-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="error-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-negative-tone-interface-tap-2568.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="notification-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="money-received-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-coin-win-notification-1992.mp3" type="audio/mpeg">
+    </audio>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
