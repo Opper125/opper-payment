@@ -4,30 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OPPER Payment</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
-    <!-- Background Elements -->
-    <div class="background-elements">
-        <div class="gradient-circle circle-1"></div>
-        <div class="gradient-circle circle-2"></div>
-        <div class="gradient-circle circle-3"></div>
-        <div class="floating-shape shape-1"></div>
-        <div class="floating-shape shape-2"></div>
-        <div class="floating-shape shape-3"></div>
-        <div class="floating-shape shape-4"></div>
+    <!-- Intro Animation -->
+    <div class="intro-animation" id="intro-animation">
+        <div class="intro-logo">
+            <div class="logo-container">
+                <div class="logo-ring"></div>
+                <div class="logo-ring"></div>
+                <div class="logo-ring"></div>
+                <div class="logo-text">OPPER</div>
+            </div>
+        </div>
+        <div class="intro-text">OPPER Payment</div>
+        <div class="intro-tagline">ငွေလွှဲရန် အကောင့်ဖွင့်ပါ</div>
+        <div class="intro-progress">
+            <div class="progress-bar"></div>
+        </div>
     </div>
 
-    <!-- Loader -->
+    <!-- Background Elements -->
+    <div class="background-elements">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+        <div class="gradient-orb orb-4"></div>
+        <div class="floating-particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        <div class="geometric-shapes">
+            <div class="shape triangle"></div>
+            <div class="shape hexagon"></div>
+            <div class="shape diamond"></div>
+            <div class="shape circle"></div>
+        </div>
+    </div>
+
+    <!-- Enhanced Loader -->
     <div class="loader-container" id="loader">
-        <div class="loader">
-            <svg viewBox="0 0 80 80">
-                <circle id="loader-circle" cx="40" cy="40" r="32"></circle>
-            </svg>
-            <div class="loader-text">OPPER</div>
+        <div class="advanced-loader">
+            <div class="loader-rings">
+                <div class="ring ring-1"></div>
+                <div class="ring ring-2"></div>
+                <div class="ring ring-3"></div>
+            </div>
+            <div class="loader-core">
+                <div class="core-text">OPPER</div>
+                <div class="core-pulse"></div>
+            </div>
+            <div class="loader-progress">
+                <div class="progress-text">Loading...</div>
+                <div class="progress-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -35,12 +78,16 @@
     <div class="auth-container" id="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="auth-logo">
+                <div class="auth-logo-container">
+                    <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="auth-logo">
+                    <div class="logo-glow"></div>
+                </div>
                 <h1 class="auth-title">OPPER Payment</h1>
                 <p class="auth-subtitle">ငွေလွှဲရန် အကောင့်ဖွင့်ပါ</p>
             </div>
 
             <div class="auth-tabs">
+                <div class="tab-indicator"></div>
                 <button class="auth-tab active" data-tab="login">အကောင့်ဝင်ရန်</button>
                 <button class="auth-tab" data-tab="signup">အကောင့်ဖွင့်ရန်</button>
             </div>
@@ -52,6 +99,7 @@
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"></i>
                         <input type="email" id="login-email" placeholder="သင့်အီးမေးလ်ထည့်ပါ" required>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -60,18 +108,21 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="login-password" placeholder="သင့်စကားဝှက်ထည့်ပါ" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group remember-forgot">
                     <div class="checkbox-container">
                         <input type="checkbox" id="remember-me">
                         <label for="remember-me">မှတ်ထားမည်</label>
+                        <div class="checkbox-checkmark"></div>
                     </div>
                     <a href="#" class="forgot-password">စကားဝှက်မေ့သွားပြီလား?</a>
                 </div>
                 <button class="btn btn-primary btn-block" id="login-btn">
-                    <span>အကောင့်ဝင်မည်</span>
-                    <i class="fas fa-arrow-right"></i>
+                    <span class="btn-text">အကောင့်ဝင်မည်</span>
+                    <i class="fas fa-arrow-right btn-icon"></i>
+                    <div class="btn-ripple"></div>
                 </button>
                 <div class="auth-separator">
                     <span>သို့မဟုတ်</span>
@@ -79,6 +130,7 @@
                 <button class="btn btn-outline btn-block" id="google-login-btn">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
                     <span>Google ဖြင့် အကောင့်ဝင်မည်</span>
+                    <div class="btn-ripple"></div>
                 </button>
                 <div class="auth-message error" id="login-error"></div>
                 <div class="auth-message success" id="login-success"></div>
@@ -91,6 +143,7 @@
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"></i>
                         <input type="email" id="signup-email" placeholder="သင့်အီးမေးလ်ထည့်ပါ" required>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -98,6 +151,7 @@
                     <div class="input-with-icon">
                         <i class="fas fa-phone"></i>
                         <input type="tel" id="signup-phone" placeholder="09xxxxxxxxx" required>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -106,6 +160,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="signup-password" placeholder="စကားဝှက်အသစ်ထည့်ပါ" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -114,17 +169,20 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="signup-confirm-password" placeholder="စကားဝှက်ပြန်ထည့်ပါ" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="checkbox-container">
                         <input type="checkbox" id="terms-agree" required>
                         <label for="terms-agree">စည်းမျဉ်းစည်းကမ်းများကို သဘောတူပါသည်</label>
+                        <div class="checkbox-checkmark"></div>
                     </div>
                 </div>
                 <button class="btn btn-primary btn-block" id="signup-btn">
-                    <span>အကောင့်ဖွင့်မည်</span>
-                    <i class="fas fa-user-plus"></i>
+                    <span class="btn-text">အကောင့်ဖွင့်မည်</span>
+                    <i class="fas fa-user-plus btn-icon"></i>
+                    <div class="btn-ripple"></div>
                 </button>
                 <div class="auth-separator">
                     <span>သို့မဟုတ်</span>
@@ -132,6 +190,7 @@
                 <button class="btn btn-outline btn-block" id="google-signup-btn">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
                     <span>Google ဖြင့် အကောင့်ဖွင့်မည်</span>
+                    <div class="btn-ripple"></div>
                 </button>
                 <div class="auth-message error" id="signup-error"></div>
                 <div class="auth-message success" id="signup-success"></div>
@@ -145,7 +204,9 @@
         <header class="app-header">
             <div class="header-left">
                 <button class="menu-toggle" id="menu-toggle">
-                    <i class="fas fa-bars"></i>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
                 </button>
                 <div class="app-logo">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
@@ -156,10 +217,12 @@
                 <div class="notification-bell">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">2</span>
+                    <div class="notification-pulse"></div>
                 </div>
                 <div class="user-profile" id="profile-dropdown-trigger">
                     <div class="user-avatar">
                         <span id="user-initial">A</span>
+                        <div class="avatar-status"></div>
                     </div>
                     <div class="user-info">
                         <h3 id="user-name">အကောင့်</h3>
@@ -184,6 +247,7 @@
             <div class="user-profile-sidebar">
                 <div class="user-avatar large">
                     <span id="user-initial-sidebar">A</span>
+                    <div class="avatar-status"></div>
                 </div>
                 <div class="user-info">
                     <h3 id="user-name-sidebar">အကောင့်</h3>
@@ -197,30 +261,35 @@
                         <a href="#dashboard" data-page="dashboard">
                             <i class="fas fa-home"></i>
                             <span>ပင်မစာမျက်နှာ</span>
+                            <div class="nav-indicator"></div>
                         </a>
                     </li>
                     <li>
                         <a href="#transfer" data-page="transfer">
                             <i class="fas fa-exchange-alt"></i>
                             <span>ငွေလွှဲရန်</span>
+                            <div class="nav-indicator"></div>
                         </a>
                     </li>
                     <li>
                         <a href="#history" data-page="history">
                             <i class="fas fa-history"></i>
                             <span>မှတ်တမ်းများ</span>
+                            <div class="nav-indicator"></div>
                         </a>
                     </li>
                     <li>
                         <a href="#kyc" data-page="kyc">
                             <i class="fas fa-id-card"></i>
                             <span>KYC အတည်ပြုရန်</span>
+                            <div class="nav-indicator"></div>
                         </a>
                     </li>
                     <li>
                         <a href="#settings" data-page="settings">
                             <i class="fas fa-cog"></i>
                             <span>ဆက်တင်များ</span>
+                            <div class="nav-indicator"></div>
                         </a>
                     </li>
                 </ul>
@@ -229,6 +298,7 @@
                 <button class="btn btn-outline btn-block" id="logout-btn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>အကောင့်ထွက်ရန်</span>
+                    <div class="btn-ripple"></div>
                 </button>
             </div>
         </aside>
@@ -266,6 +336,9 @@
                             <span id="transfer-status">ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်</span>
                         </div>
                     </div>
+                    <div class="balance-chart">
+                        <div class="chart-line"></div>
+                    </div>
                 </div>
 
                 <!-- Quick Actions -->
@@ -275,26 +348,34 @@
                         <div class="action-card" data-page="transfer">
                             <div class="action-icon">
                                 <i class="fas fa-paper-plane"></i>
+                                <div class="icon-glow"></div>
                             </div>
                             <div class="action-text">ငွေလွှဲရန်</div>
+                            <div class="card-hover-effect"></div>
                         </div>
                         <div class="action-card" data-page="history">
                             <div class="action-icon">
                                 <i class="fas fa-history"></i>
+                                <div class="icon-glow"></div>
                             </div>
                             <div class="action-text">မှတ်တမ်းများ</div>
+                            <div class="card-hover-effect"></div>
                         </div>
                         <div class="action-card" data-page="kyc">
                             <div class="action-icon">
                                 <i class="fas fa-id-card"></i>
+                                <div class="icon-glow"></div>
                             </div>
                             <div class="action-text">KYC အတည်ပြုရန်</div>
+                            <div class="card-hover-effect"></div>
                         </div>
                         <div class="action-card" data-page="settings">
                             <div class="action-icon">
                                 <i class="fas fa-cog"></i>
+                                <div class="icon-glow"></div>
                             </div>
                             <div class="action-text">ဆက်တင်များ</div>
+                            <div class="card-hover-effect"></div>
                         </div>
                     </div>
                 </div>
@@ -328,6 +409,7 @@
                         <div class="input-with-icon">
                             <i class="fas fa-phone"></i>
                             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required>
+                            <div class="input-focus-line"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -335,6 +417,7 @@
                         <div class="input-with-icon">
                             <i class="fas fa-money-bill-wave"></i>
                             <input type="number" id="transfer-amount" placeholder="ငွေပမာဏထည့်ပါ" min="1000" required>
+                            <div class="input-focus-line"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -342,11 +425,13 @@
                         <div class="input-with-icon">
                             <i class="fas fa-sticky-note"></i>
                             <input type="text" id="transfer-note" placeholder="မှတ်ချက်ထည့်ပါ">
+                            <div class="input-focus-line"></div>
                         </div>
                     </div>
                     <button class="btn btn-primary btn-block" id="transfer-btn">
-                        <span>ငွေလွှဲမည်</span>
-                        <i class="fas fa-paper-plane"></i>
+                        <span class="btn-text">ငွေလွှဲမည်</span>
+                        <i class="fas fa-paper-plane btn-icon"></i>
+                        <div class="btn-ripple"></div>
                     </button>
                     <div class="auth-message error" id="transfer-error"></div>
                     <div class="auth-message success" id="transfer-success"></div>
@@ -398,6 +483,7 @@
                 <div class="kyc-status-card" id="kyc-status-card">
                     <div class="kyc-status-icon pending">
                         <i class="fas fa-clock"></i>
+                        <div class="status-pulse"></div>
                     </div>
                     <div class="kyc-status-text">
                         <h3>KYC အတည်ပြုမှု အခြေအနေ</h3>
@@ -411,6 +497,7 @@
                         <div class="input-with-icon">
                             <i class="fas fa-passport"></i>
                             <input type="text" id="kyc-passport" placeholder="နိုင်ငံကူးလက်မှတ်နံပါတ်ထည့်ပါ" required>
+                            <div class="input-focus-line"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -418,6 +505,7 @@
                         <div class="input-with-icon">
                             <i class="fas fa-home"></i>
                             <input type="text" id="kyc-address" placeholder="နေရပ်လိပ်စာထည့်ပါ" required>
+                            <div class="input-focus-line"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -426,6 +514,7 @@
                             <i class="fas fa-lock"></i>
                             <input type="password" id="kyc-pin" placeholder="PIN ထည့်ပါ" maxlength="6" required>
                             <i class="fas fa-eye-slash toggle-password"></i>
+                            <div class="input-focus-line"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -434,6 +523,7 @@
                             <i class="fas fa-lock"></i>
                             <input type="password" id="kyc-confirm-pin" placeholder="PIN ပြန်ထည့်ပါ" maxlength="6" required>
                             <i class="fas fa-eye-slash toggle-password"></i>
+                            <div class="input-focus-line"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -443,6 +533,7 @@
                             <label for="passport-upload" class="file-upload-label">
                                 <i class="fas fa-upload"></i>
                                 <span>ဖိုင်ရွေးရန်</span>
+                                <div class="upload-progress"></div>
                             </label>
                             <div class="file-preview" id="passport-preview"></div>
                         </div>
@@ -454,13 +545,15 @@
                             <label for="selfie-upload" class="file-upload-label">
                                 <i class="fas fa-upload"></i>
                                 <span>ဖိုင်ရွေးရန်</span>
+                                <div class="upload-progress"></div>
                             </label>
                             <div class="file-preview" id="selfie-preview"></div>
                         </div>
                     </div>
                     <button class="btn btn-primary btn-block" id="kyc-submit-btn">
-                        <span>တင်သွင်းမည်</span>
-                        <i class="fas fa-check-circle"></i>
+                        <span class="btn-text">တင်သွင်းမည်</span>
+                        <i class="fas fa-check-circle btn-icon"></i>
+                        <div class="btn-ripple"></div>
                     </button>
                     <div class="auth-message error" id="kyc-error"></div>
                     <div class="auth-message success" id="kyc-success"></div>
@@ -482,6 +575,7 @@
                             <div class="input-with-icon">
                                 <i class="fas fa-phone"></i>
                                 <input type="tel" id="settings-phone" placeholder="09xxxxxxxxx" disabled>
+                                <div class="input-focus-line"></div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -489,15 +583,18 @@
                             <div class="input-with-icon">
                                 <i class="fas fa-envelope"></i>
                                 <input type="email" id="settings-email" placeholder="သင့်အီးမေးလ်" disabled>
+                                <div class="input-focus-line"></div>
                             </div>
                         </div>
                         <button class="btn btn-outline btn-block" id="change-password-btn">
                             <i class="fas fa-lock"></i>
                             <span>စကားဝှက်ပြောင်းရန်</span>
+                            <div class="btn-ripple"></div>
                         </button>
                         <button class="btn btn-outline btn-block" id="change-pin-btn">
                             <i class="fas fa-key"></i>
                             <span>PIN ပြောင်းရန်</span>
+                            <div class="btn-ripple"></div>
                         </button>
                     </div>
                 </div>
@@ -506,15 +603,24 @@
                     <h3>အပြင်အဆင်</h3>
                     <div class="theme-selector">
                         <div class="theme-option active" data-theme="light">
-                            <div class="theme-preview light"></div>
+                            <div class="theme-preview light">
+                                <div class="preview-header"></div>
+                                <div class="preview-content"></div>
+                            </div>
                             <span>အလင်းရောင်</span>
                         </div>
                         <div class="theme-option" data-theme="dark">
-                            <div class="theme-preview dark"></div>
+                            <div class="theme-preview dark">
+                                <div class="preview-header"></div>
+                                <div class="preview-content"></div>
+                            </div>
                             <span>အမှောင်ရောင်</span>
                         </div>
                         <div class="theme-option" data-theme="system">
-                            <div class="theme-preview system"></div>
+                            <div class="theme-preview system">
+                                <div class="preview-header"></div>
+                                <div class="preview-content"></div>
+                            </div>
                             <span>စနစ်အတိုင်း</span>
                         </div>
                     </div>
@@ -523,8 +629,8 @@
                 <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
-                        <p>OPPER Payment v1.0</p>
-                        <p>&copy; 2023 OPPER Payment. All rights reserved.</p>
+                        <p>OPPER Payment v2.0</p>
+                        <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
 
@@ -533,6 +639,7 @@
                     <button class="btn btn-danger btn-block" id="delete-account-btn">
                         <i class="fas fa-trash-alt"></i>
                         <span>အကောင့်ဖျက်ရန်</span>
+                        <div class="btn-ripple"></div>
                     </button>
                 </div>
             </section>
@@ -570,6 +677,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="current-password" placeholder="လက်ရှိစကားဝှက်ထည့်ပါ" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -578,6 +686,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="new-password" placeholder="စကားဝှက်အသစ်ထည့်ပါ" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -586,6 +695,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="confirm-new-password" placeholder="စကားဝှက်အသစ်ပြန်ထည့်ပါ" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="auth-message error" id="change-password-error"></div>
@@ -612,6 +722,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="current-pin" placeholder="လက်ရှိ PIN ထည့်ပါ" maxlength="6" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -620,6 +731,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="new-pin" placeholder="PIN အသစ်ထည့်ပါ" maxlength="6" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -628,6 +740,7 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="confirm-new-pin" placeholder="PIN အသစ်ပြန်ထည့်ပါ" maxlength="6" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="auth-message error" id="change-pin-error"></div>
@@ -658,12 +771,14 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="delete-password" placeholder="စကားဝှက်ထည့်ပါ" required>
                         <i class="fas fa-eye-slash toggle-password"></i>
+                        <div class="input-focus-line"></div>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="checkbox-container">
                         <input type="checkbox" id="confirm-delete" required>
                         <label for="confirm-delete">ကျွန်ုပ်၏အကောင့်ကို ဖျက်လိုကြောင်း အတည်ပြုပါသည်</label>
+                        <div class="checkbox-checkmark"></div>
                     </div>
                 </div>
                 <div class="auth-message error" id="delete-account-error"></div>
@@ -742,13 +857,46 @@
     <!-- Processing Overlay -->
     <div class="processing-overlay" id="processing-overlay">
         <div class="processing-content">
-            <div class="loader">
-                <svg viewBox="0 0 80 80">
-                    <circle id="processing-circle" cx="40" cy="40" r="32"></circle>
-                </svg>
-                <div class="loader-text">OPPER</div>
+            <div class="advanced-loader">
+                <div class="loader-rings">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                </div>
+                <div class="loader-core">
+                    <div class="core-text">OPPER</div>
+                    <div class="core-pulse"></div>
+                </div>
             </div>
             <p id="processing-message">ငွေလွှဲလုပ်ဆောင်နေသည်...</p>
+            <div class="processing-steps">
+                <div class="step active">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <span>အချက်အလက်စစ်ဆေးခြင်း</span>
+                </div>
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-exchange-alt"></i></div>
+                    <span>ငွေလွှဲပြောင်းခြင်း</span>
+                </div>
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                    <span>အတည်ပြုခြင်း</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Console Output -->
+    <div class="console-container" id="console-container">
+        <div class="console-header">
+            <span>OPPER Console</span>
+            <button class="console-toggle" id="console-toggle">
+                <i class="fas fa-terminal"></i>
+            </button>
+        </div>
+        <div class="console-output" id="console-output">
+            <div class="console-line console-info">[INFO] OPPER Payment System Initialized</div>
+            <div class="console-line console-success">[SUCCESS] Connection established</div>
         </div>
     </div>
 
