@@ -1,1570 +1,2161 @@
-// Supabase Configuration
-const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
+>
+Rewrite the entire script.js file with enhanced functionality, proper mobile responsiveness, and smooth animations. Include all the necessary JavaScript for the OPPER Payment application with improved user experience, better error handling, and modern ES6+ features.
 
-// Global Variables
-let currentUser = null;
-let userBalance = 0;
-let userKycStatus = 'pending';
-let transfersEnabled = true;
-let currentTheme = localStorage.getItem('theme') || 'light';
-let transactions = [];
+```javascript
+// Enhanced OPPER Payment Application JavaScript
+// Modern ES6+ Implementation with Improved Mobile Responsiveness
 
-// DOM Elements
-const loader = document.getElementById('loader');
-const authContainer = document.getElementById('auth-container');
-const appContainer = document.getElementById('app-container');
-const pinEntryModal = document.getElementById('pin-entry-modal');
-const receiptModal = document.getElementById('receipt-modal');
-const processingOverlay = document.getElementById('processing-overlay');
-
-// Initialize App
-document.addEventListener('DOMContentLoaded', async () => {
-    // Apply saved theme
-    document.body.setAttribute('data-theme', currentTheme);
-    
-    // Show loader
-    showLoader();
-    
-    // Check if user is logged in
-    await checkSession();
-    
-    // Initialize UI elements
-    initializeUI();
-    
-    // Hide loader after initialization
-    setTimeout(hideLoader, 1500);
-});
-
-// Check if user is logged in
-async function checkSession() {
-    try {
-        // Check local storage for session
-        const session = localStorage.getItem('opperSession');
+class OpperPayment {
+    constructor() {
+        this.currentUser = null;
+        this.currentPage = 'dashboard';
+        this.isLoading = false;
+        this.transactions = [];
+        this.balance = 0;
+        this.isBalanceHidden = false;
+        this.transferData = {};
+        this.isDarkMode = false;
+        this.isMobile = window.innerWidth <= 991;
+        this.touchStart = null;
+        this.touchEnd = null;
         
-        if (session) {
-            const sessionData = JSON.parse(session);
-            const { data: user, error } = await supabase
-                .from('auth_users')
-                .select('*')
-                .eq('email', sessionData.email)
-                .eq('user_id', sessionData.user_id)
-                .single();
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.initializeTheme();
+        this.checkMobileDevice();
+        this.startIntroAnimation();
+        this.initializeConsole();
+        this.setupGestureControls();
+        this.setupKeyboardShortcuts();
+        this.logMessage('OPPER Payment System Initialized', 'info');
+    }
+
+    // Enhanced Event Listeners with Mobile Support
+    setupEventListeners() {
+        // Resize handler for responsive design
+        window.addEventListener('resize', this.debounce(() => {
+            this.handleResize();
+        }, 250));
+
+        // Auth form handlers
+        this.setupAuthEventListeners();
+        
+        // Navigation handlers
+        this.setupNavigationEventListeners();
+        
+        // Form handlers
+        this.setupFormEventListeners();
+        
+        // Modal handlers
+        this.setupModalEventListeners();
+        
+        // Mobile-specific handlers
+        this.setupMobileEventListeners();
+        
+        // Profile dropdown handlers
+        this.setupProfileDropdownHandlers();
+        
+        // Settings handlers
+        this.setupSettingsEventListeners();
+        
+        // Console handlers
+        this.setupConsoleEventListeners();
+    }
+
+    setupAuthEventListeners() {
+        // Tab switching
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                this.switchAuthTab(e.target.dataset.tab);
+            });
+        });
+
+        // Login form
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleLogin();
+            });
+        }
+
+        // Signup form
+        const signupBtn = document.getElementById('signup-btn');
+        if (signupBtn) {
+            signupBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleSignup();
+            });
+        }
+
+        // Google login/signup
+        document.getElementById('google-login-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleGoogleAuth('login');
+        });
+
+        document.getElementById('google-signup-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleGoogleAuth('signup');
+        });
+
+        // Password visibility toggles
+        document.querySelectorAll('.toggle-password').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                this.togglePasswordVisibility(e.target);
+            });
+        });
+
+        // Enhanced input focus effects
+        document.querySelectorAll('.input-with-icon input').forEach(input => {
+            input.addEventListener('focus', (e) => {
+                this.animateInputFocus(e.target, true);
+            });
             
-            if (error || !user) {
-                // Invalid session
-                localStorage.removeItem('opperSession');
-                showAuthContainer();
-                return;
+            input.addEventListener('blur', (e) => {
+                this.animateInputFocus(e.target, false);
+            });
+            
+            // Real-time validation
+            input.addEventListener('input', (e) => {
+                this.validateInput(e.target);
+            });
+        });
+    }
+
+    setupNavigationEventListeners() {
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = e.currentTarget.dataset.page;
+                this.navigateToPage(page);
+            });
+        });
+
+        // Quick action cards
+        document.querySelectorAll('.action-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const page = e.currentTarget.dataset.page;
+                if (page) {
+                    this.navigateToPage(page);
+                }
+            });
+        });
+
+        // Menu toggle for mobile
+        const menuToggle = document.getElementById('menu-toggle');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                this.toggleSidebar();
+            });
+        }
+
+        // Close sidebar
+        const closeSidebar = document.getElementById('close-sidebar');
+        if (closeSidebar) {
+            closeSidebar.addEventListener('click', () => {
+                this.closeSidebar();
+            });
+        }
+
+        // Logout buttons
+        document.querySelectorAll('#logout-btn, #dropdown-logout').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.handleLogout();
+            });
+        });
+    }
+
+    setupFormEventListeners() {
+        // Transfer form
+        const transferBtn = document.getElementById('transfer-btn');
+        if (transferBtn) {
+            transferBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleTransfer();
+            });
+        }
+
+        // KYC form
+        const kycSubmitBtn = document.getElementById('kyc-submit-btn');
+        if (kycSubmitBtn) {
+            kycSubmitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleKYCSubmit();
+            });
+        }
+
+        // File upload handlers
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                this.handleFileUpload(e.target);
+            });
+        });
+
+        // Balance actions
+        document.getElementById('refresh-balance')?.addEventListener('click', () => {
+            this.refreshBalance();
+        });
+
+        document.getElementById('hide-balance')?.addEventListener('click', () => {
+            this.toggleBalanceVisibility();
+        });
+
+        // Filter handlers
+        document.getElementById('history-type')?.addEventListener('change', (e) => {
+            this.filterTransactions();
+        });
+
+        document.getElementById('history-date')?.addEventListener('change', (e) => {
+            this.filterTransactions();
+        });
+    }
+
+    setupModalEventListeners() {
+        // Modal close buttons
+        document.querySelectorAll('.modal-close, .modal-cancel').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.closeModal(e.target.closest('.modal'));
+            });
+        });
+
+        // Modal background click to close
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.closeModal(modal);
+                }
+            });
+        });
+
+        // Change password modal
+        document.getElementById('change-password-btn')?.addEventListener('click', () => {
+            this.openModal('change-password-modal');
+        });
+
+        // Change PIN modal
+        document.getElementById('change-pin-btn')?.addEventListener('click', () => {
+            this.openModal('change-pin-modal');
+        });
+
+        // Delete account modal
+        document.getElementById('delete-account-btn')?.addEventListener('click', () => {
+            this.openModal('delete-account-modal');
+        });
+
+        // Save buttons
+        document.getElementById('save-password-btn')?.addEventListener('click', () => {
+            this.handlePasswordChange();
+        });
+
+        document.getElementById('save-pin-btn')?.addEventListener('click', () => {
+            this.handlePINChange();
+        });
+
+        document.getElementById('confirm-delete-btn')?.addEventListener('click', () => {
+            this.handleAccountDeletion();
+        });
+
+        // PIN entry modal
+        this.setupPINInputHandlers();
+    }
+
+    setupMobileEventListeners() {
+        // Touch events for better mobile experience
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (!touchStartX || !touchStartY) return;
+
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            // Swipe detection
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                if (deltaX > 0 && touchStartX < 50) {
+                    // Swipe right from left edge - open sidebar
+                    this.openSidebar();
+                } else if (deltaX < 0 && this.isSidebarOpen()) {
+                    // Swipe left when sidebar is open - close sidebar
+                    this.closeSidebar();
+                }
             }
+
+            touchStartX = 0;
+            touchStartY = 0;
+        }, { passive: true });
+
+        // Prevent zoom on double tap for certain elements
+        document.querySelectorAll('.btn, .action-card, .transaction-item').forEach(element => {
+            element.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.target.click();
+            });
+        });
+    }
+
+    setupProfileDropdownHandlers() {
+        const profileTrigger = document.getElementById('profile-dropdown-trigger');
+        const profileDropdown = document.getElementById('profile-dropdown');
+
+        if (profileTrigger && profileDropdown) {
+            profileTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleProfileDropdown();
+            });
+
+            // Position dropdown
+            profileTrigger.addEventListener('click', () => {
+                const rect = profileTrigger.getBoundingClientRect();
+                profileDropdown.style.top = `${rect.bottom + 8}px`;
+                profileDropdown.style.right = `${window.innerWidth - rect.right}px`;
+            });
+
+            // Dropdown item handlers
+            document.getElementById('view-profile')?.addEventListener('click', () => {
+                this.navigateToPage('settings');
+                this.closeProfileDropdown();
+            });
+
+            document.getElementById('go-to-settings')?.addEventListener('click', () => {
+                this.navigateToPage('settings');
+                this.closeProfileDropdown();
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+                    this.closeProfileDropdown();
+                }
+            });
+        }
+    }
+
+    setupSettingsEventListeners() {
+        // Theme selector
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                const theme = e.currentTarget.dataset.theme;
+                this.setTheme(theme);
+            });
+        });
+    }
+
+    setupConsoleEventListeners() {
+        const consoleToggle = document.getElementById('console-toggle');
+        if (consoleToggle) {
+            consoleToggle.addEventListener('click', () => {
+                this.toggleConsole();
+            });
+        }
+    }
+
+    setupPINInputHandlers() {
+        const pinInputs = document.querySelectorAll('.pin-input');
+        pinInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                if (value.length === 1 && index < pinInputs.length - 1) {
+                    pinInputs[index + 1].focus();
+                }
+                e.target.classList.toggle('filled', value.length > 0);
+                this.validatePINInput();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    pinInputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const paste = e.clipboardData.getData('text');
+                if (/^\d{6}$/.test(paste)) {
+                    pinInputs.forEach((inp, i) => {
+                        inp.value = paste[i] || '';
+                        inp.classList.toggle('filled', inp.value.length > 0);
+                    });
+                    this.validatePINInput();
+                }
+            });
+        });
+
+        document.getElementById('confirm-pin-btn')?.addEventListener('click', () => {
+            this.confirmPINEntry();
+        });
+    }
+
+    setupGestureControls() {
+        // Add gesture support for better mobile UX
+        let gestureZone = document.querySelector('.main-content');
+        if (!gestureZone) return;
+
+        let isGesturing = false;
+        let gestureStartX = 0;
+        let gestureStartY = 0;
+
+        gestureZone.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isGesturing = true;
+                gestureStartX = e.touches[0].clientX;
+                gestureStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        gestureZone.addEventListener('touchmove', (e) => {
+            if (!isGesturing) return;
             
-            // Valid session, load user data
-            currentUser = user;
-            await loadUserData();
-            showAppContainer();
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const deltaX = currentX - gestureStartX;
+            const deltaY = currentY - gestureStartY;
+
+            // Pull to refresh gesture
+            if (deltaY > 100 && Math.abs(deltaX) < 50 && window.scrollY === 0) {
+                this.handlePullToRefresh();
+            }
+        }, { passive: true });
+
+        gestureZone.addEventListener('touchend', () => {
+            isGesturing = false;
+        }, { passive: true });
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Keyboard shortcuts for better accessibility
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 'k':
+                        e.preventDefault();
+                        this.focusSearch();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        this.navigateToPage('transfer');
+                        break;
+                    case 'h':
+                        e.preventDefault();
+                        this.navigateToPage('history');
+                        break;
+                    case ',':
+                        e.preventDefault();
+                        this.navigateToPage('settings');
+                        break;
+                }
+            }
+
+            // Escape key to close modals
+            if (e.key === 'Escape') {
+                this.closeAllModals();
+            }
+        });
+    }
+
+    // Enhanced Mobile Responsiveness
+    handleResize() {
+        const wasMobile = this.isMobile;
+        this.isMobile = window.innerWidth <= 991;
+
+        if (wasMobile !== this.isMobile) {
+            this.adjustLayoutForDevice();
+        }
+
+        // Adjust console position on mobile
+        if (this.isMobile) {
+            this.adjustConsoleForMobile();
+        }
+    }
+
+    adjustLayoutForDevice() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+
+        if (this.isMobile) {
+            sidebar?.classList.remove('active');
+            this.logMessage('Switched to mobile layout', 'info');
         } else {
-            // No session found
-            showAuthContainer();
-        }
-    } catch (error) {
-        console.error('Session check error:', error);
-        showAuthContainer();
-    }
-}
-
-// Load user data
-async function loadUserData() {
-    try {
-        if (!currentUser) return;
-        
-        // Get user profile data
-        const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('user_id', currentUser.user_id)
-            .single();
-        
-        if (userError) throw userError;
-        
-        // Update global variables
-        userBalance = userData.balance || 0;
-        userKycStatus = userData.passport_status || 'pending';
-        
-        // Update UI with user data
-        updateUserUI(userData);
-        
-        // Check system settings
-        const { data: settings, error: settingsError } = await supabase
-            .from('settings')
-            .select('allow_transfers')
-            .eq('id', 1)
-            .single();
-        
-        if (!settingsError && settings) {
-            transfersEnabled = settings.allow_transfers;
-            updateTransferStatus();
-        }
-        
-        // Set up realtime subscriptions
-        setupRealtimeSubscriptions();
-        
-        // Load transactions
-        loadTransactions();
-    } catch (error) {
-        console.error('Load user data error:', error);
-    }
-}
-
-// Update UI with user data
-function updateUserUI(userData) {
-    // Update user name and ID in header and sidebar
-    const userInitial = currentUser.email.charAt(0).toUpperCase();
-    const userName = currentUser.email.split('@')[0];
-    
-    document.getElementById('user-initial').textContent = userInitial;
-    document.getElementById('user-initial-sidebar').textContent = userInitial;
-    document.getElementById('user-name').textContent = userName;
-    document.getElementById('user-name-sidebar').textContent = userName;
-    document.getElementById('user-id').textContent = `ID: ${currentUser.user_id}`;
-    document.getElementById('user-id-sidebar').textContent = `ID: ${currentUser.user_id}`;
-    document.getElementById('greeting-name').textContent = userName;
-    
-    // Update balance
-    document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
-    document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
-    
-    // Update KYC status
-    updateKycStatus();
-    
-    // Update settings page
-    document.getElementById('settings-phone').value = userData.phone || '';
-    document.getElementById('settings-email').value = currentUser.email || '';
-}
-
-// Update KYC status in UI
-function updateKycStatus() {
-    const kycStatusElement = document.getElementById('kyc-status');
-    const kycStatusCard = document.getElementById('kyc-status-card');
-    const kycForm = document.getElementById('kyc-form');
-    const kycStatusMessage = document.getElementById('kyc-status-message');
-    const kycStatusIcon = document.querySelector('.kyc-status-icon');
-    
-    // Remove all status classes
-    kycStatusIcon.classList.remove('pending', 'approved', 'rejected');
-    
-    // Update based on status
-    if (userKycStatus === 'approved') {
-        kycStatusElement.textContent = 'KYC: အတည်ပြုပြီး';
-        kycStatusMessage.textContent = 'သင့် KYC အတည်ပြုပြီးဖြစ်ပါသည်။';
-        kycStatusIcon.classList.add('approved');
-        kycStatusIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-        kycForm.style.display = 'none';
-    } else if (userKycStatus === 'rejected') {
-        kycStatusElement.textContent = 'KYC: ငြင်းပယ်ခံရသည်';
-        kycStatusMessage.textContent = 'သင့် KYC ငြင်းပယ်ခံရပါသည်။ ပြန်လည်တင်သွင်းပါ။';
-        kycStatusIcon.classList.add('rejected');
-        kycStatusIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
-        kycForm.style.display = 'block';
-    } else {
-        kycStatusElement.textContent = 'KYC: စောင့်ဆိုင်းဆဲ';
-        kycStatusMessage.textContent = 'သင့် KYC စိစစ်နေဆဲဖြစ်ပါသည်။';
-        kycStatusIcon.classList.add('pending');
-        kycStatusIcon.innerHTML = '<i class="fas fa-clock"></i>';
-        
-        // Check if KYC data exists
-        if (currentUser) {
-            supabase
-                .from('users')
-                .select('passport_number, passport_image')
-                .eq('user_id', currentUser.user_id)
-                .single()
-                .then(({ data }) => {
-                    if (data && data.passport_number && data.passport_image) {
-                        kycForm.style.display = 'none';
-                    } else {
-                        kycForm.style.display = 'block';
-                    }
-                });
+            this.logMessage('Switched to desktop layout', 'info');
         }
     }
-}
 
-// Update transfer status in UI
-function updateTransferStatus() {
-    const transferStatusElement = document.getElementById('transfer-status');
-    
-    if (transfersEnabled) {
-        transferStatusElement.textContent = 'ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်';
-        transferStatusElement.classList.remove('disabled');
-        transferStatusElement.classList.add('enabled');
-    } else {
-        transferStatusElement.textContent = 'ငွေလွှဲခြင်း: ပိတ်ထားသည်';
-        transferStatusElement.classList.remove('enabled');
-        transferStatusElement.classList.add('disabled');
+    checkMobileDevice() {
+        // Enhanced mobile detection
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
+        
+        if (isMobileDevice) {
+            document.body.classList.add('mobile-device');
+            this.optimizeForMobile();
+        }
     }
-}
 
-// Set up realtime subscriptions
-function setupRealtimeSubscriptions() {
-    // Subscribe to user balance changes
-    const userChannel = supabase
-        .channel('user-updates')
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'users',
-            filter: `user_id=eq.${currentUser.user_id}`
-        }, (payload) => {
-            // Update balance if changed
-            if (payload.new.balance !== userBalance) {
-                userBalance = payload.new.balance;
-                document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
-                document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
-            }
+    optimizeForMobile() {
+        // Add mobile-specific optimizations
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+
+        // Prevent zoom on input focus
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('focus', () => {
+                if (this.isMobile) {
+                    viewport?.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                }
+            });
+
+            element.addEventListener('blur', () => {
+                if (this.isMobile) {
+                    viewport?.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+                }
+            });
+        });
+    }
+
+    // Enhanced Animations and Transitions
+    startIntroAnimation() {
+        const introAnimation = document.getElementById('intro-animation');
+        if (!introAnimation) return;
+
+        // Enhanced intro sequence
+        setTimeout(() => {
+            this.playIntroSound();
+        }, 1000);
+
+        setTimeout(() => {
+            introAnimation.style.opacity = '0';
+            introAnimation.style.transform = 'scale(1.1)';
             
-            // Update KYC status if changed
-            if (payload.new.passport_status !== userKycStatus) {
-                userKycStatus = payload.new.passport_status;
-                updateKycStatus();
-            }
-        })
-        .subscribe();
-    
-    // Subscribe to system settings changes
-    const settingsChannel = supabase
-        .channel('settings-updates')
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'settings'
-        }, (payload) => {
-            if (payload.new.allow_transfers !== transfersEnabled) {
-                transfersEnabled = payload.new.allow_transfers;
-                updateTransferStatus();
-            }
-        })
-        .subscribe();
-    
-    // Subscribe to new transactions
-    const transactionsChannel = supabase
-        .channel('transactions-updates')
-        .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'transactions'
-        }, (payload) => {
-            // Check if transaction involves current user
-            if (currentUser && (payload.new.from_phone === currentUser.phone || payload.new.to_phone === currentUser.phone)) {
-                // Refresh transactions list
-                loadTransactions();
-            }
-        })
-        .subscribe();
-}
-
-// Load transactions
-async function loadTransactions() {
-    try {
-        if (!currentUser) return;
-        
-        // Get user phone number
-        const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('phone')
-            .eq('user_id', currentUser.user_id)
-            .single();
-        
-        if (userError || !userData || !userData.phone) return;
-        
-        const userPhone = userData.phone;
-        
-        // Get recent transactions
-        const { data: transactionsData, error } = await supabase
-            .from('transactions')
-            .select('*')
-            .or(`from_phone.eq.${userPhone},to_phone.eq.${userPhone}`)
-            .order('created_at', { ascending: false })
-            .limit(10);
-        
-        if (error) throw error;
-        
-        // Store transactions globally
-        transactions = transactionsData || [];
-        
-        // Update UI with transactions
-        updateTransactionsUI(transactions, userPhone);
-    } catch (error) {
-        console.error('Load transactions error:', error);
+            setTimeout(() => {
+                introAnimation.style.display = 'none';
+                this.revealMainContent();
+            }, 1000);
+        }, 3500);
     }
-}
 
-// Update transactions UI
-function updateTransactionsUI(transactions, userPhone) {
-    const recentTransactionsList = document.getElementById('recent-transactions-list');
-    const historyTransactionsList = document.getElementById('history-transactions-list');
-    
-    // Clear lists
-    recentTransactionsList.innerHTML = '';
-    historyTransactionsList.innerHTML = '';
-    
-    if (!transactions || transactions.length === 0) {
-        // Show empty state
-        const emptyState = `
-            <div class="empty-state">
-                <i class="fas fa-history"></i>
-                <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+    revealMainContent() {
+        const authContainer = document.getElementById('auth-container');
+        if (authContainer) {
+            authContainer.style.opacity = '0';
+            authContainer.style.transform = 'translateY(30px)';
+            authContainer.style.display = 'flex';
+            
+            setTimeout(() => {
+                authContainer.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                authContainer.style.opacity = '1';
+                authContainer.style.transform = 'translateY(0)';
+            }, 100);
+        }
+        
+        this.logMessage('Main content revealed', 'success');
+    }
+
+    playIntroSound() {
+        // Play a subtle notification sound if enabled
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        } catch (error) {
+            // Silently fail if audio context is not available
+        }
+    }
+
+    // Enhanced Authentication
+    async handleLogin() {
+        const email = document.getElementById('login-email')?.value;
+        const password = document.getElementById('login-password')?.value;
+        const rememberMe = document.getElementById('remember-me')?.checked;
+
+        if (!this.validateLoginForm(email, password)) {
+            return;
+        }
+
+        this.showLoader('Signing in...');
+        this.logMessage(`Login attempt for ${email}`, 'info');
+
+        try {
+            // Simulate API call
+            await this.delay(2000);
+            
+            // Mock successful login
+            const userData = {
+                email: email,
+                name: this.extractNameFromEmail(email),
+                id: this.generateUserId(),
+                balance: Math.floor(Math.random() * 1000000),
+                phone: '09123456789',
+                kycStatus: 'pending'
+            };
+
+            this.currentUser = userData;
+            
+            if (rememberMe) {
+                localStorage.setItem('opperUser', JSON.stringify(userData));
+            }
+
+            this.showSuccessMessage('login-success', 'Successfully signed in!');
+            this.logMessage('Login successful', 'success');
+            
+            setTimeout(() => {
+                this.showMainApp();
+            }, 1500);
+
+        } catch (error) {
+            this.showErrorMessage('login-error', 'Login failed. Please try again.');
+            this.logMessage(`Login failed: ${error.message}`, 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    async handleSignup() {
+        const email = document.getElementById('signup-email')?.value;
+        const phone = document.getElementById('signup-phone')?.value;
+        const password = document.getElementById('signup-password')?.value;
+        const confirmPassword = document.getElementById('signup-confirm-password')?.value;
+        const termsAgree = document.getElementById('terms-agree')?.checked;
+
+        if (!this.validateSignupForm(email, phone, password, confirmPassword, termsAgree)) {
+            return;
+        }
+
+        this.showLoader('Creating account...');
+        this.logMessage(`Signup attempt for ${email}`, 'info');
+
+        try {
+            await this.delay(3000);
+            
+            const userData = {
+                email: email,
+                name: this.extractNameFromEmail(email),
+                id: this.generateUserId(),
+                balance: 0,
+                phone: phone,
+                kycStatus: 'pending'
+            };
+
+            this.currentUser = userData;
+            localStorage.setItem('opperUser', JSON.stringify(userData));
+
+            this.showSuccessMessage('signup-success', 'Account created successfully!');
+            this.logMessage('Signup successful', 'success');
+            
+            setTimeout(() => {
+                this.showMainApp();
+            }, 1500);
+
+        } catch (error) {
+            this.showErrorMessage('signup-error', 'Signup failed. Please try again.');
+            this.logMessage(`Signup failed: ${error.message}`, 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    async handleGoogleAuth(type) {
+        this.showLoader(`Connecting to Google...`);
+        this.logMessage(`Google ${type} attempt`, 'info');
+
+        try {
+            await this.delay(2000);
+            
+            // Mock Google auth
+            const userData = {
+                email: 'user@gmail.com',
+                name: 'Google User',
+                id: this.generateUserId(),
+                balance: Math.floor(Math.random() * 500000),
+                phone: '09987654321',
+                kycStatus: 'pending'
+            };
+
+            this.currentUser = userData;
+            localStorage.setItem('opperUser', JSON.stringify(userData));
+
+            this.showSuccessMessage(`${type}-success`, `Google ${type} successful!`);
+            this.logMessage('Google auth successful', 'success');
+            
+            setTimeout(() => {
+                this.showMainApp();
+            }, 1500);
+
+        } catch (error) {
+            this.showErrorMessage(`${type}-error`, `Google ${type} failed. Please try again.`);
+            this.logMessage(`Google auth failed: ${error.message}`, 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    // Enhanced Form Validation
+    validateLoginForm(email, password) {
+        let isValid = true;
+
+        if (!email || !this.isValidEmail(email)) {
+            this.showFieldError('login-email', 'Please enter a valid email address');
+            isValid = false;
+        }
+
+        if (!password || password.length < 6) {
+            this.showFieldError('login-password', 'Password must be at least 6 characters');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    validateSignupForm(email, phone, password, confirmPassword, termsAgree) {
+        let isValid = true;
+
+        if (!email || !this.isValidEmail(email)) {
+            this.showFieldError('signup-email', 'Please enter a valid email address');
+            isValid = false;
+        }
+
+        if (!phone || !this.isValidPhone(phone)) {
+            this.showFieldError('signup-phone', 'Please enter a valid phone number');
+            isValid = false;
+        }
+
+        if (!password || password.length < 6) {
+            this.showFieldError('signup-password', 'Password must be at least 6 characters');
+            isValid = false;
+        }
+
+        if (password !== confirmPassword) {
+            this.showFieldError('signup-confirm-password', 'Passwords do not match');
+            isValid = false;
+        }
+
+        if (!termsAgree) {
+            this.showErrorMessage('signup-error', 'Please agree to the terms and conditions');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    validateInput(input) {
+        const value = input.value;
+        const type = input.type;
+        const id = input.id;
+
+        // Clear previous errors
+        this.clearFieldError(id);
+
+        switch (type) {
+            case 'email':
+                if (value && !this.isValidEmail(value)) {
+                    this.showFieldError(id, 'Invalid email format');
+                }
+                break;
+            case 'tel':
+                if (value && !this.isValidPhone(value)) {
+                    this.showFieldError(id, 'Invalid phone number format');
+                }
+                break;
+            case 'password':
+                if (value && value.length < 6) {
+                    this.showFieldError(id, 'Password too short');
+                }
+                break;
+            case 'number':
+                if (value && (isNaN(value) || parseFloat(value) <= 0)) {
+                    this.showFieldError(id, 'Invalid amount');
+                }
+                break;
+        }
+    }
+
+    isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    isValidPhone(phone) {
+        const phoneRegex = /^09\d{8,9}$/;
+        return phoneRegex.test(phone.replace(/\s/g, ''));
+    }
+
+    // Enhanced Navigation
+    navigateToPage(pageId) {
+        if (this.currentPage === pageId) return;
+
+        this.logMessage(`Navigating to ${pageId}`, 'info');
+
+        // Hide current page
+        const currentPageElement = document.querySelector('.page.active');
+        if (currentPageElement) {
+            currentPageElement.classList.remove('active');
+        }
+
+        // Show new page
+        const newPageElement = document.getElementById(`${pageId}-page`);
+        if (newPageElement) {
+            newPageElement.classList.add('active');
+        }
+
+        // Update navigation state
+        this.updateNavigationState(pageId);
+        
+        // Close sidebar on mobile after navigation
+        if (this.isMobile) {
+            this.closeSidebar();
+        }
+
+        // Load page-specific data
+        this.loadPageData(pageId);
+        
+        this.currentPage = pageId;
+    }
+
+    updateNavigationState(pageId) {
+        // Update sidebar navigation
+        document.querySelectorAll('.sidebar-nav li').forEach(li => li.classList.remove('active'));
+        document.querySelector(`.sidebar-nav a[data-page="${pageId}"]`)?.parentElement.classList.add('active');
+    }
+
+    loadPageData(pageId) {
+        switch (pageId) {
+            case 'dashboard':
+                this.loadDashboardData();
+                break;
+            case 'history':
+                this.loadTransactionHistory();
+                break;
+            case 'kyc':
+                this.loadKYCStatus();
+                break;
+            case 'settings':
+                this.loadUserSettings();
+                break;
+        }
+    }
+
+    // Enhanced Data Loading
+    async loadDashboardData() {
+        this.updateBalance();
+        this.updateUserInfo();
+        this.loadRecentTransactions();
+        this.updateKYCStatus();
+    }
+
+    updateBalance() {
+        if (!this.currentUser) return;
+
+        const balanceElement = document.getElementById('balance-amount');
+        const userBalanceElement = document.getElementById('user-balance');
+        
+        const formattedBalance = this.isBalanceHidden ? 
+            '••••••••' : 
+            this.formatCurrency(this.currentUser.balance);
+
+        if (balanceElement) {
+            this.animateValue(balanceElement, 0, this.currentUser.balance, 2000, !this.isBalanceHidden);
+        }
+
+        if (userBalanceElement) {
+            userBalanceElement.textContent = `လက်ကျန်ငွေ: ${formattedBalance}`;
+        }
+    }
+
+    updateUserInfo() {
+        if (!this.currentUser) return;
+
+        const userInitial = this.currentUser.name.charAt(0).toUpperCase();
+        const userName = this.currentUser.name;
+        const userId = this.currentUser.id;
+
+        // Update all user info elements
+        document.querySelectorAll('#user-initial, #user-initial-sidebar').forEach(el => {
+            el.textContent = userInitial;
+        });
+
+        document.querySelectorAll('#user-name, #user-name-sidebar, #greeting-name').forEach(el => {
+            el.textContent = userName;
+        });
+
+        document.querySelectorAll('#user-id, #user-id-sidebar').forEach(el => {
+            el.textContent = `ID: ${userId}`;
+        });
+
+        // Update settings form
+        const settingsPhone = document.getElementById('settings-phone');
+        const settingsEmail = document.getElementById('settings-email');
+        
+        if (settingsPhone) settingsPhone.value = this.currentUser.phone;
+        if (settingsEmail) settingsEmail.value = this.currentUser.email;
+    }
+
+    loadRecentTransactions() {
+        const container = document.getElementById('recent-transactions-list');
+        if (!container) return;
+
+        if (this.transactions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+                </div>
+            `;
+            return;
+        }
+
+        const recentTransactions = this.transactions.slice(0, 5);
+        container.innerHTML = recentTransactions.map(transaction => 
+            this.createTransactionHTML(transaction)
+        ).join('');
+    }
+
+    // Enhanced Transfer Functionality
+    async handleTransfer() {
+        const phone = document.getElementById('transfer-phone')?.value;
+        const amount = parseFloat(document.getElementById('transfer-amount')?.value);
+        const note = document.getElementById('transfer-note')?.value;
+
+        if (!this.validateTransferForm(phone, amount)) {
+            return;
+        }
+
+        // Check sufficient balance
+        if (amount > this.currentUser.balance) {
+            this.showErrorMessage('transfer-error', 'Insufficient balance');
+            return;
+        }
+
+        this.transferData = { phone, amount, note };
+        this.openPINModal();
+    }
+
+    validateTransferForm(phone, amount) {
+        let isValid = true;
+
+        if (!phone || !this.isValidPhone(phone)) {
+            this.showFieldError('transfer-phone', 'Invalid phone number');
+            isValid = false;
+        }
+
+        if (!amount || amount <= 0) {
+            this.showFieldError('transfer-amount', 'Invalid amount');
+            isValid = false;
+        }
+
+        if (amount < 1000) {
+            this.showFieldError('transfer-amount', 'Minimum transfer amount is 1,000 Ks');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    openPINModal() {
+        this.openModal('pin-entry-modal');
+        // Clear previous PIN entries
+        document.querySelectorAll('.pin-input').forEach(input => {
+            input.value = '';
+            input.classList.remove('filled');
+        });
+        // Focus first PIN input
+        document.querySelector('.pin-input')?.focus();
+    }
+
+    async confirmPINEntry() {
+        const pin = this.collectPINValue();
+        
+        if (pin.length !== 6) {
+            this.showErrorMessage('pin-error', 'Please enter complete PIN');
+            return;
+        }
+
+        this.closeModal(document.getElementById('pin-entry-modal'));
+        await this.processTransfer();
+    }
+
+    collectPINValue() {
+        return Array.from(document.querySelectorAll('.pin-input'))
+            .map(input => input.value)
+            .join('');
+    }
+
+    async processTransfer() {
+        this.showProcessingOverlay('Processing transfer...');
+        this.logMessage('Processing transfer', 'info');
+
+        try {
+            // Simulate processing steps
+            await this.delay(1000);
+            this.updateProcessingStep(1);
+            
+            await this.delay(1500);
+            this.updateProcessingStep(2);
+            
+            await this.delay(1000);
+            this.updateProcessingStep(3);
+            
+            await this.delay(500);
+
+            // Create transaction record
+            const transaction = {
+                id: this.generateTransactionId(),
+                type: 'sent',
+                amount: this.transferData.amount,
+                recipient: this.transferData.phone,
+                note: this.transferData.note,
+                date: new Date(),
+                status: 'completed'
+            };
+
+            this.transactions.unshift(transaction);
+            this.currentUser.balance -= this.transferData.amount;
+            
+            // Update storage
+            localStorage.setItem('opperUser', JSON.stringify(this.currentUser));
+            localStorage.setItem('opperTransactions', JSON.stringify(this.transactions));
+
+            this.hideProcessingOverlay();
+            this.showReceiptModal(transaction);
+            this.clearTransferForm();
+            this.updateBalance();
+            
+            this.logMessage('Transfer completed successfully', 'success');
+
+        } catch (error) {
+            this.hideProcessingOverlay();
+            this.showErrorMessage('transfer-error', 'Transfer failed. Please try again.');
+            this.logMessage(`Transfer failed: ${error.message}`, 'error');
+        }
+    }
+
+    showReceiptModal(transaction) {
+        const modal = document.getElementById('receipt-modal');
+        const container = document.getElementById('receipt-container');
+        
+        if (container) {
+            container.innerHTML = this.generateReceiptHTML(transaction);
+        }
+        
+        this.openModal('receipt-modal');
+        
+        // Setup download handler
+        document.getElementById('download-receipt')?.addEventListener('click', () => {
+            this.downloadReceipt();
+        });
+    }
+
+    generateReceiptHTML(transaction) {
+        return `
+            <div class="receipt">
+                <div class="receipt-logo">
+                    <div class="receipt-logo-circle">
+                        <div class="receipt-logo-text">OPPER</div>
+                    </div>
+                    <div class="receipt-logo-subtitle">Payment</div>
+                </div>
+                
+                <div class="receipt-status">
+                    <div class="receipt-status-icon ${transaction.type}">
+                        <i class="fas ${transaction.type === 'sent' ? 'fa-paper-plane' : 'fa-arrow-down'}"></i>
+                    </div>
+                    <div class="receipt-status-text">
+                        ${transaction.type === 'sent' ? 'Payment Sent' : 'Payment Received'}
+                    </div>
+                </div>
+                
+                <div class="receipt-amount">
+                    <div class="receipt-amount-label">Amount</div>
+                    <div class="receipt-amount-value">${this.formatCurrency(transaction.amount)}</div>
+                </div>
+                
+                <div class="receipt-details">
+                    <div class="receipt-detail-row">
+                        <span class="receipt-detail-label">To:</span>
+                        <span class="receipt-detail-value">${transaction.recipient}</span>
+                    </div>
+                    <div class="receipt-detail-row">
+                        <span class="receipt-detail-label">Date:</span>
+                        <span class="receipt-detail-value">${this.formatDate(transaction.date)}</span>
+                    </div>
+                    <div class="receipt-detail-row">
+                        <span class="receipt-detail-label">Time:</span>
+                        <span class="receipt-detail-value">${this.formatTime(transaction.date)}</span>
+                    </div>
+                    ${transaction.note ? `
+                    <div class="receipt-detail-row">
+                        <span class="receipt-detail-label">Note:</span>
+                        <span class="receipt-detail-value">${transaction.note}</span>
+                    </div>
+                    ` : ''}
+                    <div class="receipt-detail-row">
+                        <span class="receipt-detail-label">Status:</span>
+                        <span class="receipt-detail-value" style="color: #48bb78;">Completed</span>
+                    </div>
+                </div>
+                
+                <div class="receipt-transaction-id">
+                    <div class="receipt-transaction-id-label">Transaction ID</div>
+                    <div class="receipt-transaction-id-value">${transaction.id}</div>
+                </div>
+                
+                <div class="receipt-footer">
+                    Thank you for using OPPER Payment!<br>
+                    This is a computer generated receipt.
+                </div>
             </div>
         `;
-        recentTransactionsList.innerHTML = emptyState;
-        historyTransactionsList.innerHTML = emptyState;
-        return;
     }
-    
-    // Create transaction items
-    transactions.forEach((transaction, index) => {
-        const isSender = transaction.from_phone === userPhone;
-        const otherParty = isSender ? transaction.to_phone : transaction.from_phone;
-        const transactionDate = new Date(transaction.created_at).toLocaleString();
+
+    async downloadReceipt() {
+        try {
+            const receiptElement = document.querySelector('.receipt');
+            if (!receiptElement) return;
+
+            // Use html2canvas to capture the receipt
+            const canvas = await html2canvas(receiptElement, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true
+            });
+
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `opper-receipt-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+
+            this.logMessage('Receipt downloaded', 'success');
+        } catch (error) {
+            this.logMessage('Failed to download receipt', 'error');
+        }
+    }
+
+    // Enhanced UI Utilities
+    showLoader(message = 'Loading...') {
+        const loader = document.getElementById('loader');
+        const progressText = document.querySelector('.progress-text');
         
-        const transactionItem = `
-            <div class="transaction-item ${isSender ? 'sent' : 'received'}">
+        if (loader) {
+            loader.classList.add('active');
+            if (progressText) {
+                progressText.textContent = message;
+            }
+        }
+        
+        this.isLoading = true;
+    }
+
+    hideLoader() {
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.classList.remove('active');
+        }
+        this.isLoading = false;
+    }
+
+    showProcessingOverlay(message) {
+        const overlay = document.getElementById('processing-overlay');
+        const messageElement = document.getElementById('processing-message');
+        
+        if (overlay) {
+            overlay.classList.add('active');
+            if (messageElement) {
+                messageElement.textContent = message;
+            }
+        }
+        
+        // Reset processing steps
+        document.querySelectorAll('.step').forEach((step, index) => {
+            step.classList.toggle('active', index === 0);
+        });
+    }
+
+    hideProcessingOverlay() {
+        const overlay = document.getElementById('processing-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+
+    updateProcessingStep(stepNumber) {
+        document.querySelectorAll('.step').forEach((step, index) => {
+            step.classList.toggle('active', index < stepNumber);
+        });
+    }
+
+    showMainApp() {
+        document.getElementById('auth-container')?.classList.add('hidden');
+        document.getElementById('app-container')?.classList.remove('hidden');
+        
+        this.loadDashboardData();
+        this.logMessage('Main app loaded', 'success');
+    }
+
+    // Enhanced Modal System
+    openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Focus management for accessibility
+            const firstFocusable = modal.querySelector('input, button, select, textarea');
+            firstFocusable?.focus();
+        }
+    }
+
+    closeModal(modal) {
+        if (typeof modal === 'string') {
+            modal = document.getElementById(modal);
+        }
+        
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    closeAllModals() {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+            this.closeModal(modal);
+        });
+    }
+
+    // Enhanced Sidebar Controls
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        
+        if (sidebar) {
+            const isOpen = sidebar.classList.contains('active');
+            if (isOpen) {
+                this.closeSidebar();
+            } else {
+                this.openSidebar();
+            }
+        }
+    }
+
+    openSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        
+        if (sidebar) {
+            sidebar.classList.add('active');
+            menuToggle?.classList.add('active');
+        }
+    }
+
+    closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        
+        if (sidebar) {
+            sidebar.classList.remove('active');
+            menuToggle?.classList.remove('active');
+        }
+    }
+
+    isSidebarOpen() {
+        const sidebar = document.getElementById('sidebar');
+        return sidebar?.classList.contains('active') || false;
+    }
+
+    // Enhanced Theme System
+    initializeTheme() {
+        const savedTheme = localStorage.getItem('opperTheme') || 'dark';
+        this.setTheme(savedTheme);
+    }
+
+    setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('opperTheme', theme);
+        
+        // Update theme selector
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.classList.toggle('active', option.dataset.theme === theme);
+        });
+        
+        this.logMessage(`Theme changed to ${theme}`, 'info');
+    }
+
+    // Enhanced Console System
+    initializeConsole() {
+        this.consoleOutput = document.getElementById('console-output');
+        this.consoleContainer = document.getElementById('console-container');
+        this.isConsoleOpen = false;
+    }
+
+    toggleConsole() {
+        this.isConsoleOpen = !this.isConsoleOpen;
+        const container = document.getElementById('console-container');
+        
+        if (container) {
+            container.classList.toggle('active', this.isConsoleOpen);
+        }
+    }
+
+    logMessage(message, type = 'info') {
+        if (!this.consoleOutput) return;
+
+        const timestamp = new Date().toLocaleTimeString();
+        const line = document.createElement('div');
+        line.className = `console-line console-${type}`;
+        line.textContent = `[${timestamp}] ${message}`;
+        
+        this.consoleOutput.appendChild(line);
+        this.consoleOutput.scrollTop = this.consoleOutput.scrollHeight;
+
+        // Limit console history
+        const lines = this.consoleOutput.querySelectorAll('.console-line');
+        if (lines.length > 100) {
+            lines[0].remove();
+        }
+    }
+
+    // Enhanced Utility Functions
+    animateValue(element, start, end, duration, shouldAnimate = true) {
+        if (!shouldAnimate) {
+            element.textContent = this.isBalanceHidden ? '••••••••' : this.formatCurrency(end);
+            return;
+        }
+
+        const startTime = performance.now();
+        const update = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            const current = start + (end - start) * this.easeOutCubic(progress);
+            element.textContent = this.formatCurrency(Math.floor(current));
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        };
+        
+        requestAnimationFrame(update);
+    }
+
+    easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US').format(amount) + ' Ks';
+    }
+
+    formatDate(date) {
+        return new Intl.DateTimeFormat('en-GB').format(new Date(date));
+    }
+
+    formatTime(date) {
+        return new Intl.DateTimeFormat('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).format(new Date(date));
+    }
+
+    extractNameFromEmail(email) {
+        return email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').trim() || 'User';
+    }
+
+    generateUserId() {
+        return 'OP' + Math.random().toString(36).substr(2, 8).toUpperCase();
+    }
+
+    generateTransactionId() {
+        return 'TX' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4).toUpperCase();
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    showSuccessMessage(elementId, message) {
+        this.showMessage(elementId, message, 'success');
+    }
+
+    showErrorMessage(elementId, message) {
+        this.showMessage(elementId, message, 'error');
+    }
+
+    showMessage(elementId, message, type) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = message;
+            element.className = `auth-message ${type}`;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+    }
+
+    showFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.style.borderColor = '#f56565';
+            field.setAttribute('data-error', message);
+            
+            // Add error tooltip
+            let errorTooltip = field.parentNode.querySelector('.error-tooltip');
+            if (!errorTooltip) {
+                errorTooltip = document.createElement('div');
+                errorTooltip.className = 'error-tooltip';
+                field.parentNode.appendChild(errorTooltip);
+            }
+            errorTooltip.textContent = message;
+            errorTooltip.style.display = 'block';
+        }
+    }
+
+    clearFieldError(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.style.borderColor = '';
+            field.removeAttribute('data-error');
+            
+            const errorTooltip = field.parentNode.querySelector('.error-tooltip');
+            if (errorTooltip) {
+                errorTooltip.style.display = 'none';
+            }
+        }
+    }
+
+    // Add more enhanced methods for complete functionality
+    togglePasswordVisibility(toggleButton) {
+        const input = toggleButton.parentNode.querySelector('input');
+        if (input) {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            toggleButton.className = `fas ${isPassword ? 'fa-eye' : 'fa-eye-slash'} toggle-password`;
+        }
+    }
+
+    animateInputFocus(input, isFocused) {
+        const icon = input.parentNode.querySelector('i:not(.toggle-password)');
+        const focusLine = input.parentNode.querySelector('.input-focus-line');
+        
+        if (isFocused) {
+            input.parentNode.style.transform = 'translateY(-2px)';
+            input.style.boxShadow = '0 0 0 3px var(--primary-glow)';
+            if (icon) icon.style.color = 'var(--primary-solid)';
+        } else {
+            input.parentNode.style.transform = '';
+            input.style.boxShadow = '';
+            if (icon) icon.style.color = '';
+        }
+    }
+
+    switchAuthTab(tabType) {
+        // Hide all forms
+        document.querySelectorAll('.auth-form').forEach(form => {
+            form.classList.remove('active');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected form and activate tab
+        document.getElementById(`${tabType}-form`)?.classList.add('active');
+        document.querySelector(`[data-tab="${tabType}"]`)?.classList.add('active');
+        
+        // Move tab indicator
+        const indicator = document.querySelector('.tab-indicator');
+        if (indicator) {
+            indicator.style.transform = tabType === 'signup' ? 'translateX(100%)' : 'translateX(0)';
+        }
+    }
+
+    toggleBalanceVisibility() {
+        this.isBalanceHidden = !this.isBalanceHidden;
+        const balanceElement = document.getElementById('balance-amount');
+        const hideButton = document.getElementById('hide-balance');
+        
+        if (balanceElement) {
+            balanceElement.classList.toggle('hidden-balance', this.isBalanceHidden);
+            balanceElement.textContent = this.isBalanceHidden ? 
+                '••••••••' : 
+                this.formatCurrency(this.currentUser.balance);
+        }
+        
+        if (hideButton) {
+            const icon = hideButton.querySelector('i');
+            icon.className = this.isBalanceHidden ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
+    }
+
+    async refreshBalance() {
+        const refreshButton = document.getElementById('refresh-balance');
+        const icon = refreshButton?.querySelector('i');
+        
+        if (icon) {
+            icon.style.animation = 'ring-spin 1s linear infinite';
+        }
+        
+        await this.delay(1000);
+        
+        // Simulate balance update
+        this.currentUser.balance += Math.floor(Math.random() * 10000);
+        this.updateBalance();
+        
+        if (icon) {
+            icon.style.animation = '';
+        }
+        
+        this.logMessage('Balance refreshed', 'success');
+    }
+
+    toggleProfileDropdown() {
+        const dropdown = document.getElementById('profile-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('active');
+        }
+    }
+
+    closeProfileDropdown() {
+        const dropdown = document.getElementById('profile-dropdown');
+        if (dropdown) {
+            dropdown.classList.remove('active');
+        }
+    }
+
+    handleLogout() {
+        localStorage.removeItem('opperUser');
+        localStorage.removeItem('opperTransactions');
+        this.currentUser = null;
+        this.transactions = [];
+        
+        document.getElementById('app-container')?.classList.add('hidden');
+        document.getElementById('auth-container')?.classList.remove('hidden');
+        
+        this.logMessage('User logged out', 'info');
+    }
+
+    clearTransferForm() {
+        document.getElementById('transfer-phone').value = '';
+        document.getElementById('transfer-amount').value = '';
+        document.getElementById('transfer-note').value = '';
+    }
+
+    validatePINInput() {
+        const inputs = document.querySelectorAll('.pin-input');
+        const confirmBtn = document.getElementById('confirm-pin-btn');
+        const allFilled = Array.from(inputs).every(input => input.value.length === 1);
+        
+        if (confirmBtn) {
+            confirmBtn.disabled = !allFilled;
+            confirmBtn.style.opacity = allFilled ? '1' : '0.5';
+        }
+    }
+
+    loadTransactionHistory() {
+        const container = document.getElementById('history-transactions-list');
+        if (!container) return;
+
+        if (this.transactions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.transactions.map(transaction => 
+            this.createTransactionHTML(transaction)
+        ).join('');
+    }
+
+    createTransactionHTML(transaction) {
+        return `
+            <div class="transaction-item ${transaction.type}">
                 <div class="transaction-icon">
-                    <i class="fas ${isSender ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                    <i class="fas ${transaction.type === 'sent' ? 'fa-paper-plane' : 'fa-arrow-down'}"></i>
                 </div>
                 <div class="transaction-details">
                     <div class="transaction-title">
-                        ${isSender ? 'ပို့ထားသော' : 'လက်ခံရရှိသော'}
+                        ${transaction.type === 'sent' ? 'ငွေပေးချေမှု' : 'ငွေလက်ခံမှု'}
                     </div>
-                    <div class="transaction-subtitle">
-                        ${otherParty} ${transaction.note ? `- ${transaction.note}` : ''}
-                    </div>
-                    <div class="transaction-date">${transactionDate}</div>
+                    <div class="transaction-subtitle">${transaction.recipient}</div>
+                    <div class="transaction-date">${this.formatDate(transaction.date)}</div>
                 </div>
                 <div class="transaction-actions">
-                    <div class="transaction-amount ${isSender ? 'negative' : 'positive'}">
-                        ${isSender ? '-' : '+'} ${transaction.amount.toLocaleString()} Ks
+                    <div class="transaction-amount ${transaction.type === 'sent' ? 'negative' : 'positive'}">
+                        ${transaction.type === 'sent' ? '-' : '+'}${this.formatCurrency(transaction.amount)}
                     </div>
-                    <button class="transaction-view-btn" data-transaction-index="${index}">
+                    <button class="transaction-view-btn" onclick="app.viewTransactionDetails('${transaction.id}')">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
             </div>
         `;
-        
-        // Add to recent transactions (only first 5)
-        if (index < 5) {
-            recentTransactionsList.innerHTML += transactionItem;
-        }
-        
-        // Add to history transactions
-        historyTransactionsList.innerHTML += transactionItem;
-    });
-    
-    // Add event listeners to view buttons
-    document.querySelectorAll('.transaction-view-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const transactionIndex = button.getAttribute('data-transaction-index');
-            showTransactionReceipt(transactions[transactionIndex]);
-        });
-    });
-}
-
-// Initialize UI elements
-function initializeUI() {
-    // Auth tabs
-    const authTabs = document.querySelectorAll('.auth-tab');
-    const authForms = document.querySelectorAll('.auth-form');
-    
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.getAttribute('data-tab');
-            
-            // Update active tab
-            authTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Show corresponding form
-            authForms.forEach(form => {
-                form.classList.remove('active');
-                if (form.id === `${tabName}-form`) {
-                    form.classList.add('active');
-                }
-            });
-        });
-    });
-    
-    // Toggle password visibility
-    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
-    
-    togglePasswordButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const input = button.previousElementSibling;
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.classList.remove('fa-eye-slash');
-                button.classList.add('fa-eye');
-            } else {
-                input.type = 'password';
-                button.classList.remove('fa-eye');
-                button.classList.add('fa-eye-slash');
-            }
-        });
-    });
-    
-    // Sidebar navigation
-    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
-    const pages = document.querySelectorAll('.page');
-    
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const pageName = link.getAttribute('data-page');
-            
-            // Update active link
-            sidebarLinks.forEach(l => l.parentElement.classList.remove('active'));
-            link.parentElement.classList.add('active');
-            
-            // Show corresponding page
-            pages.forEach(page => {
-                page.classList.remove('active');
-                if (page.id === `${pageName}-page`) {
-                    page.classList.add('active');
-                }
-            });
-            
-            // Close sidebar on mobile
-            if (window.innerWidth < 992) {
-                document.getElementById('sidebar').classList.remove('active');
-            }
-        });
-    });
-    
-    // Quick action cards
-    const actionCards = document.querySelectorAll('.action-card');
-    
-    actionCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const pageName = card.getAttribute('data-page');
-            
-            // Update active link in sidebar
-            sidebarLinks.forEach(link => {
-                link.parentElement.classList.remove('active');
-                if (link.getAttribute('data-page') === pageName) {
-                    link.parentElement.classList.add('active');
-                }
-            });
-            
-            // Show corresponding page
-            pages.forEach(page => {
-                page.classList.remove('active');
-                if (page.id === `${pageName}-page`) {
-                    page.classList.add('active');
-                }
-            });
-        });
-    });
-    
-    // Mobile menu toggle
-    const menuToggle = document.getElementById('menu-toggle');
-    const closeSidebar = document.getElementById('close-sidebar');
-    const sidebar = document.getElementById('sidebar');
-    
-    menuToggle.addEventListener('click', () => {
-        sidebar.classList.add('active');
-    });
-    
-    closeSidebar.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-    });
-    
-    // Profile dropdown
-    const profileDropdownTrigger = document.getElementById('profile-dropdown-trigger');
-    const profileDropdown = document.getElementById('profile-dropdown');
-    
-    profileDropdownTrigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        profileDropdown.classList.toggle('active');
-        
-        // Position dropdown
-        const rect = profileDropdownTrigger.getBoundingClientRect();
-        profileDropdown.style.top = `${rect.bottom + 10}px`;
-        profileDropdown.style.right = `${window.innerWidth - rect.right}px`;
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', () => {
-        profileDropdown.classList.remove('active');
-    });
-    
-    // Dropdown actions
-    document.getElementById('view-profile').addEventListener('click', () => {
-        // Show profile page (settings for now)
-        showPage('settings');
-    });
-    
-    document.getElementById('go-to-settings').addEventListener('click', () => {
-        showPage('settings');
-    });
-    
-    document.getElementById('dropdown-logout').addEventListener('click', () => {
-        logout();
-    });
-    
-    // Logout button
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        logout();
-    });
-    
-    // Balance actions
-    document.getElementById('refresh-balance').addEventListener('click', async () => {
-        await loadUserData();
-    });
-    
-    document.getElementById('hide-balance').addEventListener('click', () => {
-        const balanceAmount = document.getElementById('balance-amount');
-        if (balanceAmount.classList.contains('hidden-balance')) {
-            balanceAmount.textContent = `${userBalance.toLocaleString()} Ks`;
-            balanceAmount.classList.remove('hidden-balance');
-            document.querySelector('#hide-balance i').classList.remove('fa-eye');
-            document.querySelector('#hide-balance i').classList.add('fa-eye-slash');
-        } else {
-            balanceAmount.textContent = '••••••';
-            balanceAmount.classList.add('hidden-balance');
-            document.querySelector('#hide-balance i').classList.remove('fa-eye-slash');
-            document.querySelector('#hide-balance i').classList.add('fa-eye');
-        }
-    });
-    
-    // File uploads preview
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    
-    fileInputs.forEach(input => {
-        input.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const previewId = input.id.replace('-upload', '-preview');
-            const preview = document.getElementById(previewId);
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-            };
-            reader.readAsDataURL(file);
-        });
-    });
-    
-    // Theme selector
-    const themeOptions = document.querySelectorAll('.theme-option');
-    
-    themeOptions.forEach(option => {
-        if (option.getAttribute('data-theme') === currentTheme) {
-            option.classList.add('active');
-        }
-        
-        option.addEventListener('click', () => {
-            const theme = option.getAttribute('data-theme');
-            
-            // Update active option
-            themeOptions.forEach(o => o.classList.remove('active'));
-            option.classList.add('active');
-            
-            // Apply theme
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            currentTheme = theme;
-        });
-    });
-    
-    // Modal handling
-    const modals = document.querySelectorAll('.modal');
-    const modalTriggers = {
-        'change-password-btn': 'change-password-modal',
-        'change-pin-btn': 'change-pin-modal',
-        'delete-account-btn': 'delete-account-modal'
-    };
-    
-    // Open modals
-    Object.keys(modalTriggers).forEach(triggerId => {
-        const trigger = document.getElementById(triggerId);
-        const modalId = modalTriggers[triggerId];
-        
-        if (trigger) {
-            trigger.addEventListener('click', () => {
-                document.getElementById(modalId).classList.add('active');
-            });
-        }
-    });
-    
-    // Close modals
-    const modalCloseButtons = document.querySelectorAll('.modal-close, .modal-cancel');
-    
-    modalCloseButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const modal = button.closest('.modal');
-            modal.classList.remove('active');
-        });
-    });
-    
-    // Close modal when clicking outside
-    modals.forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-            }
-        });
-    });
-    
-    // PIN Input handling
-    setupPinInputs();
-    
-    // Download receipt button
-    document.getElementById('download-receipt').addEventListener('click', downloadReceipt);
-    
-    // Form submissions
-    setupFormSubmissions();
-}
-
-// Setup PIN inputs
-function setupPinInputs() {
-    const pinInputs = document.querySelectorAll('.pin-input');
-    
-    pinInputs.forEach((input, index) => {
-        // Focus next input when a digit is entered
-        input.addEventListener('input', (e) => {
-            if (e.target.value) {
-                const nextInput = pinInputs[index + 1];
-                if (nextInput) {
-                    nextInput.focus();
-                }
-            }
-        });
-        
-        // Handle backspace
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !e.target.value) {
-                const prevInput = pinInputs[index - 1];
-                if (prevInput) {
-                    prevInput.focus();
-                }
-            }
-        });
-    });
-    
-    // Confirm PIN button
-    document.getElementById('confirm-pin-btn').addEventListener('click', () => {
-        let pin = '';
-        pinInputs.forEach(input => {
-            pin += input.value;
-        });
-        
-        if (pin.length !== 6) {
-            document.getElementById('pin-error').textContent = 'PIN ၆ လုံး ထည့်ပါ';
-            document.getElementById('pin-error').style.display = 'block';
-            return;
-        }
-        
-        // Process the transfer with the entered PIN
-        processTransfer(pin);
-    });
-}
-
-// Setup form submissions
-function setupFormSubmissions() {
-    // Login form
-    const loginBtn = document.getElementById('login-btn');
-    
-    loginBtn.addEventListener('click', async () => {
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        const errorElement = document.getElementById('login-error');
-        const successElement = document.getElementById('login-success');
-        
-        // Validate inputs
-        if (!email || !password) {
-            errorElement.textContent = 'အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        try {
-            // Check if user exists
-            const { data: user, error } = await supabase
-                .from('auth_users')
-                .select('*')
-                .eq('email', email)
-                .single();
-            
-            if (error || !user) {
-                errorElement.textContent = 'အကောင့်မတွေ့ရှိပါ။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Check password
-            if (user.password !== password) {
-                errorElement.textContent = 'စကားဝှက်မှားယွင်းနေပါသည်။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Login successful
-            currentUser = user;
-            
-            // Save session
-            const sessionData = {
-                email: user.email,
-                user_id: user.user_id
-            };
-            localStorage.setItem('opperSession', JSON.stringify(sessionData));
-            
-            // Show success message
-            errorElement.style.display = 'none';
-            successElement.textContent = 'အကောင့်ဝင်ရောက်နေပါသည်...';
-            successElement.style.display = 'block';
-            
-            // Load user data and show app
-            await loadUserData();
-            showAppContainer();
-        } catch (error) {
-            console.error('Login error:', error);
-            errorElement.textContent = 'အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-        }
-    });
-    
-    // Google login
-    const googleLoginBtn = document.getElementById('google-login-btn');
-    
-    googleLoginBtn.addEventListener('click', () => {
-        // For demo purposes, we'll simulate Google login
-        simulateGoogleLogin('login');
-    });
-    
-    // Signup form
-    const signupBtn = document.getElementById('signup-btn');
-    
-    signupBtn.addEventListener('click', async () => {
-        const email = document.getElementById('signup-email').value;
-        const phone = document.getElementById('signup-phone').value;
-        const password = document.getElementById('signup-password').value;
-        const confirmPassword = document.getElementById('signup-confirm-password').value;
-        const termsAgree = document.getElementById('terms-agree').checked;
-        const errorElement = document.getElementById('signup-error');
-        const successElement = document.getElementById('signup-success');
-        
-        // Validate inputs
-        if (!email || !phone || !password || !confirmPassword) {
-            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        if (password !== confirmPassword) {
-            errorElement.textContent = 'စကားဝှက်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        if (!termsAgree) {
-            errorElement.textContent = 'စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        try {
-            // Check if email already exists
-            const { data: existingUser, error: checkError } = await supabase
-                .from('auth_users')
-                .select('email')
-                .eq('email', email)
-                .single();
-            
-            if (existingUser) {
-                errorElement.textContent = 'ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Check if phone already exists
-            const { data: existingPhone, error: phoneError } = await supabase
-                .from('users')
-                .select('phone')
-                .eq('phone', phone)
-                .single();
-            
-            if (existingPhone) {
-                errorElement.textContent = 'ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Generate user ID (based on email)
-            const userId = generateUserId(email);
-            
-            // Create auth user
-            const { data: authUser, error: authError } = await supabase
-                .from('auth_users')
-                .insert([
-                    {
-                        email,
-                        password,
-                        user_id: userId
-                    }
-                ])
-                .select()
-                .single();
-            
-            if (authError) throw authError;
-            
-            // Create user profile
-            const { data: userProfile, error: profileError } = await supabase
-                .from('users')
-                .insert([
-                    {
-                        user_id: userId,
-                        phone,
-                        balance: 0,
-                        passport_status: 'pending'
-                    }
-                ])
-                .select()
-                .single();
-            
-            if (profileError) throw profileError;
-            
-            // Signup successful
-            errorElement.style.display = 'none';
-            successElement.textContent = 'အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။';
-            successElement.style.display = 'block';
-            
-            // Clear form
-            document.getElementById('signup-email').value = '';
-            document.getElementById('signup-phone').value = '';
-            document.getElementById('signup-password').value = '';
-            document.getElementById('signup-confirm-password').value = '';
-            document.getElementById('terms-agree').checked = false;
-            
-            // Switch to login tab after a delay
-            setTimeout(() => {
-                document.querySelector('.auth-tab[data-tab="login"]').click();
-            }, 2000);
-        } catch (error) {
-            console.error('Signup error:', error);
-            errorElement.textContent = 'အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-        }
-    });
-    
-    // Google signup
-    const googleSignupBtn = document.getElementById('google-signup-btn');
-    
-    googleSignupBtn.addEventListener('click', () => {
-        // For demo purposes, we'll simulate Google signup
-        simulateGoogleLogin('signup');
-    });
-    
-    // Transfer form
-    const transferBtn = document.getElementById('transfer-btn');
-    
-    transferBtn.addEventListener('click', async () => {
-        const phone = document.getElementById('transfer-phone').value;
-        const amount = parseInt(document.getElementById('transfer-amount').value);
-        const note = document.getElementById('transfer-note').value;
-        const errorElement = document.getElementById('transfer-error');
-        const successElement = document.getElementById('transfer-success');
-        
-        // Validate inputs
-        if (!phone || !amount) {
-            errorElement.textContent = 'ဖုန်းနံပါတ်နှင့် ငွေပမာဏ ထည့်ပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        if (amount < 1000) {
-            errorElement.textContent = 'ငွေပမာဏ အနည်းဆုံး 1,000 Ks ဖြစ်ရပါမည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        try {
-            // Check if transfers are enabled
-            if (!transfersEnabled) {
-                errorElement.textContent = 'ငွေလွှဲခြင်းကို ယာယီပိတ်ထားပါသည်။ နောက်မှ ပြန်လည်ကြိုးစားပါ။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Check if user has KYC approved
-            if (userKycStatus !== 'approved') {
-                errorElement.textContent = 'ငွေလွှဲရန် KYC အတည်ပြုရန် လိုအပ်ပါသည်။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Check balance
-            if (userBalance < amount) {
-                errorElement.textContent = 'လက်ကျန်ငွေ မလုံလောက်ပါ။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Check if recipient exists
-            const { data: userData } = await supabase
-                .from('users')
-                .select('phone')
-                .eq('user_id', currentUser.user_id)
-                .single();
-                
-            if (userData.phone === phone) {
-                errorElement.textContent = 'ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Check if recipient account exists
-            const { data: recipient, error: recipientError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('phone', phone)
-                .single();
-                
-            if (recipientError || !recipient) {
-                console.log('No account found for phone number:', phone);
-                errorElement.textContent = 'လက်ခံမည့်သူ မတွေ့ရှိပါ။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            console.log('Account found:', recipient);
-            
-            // Clear any previous errors
-            errorElement.style.display = 'none';
-            
-            // Show PIN entry modal
-            showPinEntryModal();
-        } catch (error) {
-            console.error('Transfer validation error:', error);
-            errorElement.textContent = 'ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-        }
-    });
-    
-    // KYC form
-    const kycSubmitBtn = document.getElementById('kyc-submit-btn');
-    
-    kycSubmitBtn.addEventListener('click', async () => {
-        const passportNumber = document.getElementById('kyc-passport').value;
-        const address = document.getElementById('kyc-address').value;
-        const pin = document.getElementById('kyc-pin').value;
-        const confirmPin = document.getElementById('kyc-confirm-pin').value;
-        const passportFile = document.getElementById('passport-upload').files[0];
-        const selfieFile = document.getElementById('selfie-upload').files[0];
-        const errorElement = document.getElementById('kyc-error');
-        const successElement = document.getElementById('kyc-success');
-        
-        // Validate inputs
-        if (!passportNumber || !address || !pin || !confirmPin || !passportFile || !selfieFile) {
-            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        if (pin !== confirmPin) {
-            errorElement.textContent = 'PIN နှင့် အတည်ပြု PIN မတူညီပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        if (pin.length !== 6 || !/^\d+$/.test(pin)) {
-            errorElement.textContent = 'PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        try {
-            // Upload passport image
-            const passportFileName = `passport_${currentUser.user_id}_${Date.now()}`;
-            const { data: passportData, error: passportError } = await supabase.storage
-                .from('kyc-documents')
-                .upload(passportFileName, passportFile);
-            
-            if (passportError) throw passportError;
-            
-            // Get passport URL
-            const { data: passportUrl } = await supabase.storage
-                .from('kyc-documents')
-                .getPublicUrl(passportFileName);
-            
-            // Upload selfie image
-            const selfieFileName = `selfie_${currentUser.user_id}_${Date.now()}`;
-            const { data: selfieData, error: selfieError } = await supabase.storage
-                .from('kyc-documents')
-                .upload(selfieFileName, selfieFile);
-            
-            if (selfieError) throw selfieError;
-            
-            // Get selfie URL
-            const { data: selfieUrl } = await supabase.storage
-                .from('kyc-documents')
-                .getPublicUrl(selfieFileName);
-            
-            // Update user profile
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({
-                    passport_number: passportNumber,
-                    address,
-                    payment_pin: pin,
-                    passport_image: passportUrl.publicUrl,
-                    selfie_image: selfieUrl.publicUrl,
-                    passport_status: 'pending',
-                    submitted_at: new Date().toISOString()
-                })
-                .eq('user_id', currentUser.user_id);
-            
-            if (updateError) throw updateError;
-            
-            // KYC submission successful
-            errorElement.style.display = 'none';
-            successElement.textContent = 'KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။';
-            successElement.style.display = 'block';
-            
-            // Update KYC status
-            userKycStatus = 'pending';
-            updateKycStatus();
-            
-            // Clear form
-            document.getElementById('kyc-passport').value = '';
-            document.getElementById('kyc-address').value = '';
-            document.getElementById('kyc-pin').value = '';
-            document.getElementById('kyc-confirm-pin').value = '';
-            document.getElementById('passport-upload').value = '';
-            document.getElementById('selfie-upload').value = '';
-            document.getElementById('passport-preview').innerHTML = '';
-            document.getElementById('selfie-preview').innerHTML = '';
-        } catch (error) {
-            console.error('KYC submission error:', error);
-            errorElement.textContent = 'KYC တင်သွင်းရာတွင် အမှားရှိနေပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-        }
-    });
-    
-    // Change password form
-    const savePasswordBtn = document.getElementById('save-password-btn');
-    
-    savePasswordBtn.addEventListener('click', async () => {
-        const currentPassword = document.getElementById('current-password').value;
-        const newPassword = document.getElementById('new-password').value;
-        const confirmNewPassword = document.getElementById('confirm-new-password').value;
-        const errorElement = document.getElementById('change-password-error');
-        const successElement = document.getElementById('change-password-success');
-        
-        // Validate inputs
-        if (!currentPassword || !newPassword || !confirmNewPassword) {
-            errorElement.textContent = 'အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        if (newPassword !== confirmNewPassword) {
-            errorElement.textContent = 'စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        try {
-            // Check current password
-            const { data: user, error } = await supabase
-                .from('auth_users')
-                .select('password')
-                .eq('user_id', currentUser.user_id)
-                .single();
-            
-            if (error) throw error;
-            
-            if (user.password !== currentPassword) {
-                errorElement.textContent = 'လက်ရှိစကားဝှက် မှားယွင်းနေပါသည်။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
-                return;
-            }
-            
-            // Update password
-            const { error: updateError } = await supabase
-                .from('auth_users')
-                .update({ password: newPassword })
-                .eq('user_id', currentUser.user_id);
-            
-            if (updateError) throw updateError;
-            
-            // Password change successful
-            errorElement.style.display = 'none';
-            successElement.textContent = 'စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။';
-            successElement.style.display = 'block';
-            
-            // Clear form
-            document.getElementById('current-password').value = '';
-            document.getElementById('new-password').value = '';
-            document.getElementById('confirm-new-password').value = '';
-            
-            // Close modal after a delay
-            setTimeout(() => {
-                document.getElementById('change-password-modal').classList.remove('active');
-            }, 2000);
-        } catch (error) {
-            console.error('Change password error:', error);
-            errorElement.textContent = 'စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-        }
-    });
-}
-
-// Show PIN entry modal
-function showPinEntryModal() {
-    // Clear previous PIN inputs
-    document.querySelectorAll('.pin-input').forEach(input => {
-        input.value = '';
-    });
-    
-    // Clear error message
-    document.getElementById('pin-error').style.display = 'none';
-    
-    // Show modal
-    pinEntryModal.classList.add('active');
-    
-    // Focus first input
-    document.querySelector('.pin-input').focus();
-}
-
-// Process transfer with PIN
-async function processTransfer(pin) {
-    const phone = document.getElementById('transfer-phone').value;
-    const amount = parseInt(document.getElementById('transfer-amount').value);
-    const note = document.getElementById('transfer-note').value;
-    const errorElement = document.getElementById('transfer-error');
-    const successElement = document.getElementById('transfer-success');
-    
-    // Hide PIN modal
-    pinEntryModal.classList.remove('active');
-    
-    // Show processing overlay
-    processingOverlay.classList.add('active');
-    
-    try {
-        // Get sender's data
-        const { data: sender, error: senderError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('user_id', currentUser.user_id)
-            .single();
-        
-        if (senderError) throw senderError;
-        
-        // Check PIN
-        if (sender.payment_pin !== pin) {
-            processingOverlay.classList.remove('active');
-            errorElement.textContent = 'PIN မှားယွင်းနေပါသည်။';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
-            return;
-        }
-        
-        // Get recipient data
-        const { data: recipient, error: recipientError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('phone', phone)
-            .single();
-        
-        if (recipientError) throw recipientError;
-        
-        // Generate transaction ID
-        const transactionId = `OPPER${Math.floor(1000000 + Math.random() * 9000000)}`;
-        
-        // Create transaction
-        const { data: transaction, error: transactionError } = await supabase
-            .from('transactions')
-            .insert([
-                {
-                    id: transactionId,
-                    from_phone: sender.phone,
-                    from_name: sender.name || sender.phone,
-                    to_phone: recipient.phone,
-                    to_name: recipient.name || recipient.phone,
-                    amount,
-                    note,
-                    created_at: new Date().toISOString()
-                }
-            ])
-            .select()
-            .single();
-        
-        if (transactionError) throw transactionError;
-        
-        // Update sender's balance
-        const { error: updateSenderError } = await supabase
-            .from('users')
-            .update({ balance: sender.balance - amount })
-            .eq('user_id', sender.user_id);
-        
-        if (updateSenderError) throw updateSenderError;
-        
-        // Update recipient's balance
-        const { error: updateRecipientError } = await supabase
-            .from('users')
-            .update({ balance: recipient.balance + amount })
-            .eq('user_id', recipient.user_id);
-        
-        if (updateRecipientError) throw updateRecipientError;
-        
-        // Update local balance
-        userBalance -= amount;
-        document.getElementById('user-balance').textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
-        document.getElementById('balance-amount').textContent = `${userBalance.toLocaleString()} Ks`;
-        
-        // Simulate processing time
-        setTimeout(() => {
-            // Hide processing overlay
-            processingOverlay.classList.remove('active');
-            
-            // Show success message
-            errorElement.style.display = 'none';
-            successElement.textContent = `${amount.toLocaleString()} Ks ကို ${phone} သို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`;
-            successElement.style.display = 'block';
-            
-            // Show receipt
-            showTransactionReceipt(transaction);
-            
-            // Clear form
-            document.getElementById('transfer-phone').value = '';
-            document.getElementById('transfer-amount').value = '';
-            document.getElementById('transfer-note').value = '';
-            
-            // Refresh transactions
-            loadTransactions();
-        }, 2000);
-    } catch (error) {
-        console.error('Transfer error:', error);
-        processingOverlay.classList.remove('active');
-        errorElement.textContent = 'ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။';
-        errorElement.style.display = 'block';
-        successElement.style.display = 'none';
     }
-}
 
-// Show transaction receipt
-function showTransactionReceipt(transaction) {
-    // Get user phone
-    supabase
-        .from('users')
-        .select('phone')
-        .eq('user_id', currentUser.user_id)
-        .single()
-        .then(({ data: userData }) => {
-            if (!userData) return;
-            
-            const userPhone = userData.phone;
-            const isSender = transaction.from_phone === userPhone;
-            
-            // Create receipt HTML
-            const receiptHTML = `
-                <div class="receipt">
-                    <div class="receipt-logo">
-                        <div class="receipt-logo-circle">
-                            <span class="receipt-logo-text">OPPER</span>
-                        </div>
-                        <div class="receipt-logo-subtitle">OPPER Pay</div>
-                    </div>
-                    
-                    <div class="receipt-status">
-                        <div class="receipt-status-icon ${isSender ? 'sent' : 'received'}">
-                            <i class="fas ${isSender ? 'fa-paper-plane' : 'fa-check-circle'}"></i>
-                        </div>
-                        <div class="receipt-status-text">
-                            ${isSender ? 'ငွေပေးပို့ပြီးပါပြီ' : 'ငွေလက်ခံရရှိပါပြီ'}
-                        </div>
-                    </div>
-                    
-                    <div class="receipt-amount">
-                        <div class="receipt-amount-label">ငွေပမာဏ</div>
-                        <div class="receipt-amount-value">${transaction.amount.toLocaleString()} Ks</div>
-                    </div>
-                    
-                    <div class="receipt-details">
-                        <div class="receipt-detail-row">
-                            <div class="receipt-detail-label">From</div>
-                            <div class="receipt-detail-value">${transaction.from_name} (${transaction.from_phone})</div>
-                        </div>
-                        <div class="receipt-detail-row">
-                            <div class="receipt-detail-label">To</div>
-                            <div class="receipt-detail-value">${transaction.to_name} (${transaction.to_phone})</div>
-                        </div>
-                        ${transaction.note ? `
-                        <div class="receipt-detail-row">
-                            <div class="receipt-detail-label">Note</div>
-                            <div class="receipt-detail-value">${transaction.note}</div>
-                        </div>
-                        ` : ''}
-                        <div class="receipt-detail-row">
-                            <div class="receipt-detail-label">Date</div>
-                            <div class="receipt-detail-value">${new Date(transaction.created_at).toLocaleString()}</div>
-                        </div>
-                        <div class="receipt-detail-row">
-                            <div class="receipt-detail-label">Payment Method</div>
-                            <div class="receipt-detail-value">OPPER Pay</div>
-                        </div>
-                    </div>
-                    
-                    <div class="receipt-transaction-id">
-                        <div class="receipt-transaction-id-label">ငွေလွှဲလုပ်ဆောင်ချက်အမှတ်စဥ်</div>
-                        <div class="receipt-transaction-id-value">${transaction.id}</div>
-                    </div>
-                    
-                    <div class="receipt-footer">
-                        OPPER Payment ကိုအသုံးပြုသည့်အတွက် ကျေးဇူးတင်ပါသည်
-                    </div>
+    filterTransactions() {
+        const typeFilter = document.getElementById('history-type')?.value;
+        const dateFilter = document.getElementById('history-date')?.value;
+        
+        let filteredTransactions = [...this.transactions];
+        
+        if (typeFilter && typeFilter !== 'all') {
+            filteredTransactions = filteredTransactions.filter(t => t.type === typeFilter);
+        }
+        
+        if (dateFilter && dateFilter !== 'all') {
+            const now = new Date();
+            filteredTransactions = filteredTransactions.filter(t => {
+                const transactionDate = new Date(t.date);
+                switch (dateFilter) {
+                    case 'today':
+                        return transactionDate.toDateString() === now.toDateString();
+                    case 'week':
+                        const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+                        return transactionDate >= weekAgo;
+                    case 'month':
+                        return transactionDate.getMonth() === now.getMonth() && 
+                               transactionDate.getFullYear() === now.getFullYear();
+                    default:
+                        return true;
+                }
+            });
+        }
+        
+        this.renderFilteredTransactions(filteredTransactions);
+    }
+
+    renderFilteredTransactions(transactions) {
+        const container = document.getElementById('history-transactions-list');
+        if (!container) return;
+
+        if (transactions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <p>ရှာဖွေမှုနှင့်ကိုက်ညီသော မှတ်တမ်းမရှိပါ</p>
                 </div>
             `;
-            
-            // Set receipt content
-            document.getElementById('receipt-container').innerHTML = receiptHTML;
-            
-            // Show receipt modal
-            receiptModal.classList.add('active');
-        });
-}
+            return;
+        }
 
-// Download receipt as PNG
-function downloadReceipt() {
-    const receiptElement = document.getElementById('receipt-container');
-    
-    if (!receiptElement) return;
-    
-    // Use html2canvas to convert receipt to image
-    html2canvas(receiptElement).then(canvas => {
-        // Create download link
-        const link = document.createElement('a');
-        link.download = `OPPER-Receipt-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    });
-}
+        container.innerHTML = transactions.map(transaction => 
+            this.createTransactionHTML(transaction)
+        ).join('');
+    }
 
-// Simulate Google login/signup
-function simulateGoogleLogin(type) {
-    // For demo purposes, we'll use a mock Google account
-    const googleEmail = 'user@gmail.com';
-    const googleName = 'User';
-    
-    if (type === 'login') {
-        // Check if account exists
-        supabase
-            .from('auth_users')
-            .select('*')
-            .eq('email', googleEmail)
-            .single()
-            .then(({ data: user, error }) => {
-                if (error || !user) {
-                    // No account found, show error
-                    const errorElement = document.getElementById('login-error');
-                    errorElement.textContent = 'Google အကောင့်ဖြင့် အကောင့်မတွေ့ရှိပါ။ အကောင့်ဖွင့်ပါ။';
-                    errorElement.style.display = 'block';
-                    return;
-                }
-                
-                // Login successful
-                currentUser = user;
-                
-                // Save session
-                const sessionData = {
-                    email: user.email,
-                    user_id: user.user_id
+    loadKYCStatus() {
+        const statusCard = document.getElementById('kyc-status-card');
+        const statusIcon = statusCard?.querySelector('.kyc-status-icon');
+        const statusMessage = document.getElementById('kyc-status-message');
+        
+        if (this.currentUser) {
+            const status = this.currentUser.kycStatus || 'pending';
+            
+            if (statusIcon) {
+                statusIcon.className = `kyc-status-icon ${status}`;
+            }
+            
+            if (statusMessage) {
+                const messages = {
+                    'pending': 'စောင့်ဆိုင်းဆဲ',
+                    'approved': 'အတည်ပြုပြီး',
+                    'rejected': 'ငြင်းပယ်ခံရသည်'
                 };
-                localStorage.setItem('opperSession', JSON.stringify(sessionData));
-                
-                // Show success message
-                const successElement = document.getElementById('login-success');
-                successElement.textContent = 'Google ဖြင့် အကောင့်ဝင်ရောက်နေပါသည်...';
-                successElement.style.display = 'block';
-                
-                // Load user data and show app
-                loadUserData().then(() => {
-                    showAppContainer();
-                });
-            });
-    } else if (type === 'signup') {
-        // Check if account already exists
-        supabase
-            .from('auth_users')
-            .select('email')
-            .eq('email', googleEmail)
-            .single()
-            .then(({ data: existingUser, error: checkError }) => {
-                if (existingUser) {
-                    // Account already exists
-                    const errorElement = document.getElementById('signup-error');
-                    errorElement.textContent = 'ဤ Google အကောင့်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။';
-                    errorElement.style.display = 'block';
-                    return;
+                statusMessage.textContent = messages[status];
+            }
+        }
+    }
+
+    async handleKYCSubmit() {
+        const passport = document.getElementById('kyc-passport')?.value;
+        const address = document.getElementById('kyc-address')?.value;
+        const pin = document.getElementById('kyc-pin')?.value;
+        const confirmPin = document.getElementById('kyc-confirm-pin')?.value;
+        const passportFile = document.getElementById('passport-upload')?.files[0];
+        const selfieFile = document.getElementById('selfie-upload')?.files[0];
+
+        if (!this.validateKYCForm(passport, address, pin, confirmPin, passportFile, selfieFile)) {
+            return;
+        }
+
+        this.showLoader('Submitting KYC documents...');
+        
+        try {
+            await this.delay(3000);
+            
+            this.currentUser.kycStatus = 'pending';
+            localStorage.setItem('opperUser', JSON.stringify(this.currentUser));
+            
+            this.showSuccessMessage('kyc-success', 'KYC documents submitted successfully!');
+            this.loadKYCStatus();
+            
+            this.logMessage('KYC submission successful', 'success');
+            
+        } catch (error) {
+            this.showErrorMessage('kyc-error', 'KYC submission failed. Please try again.');
+            this.logMessage(`KYC submission failed: ${error.message}`, 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    validateKYCForm(passport, address, pin, confirmPin, passportFile, selfieFile) {
+        let isValid = true;
+
+        if (!passport || passport.length < 6) {
+            this.showFieldError('kyc-passport', 'Invalid passport number');
+            isValid = false;
+        }
+
+        if (!address || address.length < 10) {
+            this.showFieldError('kyc-address', 'Address too short');
+            isValid = false;
+        }
+
+        if (!pin || pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+            this.showFieldError('kyc-pin', 'PIN must be 6 digits');
+            isValid = false;
+        }
+
+        if (pin !== confirmPin) {
+            this.showFieldError('kyc-confirm-pin', 'PINs do not match');
+            isValid = false;
+        }
+
+        if (!passportFile) {
+            this.showErrorMessage('kyc-error', 'Please upload passport photo');
+            isValid = false;
+        }
+
+        if (!selfieFile) {
+            this.showErrorMessage('kyc-error', 'Please upload selfie photo');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    handleFileUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const previewId = input.id.replace('-upload', '-preview');
+        const preview = document.getElementById(previewId);
+        const label = input.parentNode.querySelector('.file-upload-label span');
+        const progress = input.parentNode.querySelector('.upload-progress');
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (preview) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    preview.style.display = 'block';
                 }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        if (label) {
+            label.textContent = file.name;
+        }
+
+        // Simulate upload progress
+        if (progress) {
+            let width = 0;
+            const interval = setInterval(() => {
+                width += Math.random() * 30;
+                progress.style.width = Math.min(width, 100) + '%';
                 
-                // Generate user ID
-                const userId = generateUserId(googleEmail);
-                
-                // Create auth user
-                supabase
-                    .from('auth_users')
-                    .insert([
-                        {
-                            email: googleEmail,
-                            password: 'google-auth', // Special password for Google auth
-                            user_id: userId
-                        }
-                    ])
-                    .select()
-                    .single()
-                    .then(({ data: authUser, error: authError }) => {
-                        if (authError) {
-                            console.error('Google signup error:', authError);
-                            const errorElement = document.getElementById('signup-error');
-                            errorElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
-                            errorElement.style.display = 'block';
-                            return;
-                        }
-                        
-                        // Create user profile
-                        supabase
-                            .from('users')
-                            .insert([
-                                {
-                                    user_id: userId,
-                                    balance: 0,
-                                    passport_status: 'pending'
-                                }
-                            ])
-                            .then(({ error: profileError }) => {
-                                if (profileError) {
-                                    console.error('Google signup profile error:', profileError);
-                                    const errorElement = document.getElementById('signup-error');
-                                    errorElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
-                                    errorElement.style.display = 'block';
-                                    return;
-                                }
-                                
-                                // Signup successful
-                                const successElement = document.getElementById('signup-success');
-                                successElement.textContent = 'Google ဖြင့် အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။';
-                                successElement.style.display = 'block';
-                                
-                                // Switch to login tab after a delay
-                                setTimeout(() => {
-                                    document.querySelector('.auth-tab[data-tab="login"]').click();
-                                }, 2000);
-                            });
-                    });
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progress.style.width = '0%';
+                    }, 1000);
+                }
+            }, 200);
+        }
+
+        this.logMessage(`File uploaded: ${file.name}`, 'success');
+    }
+
+    loadUserSettings() {
+        if (!this.currentUser) return;
+
+        const settingsPhone = document.getElementById('settings-phone');
+        const settingsEmail = document.getElementById('settings-email');
+        
+        if (settingsPhone) settingsPhone.value = this.currentUser.phone;
+        if (settingsEmail) settingsEmail.value = this.currentUser.email;
+    }
+
+    async handlePasswordChange() {
+        const currentPassword = document.getElementById('current-password')?.value;
+        const newPassword = document.getElementById('new-password')?.value;
+        const confirmPassword = document.getElementById('confirm-new-password')?.value;
+
+        if (!this.validatePasswordChange(currentPassword, newPassword, confirmPassword)) {
+            return;
+        }
+
+        this.showLoader('Changing password...');
+        
+        try {
+            await this.delay(2000);
+            
+            this.showSuccessMessage('change-password-success', 'Password changed successfully!');
+            this.closeModal('change-password-modal');
+            
+            this.logMessage('Password changed successfully', 'success');
+            
+        } catch (error) {
+            this.showErrorMessage('change-password-error', 'Failed to change password');
+            this.logMessage(`Password change failed: ${error.message}`, 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    validatePasswordChange(current, newPass, confirm) {
+        let isValid = true;
+
+        if (!current || current.length < 6) {
+            this.showFieldError('current-password', 'Invalid current password');
+            isValid = false;
+        }
+
+        if (!new   'Invalid current password');
+            isValid = false;
+        }
+
+        if (!newPass || newPass.length < 6) {
+            this.showFieldError('new-password', 'New password too short');
+            isValid = false;
+        }
+
+        if (newPass !== confirm) {
+            this.showFieldError('confirm-new-password', 'Passwords do not match');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    async handlePINChange() {
+        const currentPIN = document.getElementById('current-pin')?.value;
+        const newPIN = document.getElementById('new-pin')?.value;
+        const confirmPIN = document.getElementById('confirm-new-pin')?.value;
+
+        if (!this.validatePINChange(currentPIN, newPIN, confirmPIN)) {
+            return;
+        }
+
+        this.showLoader('Changing PIN...');
+        
+        try {
+            await this.delay(2000);
+            
+            this.showSuccessMessage('change-pin-success', 'PIN changed successfully!');
+            this.closeModal('change-pin-modal');
+            
+            this.logMessage('PIN changed successfully', 'success');
+            
+        } catch (error) {
+            this.showErrorMessage('change-pin-error', 'Failed to change PIN');
+            this.logMessage(`PIN change failed: ${error.message}`, 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    validatePINChange(current, newPIN, confirm) {
+        let isValid = true;
+
+        if (!current || current.length !== 6 || !/^\d{6}$/.test(current)) {
+            this.showFieldError('current-pin', 'Invalid current PIN');
+            isValid = false;
+        }
+
+        if (!newPIN || newPIN.length !== 6 || !/^\d{6}$/.test(newPIN)) {
+            this.showFieldError('new-pin', 'PIN must be 6 digits');
+            isValid = false;
+        }
+
+        if (newPIN !== confirm) {
+            this.showFieldError('confirm-new-pin', 'PINs do not match');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    async handleAccountDeletion() {
+        const password = document.getElementById('delete-password')?.value;
+        const confirmDelete = document.getElementById('confirm-delete')?.checked;
+
+        if (!password || password.length < 6) {
+            this.showErrorMessage('delete-account-error', 'Please enter your password');
+            return;
+        }
+
+        if (!confirmDelete) {
+            this.showErrorMessage('delete-account-error', 'Please confirm account deletion');
+            return;
+        }
+
+        this.showLoader('Deleting account...');
+        
+        try {
+            await this.delay(3000);
+            
+            localStorage.removeItem('opperUser');
+            localStorage.removeItem('opperTransactions');
+            
+            this.logMessage('Account deleted successfully', 'warning');
+            
+            setTimeout(() => {
+                this.handleLogout();
+            }, 1000);
+            
+        } catch (error) {
+            this.showErrorMessage('delete-account-error', 'Failed to delete account');
+            this.logMessage(`Account deletion failed: ${error.message}`, 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    viewTransactionDetails(transactionId) {
+        const transaction = this.transactions.find(t => t.id === transactionId);
+        if (transaction) {
+            this.showReceiptModal(transaction);
+        }
+    }
+
+    handlePullToRefresh() {
+        if (this.currentPage === 'dashboard') {
+            this.refreshBalance();
+        } else if (this.currentPage === 'history') {
+            this.loadTransactionHistory();
+        }
+    }
+
+    focusSearch() {
+        // Focus search functionality - could be implemented later
+        this.logMessage('Search focused', 'info');
+    }
+
+    adjustConsoleForMobile() {
+        const console = document.getElementById('console-container');
+        if (console && this.isMobile) {
+            console.style.width = 'calc(100vw - 20px)';
+            console.style.right = '10px';
+            console.style.bottom = '10px';
+        }
+    }
+
+    // Initialize the application when DOM is loaded
+    static initialize() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.app = new OpperPayment();
             });
+        } else {
+            window.app = new OpperPayment();
+        }
     }
 }
 
-// Generate user ID based on email
-function generateUserId(email) {
-    // Extract username from email
-    const username = email.split('@')[0];
-    
-    // Generate random number
-    const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    
-    // Combine with timestamp
-    const timestamp = Date.now().toString().slice(-4);
-    
-    // Create user ID
-    return `${username.slice(0, 4)}${randomNum}${timestamp}`;
-}
+// Auto-initialize the application
+OpperPayment.initialize();
 
-// Show specific page
-function showPage(pageName) {
-    // Update active link in sidebar
-    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
-    sidebarLinks.forEach(link => {
-        link.parentElement.classList.remove('active');
-        if (link.getAttribute('data-page') === pageName) {
-            link.parentElement.classList.add('active');
-        }
-    });
+// Add some global utility functions for button interactions
+function addRippleEffect(event) {
+    const button = event.currentTarget;
+    const ripple = button.querySelector('.btn-ripple');
     
-    // Show corresponding page
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-        page.classList.remove('active');
-        if (page.id === `${pageName}-page`) {
-            page.classList.add('active');
-        }
-    });
-    
-    // Close dropdown
-    document.getElementById('profile-dropdown').classList.remove('active');
-    
-    // Close sidebar on mobile
-    if (window.innerWidth < 992) {
-        document.getElementById('sidebar').classList.remove('active');
+    if (ripple) {
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = event.clientX - rect.left - size / 2;
+        const y = event.clientY - rect.top - size / 2;
+        
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
     }
 }
 
-// Logout function
-function logout() {
-    // Clear session
-    localStorage.removeItem('opperSession');
-    currentUser = null;
-    
-    // Show auth container
-    showAuthContainer();
+// Add ripple effect to all buttons
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', addRippleEffect);
+    });
+});
+
+// Add touch feedback for mobile devices
+if ('ontouchstart' in window) {
+    document.addEventListener('touchstart', (e) => {
+        if (e.target.classList.contains('btn') || e.target.closest('.btn')) {
+            e.target.style.transform = 'scale(0.95)';
+        }
+    });
+
+    document.addEventListener('touchend', (e) => {
+        if (e.target.classList.contains('btn') || e.target.closest('.btn')) {
+            setTimeout(() => {
+                e.target.style.transform = '';
+            }, 150);
+        }
+    });
 }
 
-// Show loader
-function showLoader() {
-    loader.classList.add('active');
+// Service Worker Registration for PWA capabilities
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+                console.log('SW registration failed: ', registrationError);
+            });
+    });
 }
 
-// Hide loader
-function hideLoader() {
-    loader.classList.remove('active');
+// Handle online/offline status
+window.addEventListener('online', () => {
+    if (window.app) {
+        window.app.logMessage('Connection restored', 'success');
+    }
+});
+
+window.addEventListener('offline', () => {
+    if (window.app) {
+        window.app.logMessage('Connection lost - working offline', 'warning');
+    }
+});
+
+// Prevent right-click context menu on production
+if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    });
 }
 
-// Show auth container
-function showAuthContainer() {
-    authContainer.classList.remove('hidden');
-    appContainer.classList.add('hidden');
+// Prevent text selection on certain elements
+document.addEventListener('selectstart', (e) => {
+    if (e.target.closest('.btn, .action-card, .sidebar-nav')) {
+        e.preventDefault();
+    }
+});
+
+// Enhanced error handling
+window.addEventListener('error', (e) => {
+    if (window.app) {
+        window.app.logMessage(`Error: ${e.message}`, 'error');
+    }
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+    if (window.app) {
+        window.app.logMessage(`Unhandled Promise: ${e.reason}`, 'error');
+    }
+});
+
+// Auto-save form data to prevent loss
+let formSaveTimeout;
+document.addEventListener('input', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        clearTimeout(formSaveTimeout);
+        formSaveTimeout = setTimeout(() => {
+            const formData = {};
+            const form = e.target.closest('form') || e.target.closest('.auth-form, .transfer-form, .kyc-form');
+            if (form) {
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    if (input.type !== 'password' && input.type !== 'file') {
+                        formData[input.id] = input.value;
+                    }
+                });
+                sessionStorage.setItem('opperFormData', JSON.stringify(formData));
+            }
+        }, 1000);
+    }
+});
+
+// Restore form data on page load
+window.addEventListener('load', () => {
+    const savedFormData = sessionStorage.getItem('opperFormData');
+    if (savedFormData) {
+        try {
+            const formData = JSON.parse(savedFormData);
+            Object.keys(formData).forEach(id => {
+                const input = document.getElementById(id);
+                if (input && input.type !== 'password') {
+                    input.value = formData[id];
+                }
+            });
+        } catch (e) {
+            // Silently fail if data is corrupted
+        }
+    }
+});
+
+// Performance monitoring
+if ('performance' in window) {
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const perfData = performance.getEntriesByType('navigation')[0];
+            if (window.app && perfData) {
+                window.app.logMessage(`Page loaded in ${Math.round(perfData.loadEventEnd - perfData.fetchStart)}ms`, 'info');
+            }
+        }, 0);
+    });
 }
 
-// Show app container
-function showAppContainer() {
-    authContainer.classList.add('hidden');
-    appContainer.classList.remove('hidden');
-}
+This generation may require the following integrations: 
+<AddIntegration names={["supabase"]} />
+
