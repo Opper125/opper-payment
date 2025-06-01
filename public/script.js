@@ -20,7 +20,6 @@ const appContainer = document.getElementById("app-container")
 const pinEntryModal = document.getElementById("pin-entry-modal")
 const receiptModal = document.getElementById("receipt-modal")
 const processingOverlay = document.getElementById("processing-overlay")
-const autoSaveReceiptToggle = document.getElementById("auto-save-receipt-toggle") // Corrected ID
 
 // Audio Elements
 const transferSentSound = document.getElementById("transfer-sent-sound")
@@ -145,8 +144,10 @@ function updateUserUI(userData) {
   document.getElementById("settings-phone").value = userData.phone || ""
   document.getElementById("settings-email").value = currentUser.email || ""
 
-  if (autoSaveReceiptToggle) {
-    autoSaveReceiptToggle.checked = autoSaveReceipt
+  // Update auto-save receipt toggle
+  const autoSaveToggle = document.getElementById("auto-save-receipt")
+  if (autoSaveToggle) {
+    autoSaveToggle.checked = autoSaveReceipt
   }
 }
 
@@ -406,7 +407,7 @@ function updateTransactionsUI(transactionsData, userPhone) {
                 </div>
                 <div class="transaction-details">
                     <div class="transaction-title">
-                        ${isSender ? "ပို့ထားသော" : "လက်ခံရရှိသေးပါ"}
+                        ${isSender ? "ပို့ထားသော" : "လက်ခံရရှိသော"}
                     </div>
                     <div class="transaction-subtitle">
                         ${otherParty} ${transaction.note ? `- ${transaction.note}` : ""}
@@ -687,15 +688,18 @@ function initializeUI() {
     downloadReceipt()
   })
 
-  if (autoSaveReceiptToggle) {
-    autoSaveReceiptToggle.checked = autoSaveReceipt
-    autoSaveReceiptToggle.addEventListener("change", (e) => {
+  // Auto-save receipt toggle
+  const autoSaveToggle = document.getElementById("auto-save-receipt")
+  if (autoSaveToggle) {
+    autoSaveToggle.checked = autoSaveReceipt
+    autoSaveToggle.addEventListener("change", (e) => {
       playClickSound()
       autoSaveReceipt = e.target.checked
       localStorage.setItem("autoSaveReceipt", autoSaveReceipt.toString())
     })
   }
 
+  // Add click sound to all clickable elements
   document
     .querySelectorAll(
       ".clickable, .btn, .auth-tab, .sidebar-nav a, .action-card, .toggle-password, .modal-close, .modal-cancel, .theme-option, .transaction-view-btn, #refresh-balance, #hide-balance, #download-receipt, #profile-dropdown-trigger, .dropdown-item, #menu-toggle, #close-sidebar",
@@ -1046,8 +1050,186 @@ function setupFormSubmissions() {
   if (savePasswordBtn)
     savePasswordBtn.addEventListener("click", async () => {
       playClickSound()
-      // ... (existing change password logic, ensure elements exist)
-      // For brevity, assuming this logic is correct from original
+      const currentPassword = document.getElementById("current-password").value
+      const newPassword = document.getElementById("new-password").value
+      const confirmNewPassword = document.getElementById("confirm-new-password").value
+      const errorElement = document.getElementById("change-password-error")
+      const successElement = document.getElementById("change-password-success")
+
+      if (!currentPassword || !newPassword || !confirmNewPassword) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (newPassword !== confirmNewPassword) {
+        errorElement.textContent = "စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      try {
+        const { data: user, error } = await supabase
+          .from("auth_users")
+          .select("password")
+          .eq("user_id", currentUser.user_id)
+          .single()
+
+        if (error) throw error
+
+        if (user.password !== currentPassword) {
+          errorElement.textContent = "လက်ရှိစကားဝှက် မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
+
+        const { error: updateError } = await supabase
+          .from("auth_users")
+          .update({ password: newPassword })
+          .eq("user_id", currentUser.user_id)
+
+        if (updateError) throw updateError
+
+        errorElement.style.display = "none"
+        successElement.textContent = "စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
+        successElement.style.display = "block"
+
+        document.getElementById("current-password").value = ""
+        document.getElementById("new-password").value = ""
+        document.getElementById("confirm-new-password").value = ""
+
+        setTimeout(() => {
+          document.getElementById("change-password-modal").classList.remove("active")
+        }, 2000)
+      } catch (error) {
+        console.error("Change password error:", error)
+        errorElement.textContent = "စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+      }
+    })
+
+  const savePinBtn = document.getElementById("save-pin-btn")
+  if (savePinBtn)
+    savePinBtn.addEventListener("click", async () => {
+      playClickSound()
+      const currentPin = document.getElementById("current-pin").value
+      const newPin = document.getElementById("new-pin").value
+      const confirmNewPin = document.getElementById("confirm-new-pin").value
+      const errorElement = document.getElementById("change-pin-error")
+      const successElement = document.getElementById("change-pin-success")
+
+      if (!currentPin || !newPin || !confirmNewPin) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (newPin !== confirmNewPin) {
+        errorElement.textContent = "PIN အသစ်နှင့် အတည်ပြု PIN မတူညီပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (newPin.length !== 6 || !/^\d+$/.test(newPin)) {
+        errorElement.textContent = "PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      try {
+        const { data: user, error } = await supabase
+          .from("users")
+          .select("payment_pin")
+          .eq("user_id", currentUser.user_id)
+          .single()
+
+        if (error) throw error
+
+        if (user.payment_pin !== currentPin) {
+          errorElement.textContent = "လက်ရှိ PIN မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
+
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({ payment_pin: newPin })
+          .eq("user_id", currentUser.user_id)
+
+        if (updateError) throw updateError
+
+        errorElement.style.display = "none"
+        successElement.textContent = "PIN အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
+        successElement.style.display = "block"
+
+        document.getElementById("current-pin").value = ""
+        document.getElementById("new-pin").value = ""
+        document.getElementById("confirm-new-pin").value = ""
+
+        setTimeout(() => {
+          document.getElementById("change-pin-modal").classList.remove("active")
+        }, 2000)
+      } catch (error) {
+        console.error("Change PIN error:", error)
+        errorElement.textContent = "PIN ပြောင်းရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+      }
+    })
+
+  const confirmDeleteBtn = document.getElementById("confirm-delete-btn")
+  if (confirmDeleteBtn)
+    confirmDeleteBtn.addEventListener("click", async () => {
+      playClickSound()
+      const deletePassword = document.getElementById("delete-password").value
+      const confirmDelete = document.getElementById("confirm-delete").checked
+      const errorElement = document.getElementById("delete-account-error")
+
+      if (!deletePassword || !confirmDelete) {
+        errorElement.textContent = "စကားဝှက်ထည့်၍ အတည်ပြုပါ။"
+        errorElement.style.display = "block"
+        return
+      }
+
+      try {
+        const { data: user, error } = await supabase
+          .from("auth_users")
+          .select("password")
+          .eq("user_id", currentUser.user_id)
+          .single()
+
+        if (error) throw error
+
+        if (user.password !== deletePassword) {
+          errorElement.textContent = "စကားဝှက် မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          return
+        }
+
+        // Delete user data
+        await supabase.from("users").delete().eq("user_id", currentUser.user_id)
+        await supabase.from("auth_users").delete().eq("user_id", currentUser.user_id)
+
+        // Clear session and redirect
+        localStorage.removeItem("opperSession")
+        currentUser = null
+        showAuthContainer()
+        document.getElementById("delete-account-modal").classList.remove("active")
+
+        // Show success message
+        const loginSuccess = document.getElementById("login-success")
+        loginSuccess.textContent = "အကောင့်ဖျက်ပြီးပါပြီ။"
+        loginSuccess.style.display = "block"
+      } catch (error) {
+        console.error("Delete account error:", error)
+        errorElement.textContent = "အကောင့်ဖျက်ရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+      }
     })
 }
 
@@ -1368,10 +1550,10 @@ function showAuthContainer() {
   // Reset forms in auth container
   document.getElementById("login-form")?.reset()
   document.getElementById("signup-form")?.reset()
-  document.getElementById("login-error")?.style.display = "none"
-  document.getElementById("login-success")?.style.display = "none"
-  document.getElementById("signup-error")?.style.display = "none"
-  document.getElementById("signup-success")?.style.display = "none"
+  document.getElementById("login-error")?.style.setProperty("display", "none")
+  document.getElementById("login-success")?.style.setProperty("display", "none")
+  document.getElementById("signup-error")?.style.setProperty("display", "none")
+  document.getElementById("signup-success")?.style.setProperty("display", "none")
 }
 function showAppContainer() {
   if (authContainer) authContainer.classList.add("hidden")
@@ -1380,4 +1562,5 @@ function showAppContainer() {
 
 // Initial theme setup
 document.body.setAttribute("data-theme", currentTheme)
-if (autoSaveReceiptToggle) autoSaveReceiptToggle.checked = autoSaveReceipt
+const autoSaveToggle = document.getElementById("auto-save-receipt")
+if (autoSaveToggle) autoSaveToggle.checked = autoSaveReceipt
