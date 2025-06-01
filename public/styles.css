@@ -35,11 +35,11 @@
   --text-primary: #ffffff;
   --text-secondary: #a0aec0;
   --text-muted: #718096;
-  --text-dark: #1a202c;
+  --text-dark: #1a202c; /* Used for text on primary background */
 
   /* Enhanced Background Colors */
-  --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --bg-secondary: #1a202c;
+  --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Default for dark theme body */
+  --bg-secondary: #1a202c; /* Default for dark theme elements */
   --bg-glass: rgba(255, 255, 255, 0.12);
   --bg-glass-dark: rgba(0, 0, 0, 0.25);
   --bg-card: rgba(255, 255, 255, 0.08);
@@ -94,19 +94,21 @@
   --mobile-vh: calc(var(--vh, 1vh) * 100);
 }
 
-/* Enhanced Dark Theme for Mobile */
-[data-theme="dark"] {
+/* Enhanced Dark Theme (Default) */
+body[data-theme="dark"] {
   --bg-primary: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
   --bg-secondary: #0d1117;
   --bg-card: rgba(255, 255, 255, 0.05);
   --bg-glass: rgba(255, 255, 255, 0.1);
   --text-primary: #f7fafc;
   --text-secondary: #e2e8f0;
+  --text-muted: #a0aec0; /* Ensure muted text is visible */
   --border-color: rgba(255, 255, 255, 0.1);
+  --text-dark: #f7fafc; /* Text on primary buttons in dark mode */
 }
 
-/* Enhanced Light Theme for Mobile */
-[data-theme="light"] {
+/* Enhanced Light Theme */
+body[data-theme="light"] {
   --bg-primary: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
   --bg-secondary: #ffffff;
   --bg-card: rgba(0, 0, 0, 0.03);
@@ -118,6 +120,7 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.15);
+  --text-dark: #ffffff; /* Text on primary buttons in light mode */
 }
 
 /* Enhanced Reset & Base Styles for Mobile */
@@ -141,8 +144,8 @@ html {
 
 body {
   font-family: "Inter", "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: var(--bg-primary); /* Applied from theme */
+  color: var(--text-primary); /* Applied from theme */
   line-height: 1.6;
   overflow-x: hidden;
   min-height: var(--mobile-vh);
@@ -193,7 +196,7 @@ body {
   left: 0;
   width: 100%;
   height: var(--mobile-vh);
-  background: var(--bg-primary);
+  background: var(--bg-primary); /* Use theme-aware background */
   z-index: 10000;
   display: flex;
   justify-content: center;
@@ -422,6 +425,145 @@ body {
   }
   75% {
     transform: translate(-20px, -15px) scale(1.02);
+  }
+}
+
+/* Floating particles and geometric shapes from original CSS */
+.floating-particles .particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: float-particle 15s infinite ease-in-out;
+  opacity: 0;
+}
+.floating-particles .particle:nth-child(1) {
+  width: 5px;
+  height: 5px;
+  left: 10%;
+  animation-delay: 0s;
+}
+.floating-particles .particle:nth-child(2) {
+  width: 8px;
+  height: 8px;
+  left: 25%;
+  animation-delay: -2s;
+}
+.floating-particles .particle:nth-child(3) {
+  width: 3px;
+  height: 3px;
+  left: 40%;
+  animation-delay: -4s;
+}
+.floating-particles .particle:nth-child(4) {
+  width: 6px;
+  height: 6px;
+  left: 55%;
+  animation-delay: -6s;
+}
+.floating-particles .particle:nth-child(5) {
+  width: 4px;
+  height: 4px;
+  left: 70%;
+  animation-delay: -8s;
+}
+.floating-particles .particle:nth-child(6) {
+  width: 7px;
+  height: 7px;
+  left: 85%;
+  animation-delay: -10s;
+}
+.floating-particles .particle:nth-child(7) {
+  width: 5px;
+  height: 5px;
+  left: 20%;
+  animation-delay: -5s;
+}
+.floating-particles .particle:nth-child(8) {
+  width: 3px;
+  height: 3px;
+  left: 75%;
+  animation-delay: -12s;
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(100vh) translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(50vh) translateX(20px) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(0vh) translateX(-20px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.geometric-shapes .shape {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: rotate-shape 20s infinite linear;
+  opacity: 0.3;
+}
+.geometric-shapes .triangle {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 35px solid rgba(255, 255, 255, 0.1);
+  top: 15%;
+  left: 10%;
+}
+.geometric-shapes .hexagon {
+  width: 30px;
+  height: 17.32px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  top: 70%;
+  left: 80%;
+  margin: 8.66px 0;
+}
+.geometric-shapes .hexagon::before,
+.geometric-shapes .hexagon::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+}
+.geometric-shapes .hexagon::before {
+  bottom: 100%;
+  border-bottom: 8.66px solid rgba(255, 255, 255, 0.1);
+}
+.geometric-shapes .hexagon::after {
+  top: 100%;
+  width: 0;
+  border-top: 8.66px solid rgba(255, 255, 255, 0.1);
+}
+.geometric-shapes .diamond {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(45deg);
+  top: 40%;
+  left: 60%;
+}
+.geometric-shapes .circle {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  top: 80%;
+  left: 20%;
+}
+
+@keyframes rotate-shape {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.1);
   }
 }
 
@@ -755,11 +897,12 @@ body {
 }
 
 .auth-tab.active {
-  color: var(--text-dark);
+  color: var(--text-dark); /* Text color for active tab */
 }
 
-.auth-tab:nth-child(3).active ~ .tab-indicator {
-  transform: translateX(100%);
+/* This rule needs to be specific to the second tab when active */
+.auth-tab[data-tab="signup"].active ~ .tab-indicator {
+  transform: translateX(calc(100% + 4px)); /* Adjust based on gap/padding */
 }
 
 /* Enhanced Form Styles for Mobile */
@@ -797,10 +940,11 @@ label {
 
 .input-with-icon {
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* To contain focus line */
 }
 
-.input-with-icon i {
+.input-with-icon i:not(.toggle-password) {
+  /* Exclude toggle password icon from this styling */
   position: absolute;
   left: 16px;
   top: 50%;
@@ -808,12 +952,12 @@ label {
   color: var(--text-secondary);
   font-size: 16px;
   transition: var(--transition-normal);
-  z-index: 2;
+  z-index: 2; /* Ensure icon is above input background */
 }
 
 .input-with-icon input {
   width: 100%;
-  padding: 16px 16px 16px 48px;
+  padding: 16px 16px 16px 48px; /* Left padding for icon */
   background: var(--bg-glass);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -822,7 +966,7 @@ label {
   font-weight: 500;
   transition: var(--transition-normal);
   position: relative;
-  z-index: 2;
+  z-index: 1; /* Input below icon */
   min-height: var(--input-height);
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -832,7 +976,7 @@ label {
 .input-with-icon input:focus {
   outline: none;
   border-color: var(--primary-solid);
-  background: var(--bg-glass);
+  background: var(--bg-glass); /* Keep consistent background on focus */
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
@@ -840,7 +984,8 @@ label {
   transform: scaleX(1);
 }
 
-.input-with-icon input:focus ~ i {
+.input-with-icon input:focus ~ i:not(.toggle-password) {
+  /* Exclude toggle password */
   color: var(--primary-solid);
   transform: translateY(-50%) scale(1.1);
 }
@@ -855,13 +1000,17 @@ label {
   transform: scaleX(0);
   transition: var(--transition-normal);
   border-radius: 1px;
+  z-index: 3; /* Above input */
 }
 
 .toggle-password {
-  position: absolute !important;
+  position: absolute !important; /* Override FontAwesome default */
   right: 16px !important;
-  left: auto !important;
+  left: auto !important; /* Override FontAwesome default */
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   cursor: pointer;
+  color: var(--text-secondary); /* Initial color */
   opacity: 0.7;
   transition: var(--transition-normal);
   min-width: var(--touch-target-min);
@@ -869,12 +1018,30 @@ label {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2; /* Ensure it's clickable */
 }
 
 .toggle-password:hover {
   opacity: 1;
   color: var(--primary-solid);
-  transform: translateY(-50%) scale(1.1);
+  transform: translateY(-50%) scale(1.1) !important; /* Ensure hover transform works */
+}
+
+.form-group.remember-forgot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.forgot-password {
+  color: var(--primary-light);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+.forgot-password:hover {
+  text-decoration: underline;
+  opacity: 0.8;
 }
 
 /* Enhanced Checkbox for Mobile */
@@ -912,19 +1079,21 @@ label {
   left: 6px;
   width: 4px;
   height: 8px;
-  border: solid var(--text-dark);
+  border: solid var(--text-dark); /* Checkmark color on primary bg */
   border-width: 0 2px 2px 0;
   transform: rotate(45deg) scale(0);
   transition: var(--transition-bounce);
 }
 
-.checkbox-container input[type="checkbox"]:checked + label + .checkbox-checkmark {
+.checkbox-container input[type="checkbox"]:checked ~ .checkbox-checkmark {
+  /* Use ~ sibling combinator */
   background: var(--primary-solid);
   border-color: var(--primary-solid);
   box-shadow: 0 0 10px var(--primary-glow);
 }
 
-.checkbox-container input[type="checkbox"]:checked + label + .checkbox-checkmark::after {
+.checkbox-container input[type="checkbox"]:checked ~ .checkbox-checkmark::after {
+  /* Use ~ sibling combinator */
   transform: rotate(45deg) scale(1);
 }
 
@@ -934,6 +1103,7 @@ label {
   font-weight: 500;
   cursor: pointer;
   line-height: 1.4;
+  color: var(--text-primary); /* Ensure label text is visible */
 }
 
 /* Enhanced Buttons for Mobile */
@@ -981,7 +1151,7 @@ label {
 
 .btn-primary {
   background: var(--primary);
-  color: var(--text-dark);
+  color: var(--text-dark); /* Text color for primary buttons */
   box-shadow: var(--shadow-md);
 }
 
@@ -1028,8 +1198,15 @@ label {
   min-height: 40px;
 }
 
-.btn-icon {
+.btn .btn-icon {
+  /* More specific selector for button icons */
   transition: var(--transition-normal);
+}
+.btn img.btn-icon {
+  /* For image icons like Google */
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
 }
 
 .btn:hover .btn-icon {
@@ -1061,7 +1238,7 @@ label {
 
 .auth-separator span {
   padding: 0 16px;
-  background: var(--bg-glass);
+  background: var(--bg-glass); /* Use theme-aware background */
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
 }
@@ -1319,7 +1496,7 @@ label {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--text-dark); /* Text on avatar */
   font-size: 16px;
   position: relative;
   transition: var(--transition-normal);
@@ -1340,7 +1517,7 @@ label {
   width: 10px;
   height: 10px;
   background: var(--success);
-  border: 2px solid var(--bg-secondary);
+  border: 2px solid var(--bg-secondary); /* Use theme-aware background */
   border-radius: 50%;
   animation: status-pulse 3s infinite;
 }
@@ -1355,14 +1532,16 @@ label {
   }
 }
 
-.user-info h3 {
+.user-profile .user-info h3 {
+  /* More specific selector */
   font-size: 14px;
   font-weight: 600;
   margin: 0;
   color: var(--text-primary);
 }
 
-.user-info p {
+.user-profile .user-info p {
+  /* More specific selector */
   font-size: 11px;
   color: var(--text-secondary);
   margin: 0;
@@ -1433,6 +1612,10 @@ label {
 
 .user-profile-sidebar .user-info {
   margin-top: 12px;
+}
+.user-profile-sidebar .user-info h3,
+.user-profile-sidebar .user-info p {
+  color: var(--text-primary); /* Ensure visibility in sidebar */
 }
 
 /* Enhanced Sidebar Navigation for Mobile */
@@ -1642,9 +1825,9 @@ label {
 .balance-amount.hidden-balance {
   font-size: 32px;
   letter-spacing: 6px;
-  color: var(--text-secondary);
+  color: var(--text-secondary); /* Ensure visibility */
   background: none;
-  -webkit-text-fill-color: var(--text-secondary);
+  -webkit-text-fill-color: var(--text-secondary); /* Ensure visibility */
 }
 
 .balance-status {
@@ -1686,6 +1869,14 @@ label {
   color: var(--danger);
   border-color: rgba(245, 101, 101, 0.3);
   background: rgba(245, 101, 101, 0.1);
+}
+
+.balance-chart .chart-line {
+  /* Basic placeholder from original */
+  height: 2px;
+  background: var(--primary-glow);
+  border-radius: 1px;
+  margin-top: 10px;
 }
 
 /* Enhanced Quick Actions for Mobile */
@@ -1792,7 +1983,7 @@ label {
 
 .action-card:hover .action-icon {
   background: var(--primary-solid);
-  color: var(--text-dark);
+  color: var(--text-dark); /* Text on icon background */
   transform: scale(1.1) rotate(5deg);
   border-color: var(--primary-solid);
   box-shadow: var(--shadow-glow);
@@ -1926,7 +2117,8 @@ label {
   border-bottom: none;
 }
 
-.transaction-icon {
+.transaction-item .transaction-icon {
+  /* More specific */
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -2168,6 +2360,7 @@ label {
 }
 
 .status-pulse {
+  /* This class was defined but not used in HTML, adding it here */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -2396,7 +2589,7 @@ label {
   z-index: 1;
 }
 
-.theme-option:hover::before {
+.theme-option::hover::before {
   opacity: 0.05;
 }
 
@@ -2489,7 +2682,7 @@ label {
 
 /* Enhanced Dropdown Menu for Mobile */
 .dropdown-menu {
-  position: fixed;
+  position: fixed; /* Changed from absolute for better positioning */
   background: var(--bg-glass);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-color);
@@ -2752,6 +2945,7 @@ label {
 }
 
 .pin-input.filled {
+  /* This class was not used in JS, but good to have */
   background: rgba(102, 126, 234, 0.1);
   border-color: var(--primary-solid);
   box-shadow: var(--shadow-glow);
@@ -2760,21 +2954,21 @@ label {
 /* Enhanced Receipt Modal for Mobile */
 .receipt-modal-content {
   max-width: 380px;
-  background: white;
-  color: #1a202c;
+  background: white; /* Receipt background is white */
+  color: #1a202c; /* Text color for receipt */
   box-shadow: var(--shadow-xl);
 }
 
 .receipt-header {
-  background: var(--primary);
+  background: var(--primary-solid); /* Solid primary for receipt header */
   color: white;
   border-bottom: none;
   padding: 16px 20px;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0; /* Match modal content */
 }
 
 .receipt-header::after {
-  display: none;
+  display: none; /* Remove bottom line from modal header */
 }
 
 .receipt-actions {
@@ -2782,10 +2976,11 @@ label {
   gap: 8px;
 }
 
-.btn-icon {
+.receipt-actions .btn-icon {
+  /* Specific to receipt actions */
   background: transparent;
   border: none;
-  color: white;
+  color: white; /* Icon color on primary header */
   font-size: 16px;
   cursor: pointer;
   padding: 8px;
@@ -2798,13 +2993,13 @@ label {
   justify-content: center;
 }
 
-.btn-icon:hover {
+.receipt-actions .btn-icon:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
 }
 
 .receipt-body {
-  padding: 0;
+  padding: 0; /* Remove padding if receipt itself has it */
 }
 
 /* Enhanced Receipt for Mobile */
@@ -2817,45 +3012,50 @@ label {
 }
 
 .receipt::before {
+  /* Watermark/pattern */
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f7fafc' fill-opacity='0.3'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3Ccircle cx='53' cy='53' r='1'/%3E%3Ccircle cx='7' cy='53' r='1'/%3E%3Ccircle cx='53' cy='7' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0f2f5' fill-opacity='0.3'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3Ccircle cx='53' cy='53' r='1'/%3E%3Ccircle cx='7' cy='53' r='1'/%3E%3Ccircle cx='53' cy='7' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   opacity: 0.5;
   pointer-events: none;
 }
 
-.receipt-logo {
-  text-align: center;
-  margin-bottom: 24px;
+.receipt-logo-area {
+  /* New container for logos */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #e2e8f0;
 }
 
-.receipt-logo-circle {
-  width: 70px;
-  height: 70px;
-  background: rgba(102, 126, 234, 0.1);
-  border: 3px solid var(--primary-solid);
-  border-radius: 50%;
+.receipt-logo-area .opper-logo-container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 12px;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+  gap: 10px;
 }
 
-.receipt-logo-text {
-  font-size: 24px;
-  font-weight: 800;
+.receipt-logo-area .opper-logo-img {
+  width: 40px; /* Adjust size as needed */
+  height: 40px;
+  object-fit: contain;
+}
+.receipt-logo-area .opper-logo-text {
+  font-size: 18px;
+  font-weight: 700;
   color: var(--primary-solid);
 }
 
-.receipt-logo-subtitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #4a5568;
+.receipt-logo-area .github-logo-img {
+  width: 30px; /* Adjust size as needed */
+  height: 30px;
+  object-fit: contain;
+  opacity: 0.7;
 }
 
 .receipt-status {
@@ -2873,18 +3073,53 @@ label {
   margin: 0 auto 12px;
   font-size: 28px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  position: relative; /* For animation */
 }
 
 .receipt-status-icon.sent {
-  background: rgba(237, 137, 54, 0.1);
+  background: rgba(237, 137, 54, 0.1); /* Warning color for sent */
   color: #ed8936;
   border: 3px solid rgba(237, 137, 54, 0.3);
+  animation: receipt-icon-sent-anim 1s ease-out forwards;
 }
 
 .receipt-status-icon.received {
-  background: rgba(72, 187, 120, 0.1);
+  background: rgba(72, 187, 120, 0.1); /* Success color for received */
   color: #48bb78;
   border: 3px solid rgba(72, 187, 120, 0.3);
+  animation: receipt-icon-received-anim 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes receipt-icon-sent-anim {
+  /* Paper plane taking off */
+  0% {
+    transform: translateY(0) rotate(0deg) scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-10px) rotate(-15deg) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-5px) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes receipt-icon-received-anim {
+  /* Checkmark pop */
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .receipt-status-text {
@@ -2980,6 +3215,26 @@ label {
   padding-top: 12px;
   border-top: 1px dashed #e2e8f0;
   line-height: 1.5;
+}
+
+/* Receipt Modal Animation ("Cool Media Style") */
+.receipt-modal-animated.active .receipt-modal-content {
+  animation: receipt-pop-in 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes receipt-pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) scale(0.8) rotateX(-20deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.05) rotateX(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
 }
 
 /* Enhanced Processing Overlay for Mobile */
@@ -3361,7 +3616,8 @@ label {
     margin-left: 0;
   }
 
-  .user-info {
+  .user-profile .user-info {
+    /* Hide user info text on smaller screens next to avatar */
     display: none;
   }
 
@@ -3457,7 +3713,7 @@ label {
   }
 
   .action-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Single column for very small screens */
     gap: 10px;
   }
 
@@ -3477,7 +3733,8 @@ label {
     min-height: 70px;
   }
 
-  .transaction-icon {
+  .transaction-item .transaction-icon {
+    /* Specific */
     width: 40px;
     height: 40px;
     font-size: 16px;
@@ -3538,7 +3795,7 @@ label {
   }
 
   .receipt-header {
-    background: #667eea !important;
+    background: #667eea !important; /* Use a solid color for print */
     color: white !important;
   }
 }
@@ -3558,47 +3815,32 @@ label {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
+a:focus-visible /* Added for links */,
 .btn:focus-visible,
 .action-card:focus-visible,
-.transaction-view-btn:focus-visible {
-  outline: 2px solid var(--primary-solid);
+.transaction-view-btn:focus-visible,
+.clickable:focus-visible {
+  /* Generic class for clickable elements */
+  outline: 3px solid var(--accent-solid); /* Use accent for high visibility */
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
 /* High Contrast Mode Support */
 @media (prefers-contrast: high) {
   :root {
-    --border-color: rgba(255, 255, 255, 0.4);
-    --bg-glass: rgba(255, 255, 255, 0.2);
-    --bg-glass-dark: rgba(0, 0, 0, 0.4);
+    --border-color: rgba(255, 255, 255, 0.6); /* Higher contrast border */
+    --bg-glass: rgba(255, 255, 255, 0.3);
+    --bg-glass-dark: rgba(0, 0, 0, 0.6);
+    --text-primary: #ffffff;
+    --text-secondary: #f0f0f0;
+    --text-muted: #d0d0d0;
   }
-}
-
-/* Enhanced Dark Mode Preference */
-@media (prefers-color-scheme: dark) {
-  [data-theme="system"] {
-    --bg-primary: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-    --bg-secondary: #0d1117;
-    --bg-card: rgba(255, 255, 255, 0.05);
-    --text-primary: #f7fafc;
-    --text-secondary: #e2e8f0;
-    --border-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-/* Enhanced Light Mode Preference */
-@media (prefers-color-scheme: light) {
-  [data-theme="system"] {
-    --bg-primary: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-    --bg-secondary: #ffffff;
-    --bg-card: rgba(0, 0, 0, 0.03);
-    --text-primary: #1a202c;
-    --text-secondary: #4a5568;
-    --text-muted: #718096;
-    --border-color: rgba(0, 0, 0, 0.1);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.15);
+  body[data-theme="light"] {
+    --border-color: rgba(0, 0, 0, 0.4);
+    --text-primary: #000000;
+    --text-secondary: #111111;
+    --text-muted: #333333;
   }
 }
 
@@ -3616,6 +3858,7 @@ select:focus-visible,
   .main-content {
     padding-left: max(var(--mobile-padding), env(safe-area-inset-left));
     padding-right: max(var(--mobile-padding), env(safe-area-inset-right));
+    padding-bottom: max(var(--mobile-padding), env(safe-area-inset-bottom)); /* Add bottom padding */
   }
 
   .modal {
@@ -3627,6 +3870,7 @@ select:focus-visible,
   .console-container {
     bottom: max(16px, env(safe-area-inset-bottom));
     right: max(16px, env(safe-area-inset-right));
+    left: max(16px, env(safe-area-inset-left)); /* Adjust for full width on mobile */
   }
 
   .toast {
@@ -3663,24 +3907,27 @@ select:focus-visible,
 
 /* Enhanced Mobile Performance Optimizations */
 .mobile-device * {
-  -webkit-transform: translateZ(0);
+  -webkit-transform: translateZ(0); /* Promote elements to their own layer */
   transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
+  -webkit-backface-visibility: hidden; /* Prevent flickering during animations */
   backface-visibility: hidden;
 }
 
 /* Enhanced Mobile Touch Feedback */
 .touch-device .btn:active,
 .touch-device .action-card:active,
-.touch-device .transaction-item:active {
-  transform: scale(0.98);
+.touch-device .transaction-item:active,
+.touch-device .clickable:active {
+  /* Generic clickable feedback */
+  transform: scale(0.97); /* Slightly more noticeable feedback */
+  opacity: 0.85;
 }
 
 /* Enhanced Mobile Scroll Optimization */
 .sidebar-nav,
 .console-output,
 .modal-content {
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   scroll-behavior: smooth;
 }
 
@@ -3693,7 +3940,7 @@ select:focus-visible,
   input[type="number"],
   select,
   textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px !important; /* Prevents zoom on iOS, !important to override other styles if necessary */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
