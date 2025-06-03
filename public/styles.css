@@ -1456,6 +1456,7 @@ label {
   align-items: center;
   justify-content: center;
   animation: badge-pulse 2s infinite;
+  pointer-events: none; /* So it doesn't interfere with click */
 }
 
 @keyframes badge-pulse {
@@ -3945,4 +3946,155 @@ a:focus-visible /* Added for links */,
     -moz-appearance: none;
     appearance: none;
   }
+}
+
+/* General Announcements Display Area */
+.general-announcements-container {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.announcement-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
+}
+
+.announcement-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.announcement-item h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-solid);
+  margin-bottom: 8px;
+}
+
+.announcement-item p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.announcement-item img {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.announcement-item .timestamp {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Announcements Page Styling */
+.announcements-list {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr; /* Single column for now, can be responsive */
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+  width: 320px; /* Adjust as needed */
+  max-height: 400px; /* Limit height */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.notification-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.notification-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition-fast);
+  cursor: pointer;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item:hover {
+  background: var(--bg-glass-dark);
+}
+
+.notification-item.unread {
+  background: rgba(var(--primary-solid-rgb, 102, 126, 234), 0.1); /* Use RGB for opacity */
+}
+
+.notification-item-content {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.notification-item-content strong {
+  color: var(--text-primary);
+}
+
+.notification-item-timestamp {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.notification-item-actions {
+  margin-top: 8px;
+}
+
+.notification-item-actions .btn-claim-gift {
+  background: var(--success);
+  color: white;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+.notification-item-actions .btn-claim-gift:hover {
+  background: var(--success-dark);
+}
+.notification-item-actions .btn-claim-gift.claimed {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.notification-empty-state {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.notification-empty-state i {
+  font-size: 24px;
+  margin-bottom: 8px;
+  opacity: 0.7;
 }
