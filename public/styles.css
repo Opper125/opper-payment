@@ -2761,51 +2761,6 @@ label {
   margin: 6px 0;
 }
 
-/* Notification Dropdown Specific Styles */
-.notification-dropdown {
-  min-width: 280px; /* Wider for notifications */
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.notification-dropdown .dropdown-item {
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.notification-dropdown .dropdown-item.gift-notification {
-  gap: 6px;
-}
-
-.gift-notification .gift-message {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.gift-notification .gift-amount {
-  font-size: 13px;
-  color: var(--success);
-}
-.gift-notification .gift-date {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-.gift-notification .btn-claim-gift {
-  margin-top: 8px;
-  padding: 6px 10px;
-  font-size: 12px;
-}
-.notification-dropdown .no-notifications {
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: var(--text-muted);
-  padding: 20px;
-}
-.notification-dropdown .no-notifications i {
-  font-size: 24px;
-  margin-bottom: 8px;
-}
-
 /* Enhanced Modal for Mobile */
 .modal {
   position: fixed;
@@ -3577,121 +3532,6 @@ label {
   background: var(--warning);
 }
 
-/* Posts Page Styles */
-.posts-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.post-item {
-  background: var(--bg-glass);
-  backdrop-filter: blur(15px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  box-shadow: var(--shadow-md);
-  transition: var(--transition-normal);
-  display: flex;
-  flex-direction: column;
-}
-
-.post-item:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-xl), 0 0 20px var(--primary-glow);
-}
-
-.post-item-header {
-  margin-bottom: 15px;
-}
-
-.post-item-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 5px;
-}
-
-.post-item-meta {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.post-item-content-text {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  margin-bottom: 15px;
-  flex-grow: 1;
-}
-
-.post-item-image-container {
-  width: 100%;
-  max-height: 300px;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  margin-bottom: 15px;
-}
-
-.post-item-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-.post-item:hover .post-item-image {
-  transform: scale(1.05);
-}
-
-.post-item-video-container {
-  position: relative;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  height: 0;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  margin-bottom: 15px;
-  background: #000; /* Fallback background */
-}
-
-.post-item-video-container iframe,
-.post-item-video-container video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-.post-item-audio-container audio {
-  width: 100%;
-  margin-bottom: 15px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-glass-dark);
-  padding: 5px;
-}
-/* Custom audio player styles (optional, browser defaults are usually fine) */
-.post-item-audio-container audio::-webkit-media-controls-panel {
-  background-color: var(--bg-glass-dark);
-  border-radius: var(--radius-sm);
-}
-.post-item-audio-container audio::-webkit-media-controls-play-button,
-.post-item-audio-container audio::-webkit-media-controls-timeline,
-.post-item-audio-container audio::-webkit-media-controls-current-time-display,
-.post-item-audio-container audio::-webkit-media-controls-time-remaining-display,
-.post-item-audio-container audio::-webkit-media-controls-mute-button,
-.post-item-audio-container audio::-webkit-media-controls-volume-slider {
-  filter: invert(1) hue-rotate(180deg); /* Basic theming for dark mode */
-}
-
-.post-item-file-download {
-  margin-top: auto; /* Pushes download button to bottom if content is short */
-}
-
-.post-item-file-download .btn {
-  width: 100%;
-}
-
 /* Enhanced Mobile Responsive Breakpoints */
 @media (min-width: 992px) {
   .sidebar {
@@ -3851,10 +3691,6 @@ label {
   .processing-content {
     padding: 32px 20px;
     margin: 8px;
-  }
-
-  .posts-container {
-    grid-template-columns: 1fr; /* Single column on smaller screens */
   }
 }
 
@@ -4090,9 +3926,7 @@ a:focus-visible /* Added for links */,
 /* Enhanced Mobile Scroll Optimization */
 .sidebar-nav,
 .console-output,
-.modal-content,
-.notification-dropdown {
-  /* Added for notification dropdown */
+.modal-content {
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   scroll-behavior: smooth;
 }
