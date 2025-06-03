@@ -32,6 +32,7 @@
         <div class="gradient-orb orb-1"></div>
         <div class="gradient-orb orb-2"></div>
         <div class="gradient-orb orb-3"></div>
+        <!-- <div class="gradient-orb orb-4"></div> Removed as it was not in original CSS -->
         <div class="floating-particles">
             <div class="particle"></div>
             <div class="particle"></div>
@@ -213,9 +214,10 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="notification-bell clickable" id="notification-bell-trigger">
+                <div class="notification-bell clickable">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="notification-badge-count">0</span>
+                    <span class="notification-badge">2</span>
+                    <div class="notification-pulse"></div>
                 </div>
                 <div class="user-profile clickable" id="profile-dropdown-trigger">
                     <div class="user-avatar">
@@ -259,13 +261,6 @@
                         <a href="#dashboard" data-page="dashboard" class="clickable">
                             <i class="fas fa-home"></i>
                             <span>ပင်မစာမျက်နှာ</span>
-                            <div class="nav-indicator"></div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#announcements" data-page="announcements" class="clickable">
-                            <i class="fas fa-bullhorn"></i>
-                            <span>ကြေညာချက်များ</span>
                             <div class="nav-indicator"></div>
                         </a>
                     </li>
@@ -316,12 +311,6 @@
                     <h2>ပင်မစာမျက်နှာ</h2>
                     <p>မင်္ဂလာပါ <span id="greeting-name">အကောင့်</span>!</p>
                 </div>
-
-                <!-- General Announcements Display Area -->
-                <div class="general-announcements-container" id="general-announcements-display">
-                    <!-- Announcements from server.html will be displayed here -->
-                </div>
-
 
                 <!-- Balance Card -->
                 <div class="balance-card">
@@ -405,22 +394,6 @@
                     </div>
                 </div>
             </section>
-
-            <!-- Announcements Page -->
-            <section class="page" id="announcements-page">
-                <div class="page-header">
-                    <h2>ကြေညာချက်များ</h2>
-                    <p>နောက်ဆုံးရ သတင်းများနှင့် ကြေညာချက်များ</p>
-                </div>
-                <div class="announcements-list" id="announcements-list-content">
-                    <!-- Announcements will be loaded here -->
-                    <div class="empty-state">
-                        <i class="fas fa-bullhorn"></i>
-                        <p>ကြေညာချက်များ မရှိသေးပါ</p>
-                    </div>
-                </div>
-            </section>
-
 
             <!-- Transfer Page -->
             <section class="page" id="transfer-page">
@@ -667,7 +640,7 @@
                 <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
-                        <p>OPPER Payment v2.1</p>
+                        <p>OPPER Payment v2.1</p> <!-- Version updated for new features -->
                         <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
@@ -700,22 +673,6 @@
             <span>အကောင့်ထွက်ရန်</span>
         </div>
     </div>
-
-    <!-- Notification Dropdown -->
-    <div class="dropdown-menu notification-dropdown" id="notification-dropdown-menu">
-        <div class="notification-header">
-            <h3>အသိပေးချက်များ</h3>
-            <button class="btn btn-sm btn-outline clickable" id="mark-all-notifications-read">အားလုံးဖတ်ပြီး</button>
-        </div>
-        <div class="notification-list" id="notification-list-items">
-            <!-- Notifications will be loaded here -->
-            <div class="notification-empty-state">
-                <i class="fas fa-bell-slash"></i>
-                <p>အသိပေးချက်များ မရှိသေးပါ</p>
-            </div>
-        </div>
-    </div>
-
 
     <!-- Change Password Modal -->
     <div class="modal" id="change-password-modal">
@@ -891,7 +848,7 @@
     </div>
 
     <!-- Receipt Modal -->
-    <div class="modal receipt-modal-animated" id="receipt-modal">
+    <div class="modal receipt-modal-animated" id="receipt-modal"> <!-- Added receipt-modal-animated class -->
         <div class="modal-content receipt-modal-content">
             <div class="modal-header receipt-header">
                 <h3>ငွေလွှဲပြေစာ</h3>
@@ -957,9 +914,7 @@
     <!-- Audio Elements -->
     <audio id="transfer-sent-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_sent.mp3" preload="auto"></audio>
     <audio id="transfer-received-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_received.mp3" preload="auto"></audio>
-    <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio>
-    <audio id="notification-sound" src="https://github.com/Opper125/opper-payment/raw/main/notification.mp3" preload="auto"></audio> <!-- New sound for notifications -->
-    <audio id="gift-claim-sound" src="https://github.com/Opper125/opper-payment/raw/main/gift_claim.mp3" preload="auto"></audio> <!-- New sound for gift claims -->
+    <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio> <!-- Please ensure click.mp3 exists at this URL or replace it -->
 
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
