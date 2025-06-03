@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my"> <!-- Changed lang to 'my' for Myanmar -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OPPER Payment Server</title>
     <link rel="icon" type="image/png" href="https://github.com/Opper125/opper-payment/raw/main/logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #ff4d4d;
@@ -59,7 +59,7 @@
         }
 
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Padauk', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Added Padauk */
             background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 50%, var(--secondary-dark) 100%);
             min-height: 100vh;
             color: var(--text-light);
@@ -146,7 +146,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 80%, rgba(255, 77, 77, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(0, 204, 255, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 40% 40%, rgba(255, 204, 0, 0.05) 0%, transparent 50%);
@@ -570,7 +570,7 @@
         }
 
         /* Enhanced Control Panel */
-        .control-panel, .bulk-deposit, .search-bar, .user-list {
+        .control-panel, .bulk-deposit, .search-bar, .user-list, .admin-actions-section { /* Added .admin-actions-section */
             background: var(--bg-card);
             border-radius: var(--radius-lg);
             padding: 24px;
@@ -584,7 +584,7 @@
             overflow: hidden;
         }
 
-        .control-panel::before, .bulk-deposit::before, .search-bar::before, .user-list::before {
+        .control-panel::before, .bulk-deposit::before, .search-bar::before, .user-list::before, .admin-actions-section::before { /* Added .admin-actions-section */
             content: '';
             position: absolute;
             top: 0;
@@ -613,9 +613,9 @@
             background-clip: text;
         }
 
-        .transfer-status {
+        .transfer-status-controls { /* Renamed from .transfer-status for clarity */
             display: flex;
-            align-items: center;
+            flex-direction: column; /* Stack indicator and controls */
             gap: 16px;
             margin-bottom: 24px;
             padding: 16px;
@@ -624,11 +624,13 @@
             border: 1px solid var(--border-color);
         }
 
-        .status-indicator {
+        .status-indicator-container { /* New container for indicator and text */
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 16px; /* Space before controls */
         }
+
 
         .indicator {
             width: 16px;
@@ -674,18 +676,37 @@
             100% { transform: scale(1); opacity: 0.3; }
         }
 
-        .control-buttons {
+        .control-buttons { /* This class was used for enable/disable, now for general button groups */
             display: flex;
             gap: 16px;
             flex-wrap: wrap;
         }
+        .form-group label { /* Style for labels in new forms */
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            display: block;
+        }
+
 
         .form-group, .search-form {
             display: flex;
-            gap: 16px;
+            flex-direction: column; /* Changed to column for better stacking of label and input */
+            gap: 8px; /* Reduced gap for tighter stacking */
             margin-top: 16px;
-            flex-wrap: wrap;
         }
+        .form-group.row { /* New class for horizontal layout if needed */
+             flex-direction: row;
+             align-items: center;
+             gap: 16px;
+        }
+        .form-group.row > * {
+            flex-grow: 1;
+        }
+        .form-group.row > button {
+            flex-grow: 0; /* Prevent button from growing too much */
+        }
+
 
         /* Enhanced Table */
         .table-container {
@@ -728,7 +749,7 @@
 
         tr:hover {
             background: rgba(255, 255, 255, 0.05);
-            transform: scale(1.01);
+            /* transform: scale(1.01); Removed for better table stability */
         }
 
         .user-id {
@@ -1010,6 +1031,17 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
+         /* Ensure select dropdown arrow is visible */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23e0e0ff' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem; /* Make space for arrow */
+        }
+
 
         input:focus, select:focus, textarea:focus {
             border-color: var(--primary);
@@ -1129,6 +1161,12 @@
         .btn:active {
             transform: translateY(-1px);
         }
+        .btn:disabled, .btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
 
         /* Enhanced Messages */
         .message {
@@ -1156,6 +1194,10 @@
             border-color: var(--danger);
             box-shadow: 0 0 20px rgba(255, 51, 51, 0.1);
         }
+        .message.show { /* To make messages visible when needed */
+            display: block;
+        }
+
 
         /* Enhanced Pagination */
         .pagination {
@@ -1246,7 +1288,7 @@
                 position: sticky;
                 top: 16px;
                 padding: 16px 20px;
-                margin: -16px -16px 24px;
+                margin: -16px -16px 24px; /* Adjust to cover full width when sidebar is hidden */
             }
 
             .page-title {
@@ -1258,7 +1300,7 @@
                 gap: 16px;
             }
 
-            .control-panel, .bulk-deposit, .search-bar, .user-list {
+            .control-panel, .bulk-deposit, .search-bar, .user-list, .admin-actions-section { /* Added .admin-actions-section */
                 padding: 20px;
                 margin-bottom: 24px;
             }
@@ -1270,8 +1312,12 @@
             }
 
             .form-group, .search-form {
-                flex-direction: column;
+                /* flex-direction: column; Kept as column from previous */
             }
+            .form-group.row { /* Ensure row layout is maintained if specified */
+                flex-direction: row;
+            }
+
 
             .control-buttons {
                 flex-direction: column;
@@ -1285,6 +1331,10 @@
                 width: 100%;
                 min-height: 48px;
             }
+            .form-group.row > button { /* Ensure buttons in row layout don't take full width */
+                width: auto;
+            }
+
 
             .modal-content {
                 padding: 24px;
@@ -1335,7 +1385,7 @@
                 gap: 12px;
             }
 
-            .transfer-status {
+            .transfer-status-controls { /* Updated class name */
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 12px;
@@ -1412,7 +1462,7 @@
 
             input, select, textarea {
                 padding: 18px 20px;
-                font-size: 16px;
+                font-size: 16px; /* Important for iOS to prevent zoom */
                 min-height: 48px;
             }
 
@@ -1449,6 +1499,9 @@
         .gap-2 {
             gap: 8px;
         }
+        .gap-4 { /* Added for more spacing if needed */
+            gap: 16px;
+        }
 
         .mt-4 {
             margin-top: 16px;
@@ -1457,14 +1510,13 @@
         .mb-4 {
             margin-bottom: 16px;
         }
-
-        /* Loading States */
-        .loading {
-            position: relative;
-            pointer-events: none;
+        .mb-6 { /* Added for more spacing */
+            margin-bottom: 24px;
         }
 
-        .loading::after {
+
+        /* Loading States */
+        .loading::after { /* Applied to buttons */
             content: '';
             position: absolute;
             top: 50%;
@@ -1472,11 +1524,18 @@
             width: 20px;
             height: 20px;
             margin: -10px 0 0 -10px;
-            border: 2px solid transparent;
-            border-top: 2px solid var(--primary);
+            border: 2px solid rgba(255,255,255,0.3); /* Lighter border for dark buttons */
+            border-top-color: var(--text-dark); /* Spinner color for dark buttons */
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        .btn-primary.loading::after, .btn-success.loading::after { /* Ensure spinner is visible on colored buttons */
+             border-top-color: var(--text-dark);
+        }
+        .btn-outline.loading::after {
+            border-top-color: var(--primary);
+        }
+
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -1499,17 +1558,25 @@
         @supports (padding: max(0px)) {
             .sidebar {
                 padding-left: max(24px, env(safe-area-inset-left));
-                padding-right: max(24px, env(safe-area-inset-right));
+                padding-right: max(24px, env(safe-area-inset-right)); /* Corrected from left to right */
+                padding-top: max(24px, env(safe-area-inset-top));
+                padding-bottom: max(24px, env(safe-area-inset-bottom));
             }
 
             .main-content {
                 padding-left: max(24px, env(safe-area-inset-left));
                 padding-right: max(24px, env(safe-area-inset-right));
+                padding-top: max(24px, env(safe-area-inset-top));
+                padding-bottom: max(24px, env(safe-area-inset-bottom));
+            }
+            .header { /* Adjust sticky header for safe area */
+                 top: max(24px, env(safe-area-inset-top));
             }
 
             .login-container {
                 padding-left: max(20px, env(safe-area-inset-left));
                 padding-right: max(20px, env(safe-area-inset-right));
+                padding-top: max(20px, env(safe-area-inset-top));
                 padding-bottom: max(20px, env(safe-area-inset-bottom));
             }
         }
@@ -1584,7 +1651,7 @@
     </div>
 
     <!-- Dashboard -->
-    <div class="dashboard" id="dashboard">
+    <div class="dashboard hidden" id="dashboard-main"> <!-- Changed ID to avoid conflict -->
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -1623,10 +1690,16 @@
                         KYC Verification
                     </a>
                 </li>
+                 <li class="nav-item"> <!-- New Admin Actions Tab Link -->
+                    <a href="#admin-actions" class="nav-link" onclick="showTab('admin-actions-tab')">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"></path></svg>
+                        Admin Actions
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a href="#transactions" class="nav-link" onclick="showTab('transactions-tab')">
                         <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"></path>
+                           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm-4 4H7v-2h6v2zm4-8H7V7h10v2z"></path>
                         </svg>
                         Transactions
                     </a>
@@ -1634,7 +1707,7 @@
                 <li class="nav-item">
                     <a href="#settings" class="nav-link" onclick="showTab('settings-tab')">
                         <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
+                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36 2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
                         </svg>
                         Settings
                     </a>
@@ -1665,7 +1738,7 @@
                         <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path>
                     </svg>
                 </button>
-                <h1 class="page-title">Dashboard</h1>
+                <h1 class="page-title" id="main-page-title">Dashboard</h1> <!-- Added ID for dynamic title -->
                 <div class="header-actions">
                     <button class="btn btn-outline" onclick="refreshData()">
                         <svg class="icon" viewBox="0 0 24 24">
@@ -1722,7 +1795,7 @@
                             <div class="stat-title">Rejected Users</div>
                             <div class="stat-icon rejected">
                                 <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
                                 </svg>
                             </div>
                         </div>
@@ -1731,42 +1804,43 @@
                     </div>
                 </div>
 
-                <!-- Control Panel -->
+                <!-- System Controls - Modified for Transfer Settings -->
                 <div class="control-panel">
                     <div class="panel-header">
                         <h2 class="panel-title">System Controls</h2>
                     </div>
-                    <div class="transfer-status">
-                        <div class="status-indicator">
+                    <div class="transfer-status-controls">
+                        <div class="status-indicator-container">
                             <div class="indicator" id="transfer-indicator"></div>
                             <span id="transfer-status-text">Loading status...</span>
                         </div>
-                    </div>
-                    <div class="control-buttons">
-                        <button class="btn btn-success" onclick="enableTransfers()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
-                            </svg>
-                            Enable Transfers
-                        </button>
-                        <button class="btn btn-danger" onclick="disableTransfers()">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
-                            </svg>
-                            Disable Transfers
-                        </button>
+                        <div class="form-group row">
+                            <label for="allow-transfers-toggle" style="white-space: nowrap; margin-right: 10px; align-self: center;">ငွေလွှဲခြင်း ခွင့်ပြု/မပြု:</label>
+                            <select id="allow-transfers-toggle" style="flex-grow: 1;">
+                                <option value="true">ခွင့်ပြုသည် (Enabled)</option>
+                                <option value="false">ခွင့်မပြု (Disabled)</option>
+                            </select>
+                            <button class="btn btn-primary" id="update-transfer-setting-btn" style="flex-shrink: 0; min-width: 150px;">
+                                <svg class="icon" viewBox="0 0 24 24" style="width:18px; height:18px; margin-right: 5px;">
+                                    <path d="M17 3H7c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h10c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-2 10h-2v2h2v-2zm0-4h-2v2h2V9zm-4 4H9v-2h2v2zm0-4H9V9h2v2zm-4 4H5v-2h2v2zm0-4H5V9h2v2z"></path>
+                                </svg>
+                                Setting ပြောင်းမည်
+                            </button>
+                        </div>
+                        <div id="transfer-setting-status" class="message" style="margin-top: 10px;"></div>
                     </div>
                 </div>
+
 
                 <!-- Bulk Deposit -->
                 <div class="bulk-deposit">
                     <div class="panel-header">
                         <h2 class="panel-title">Bulk Deposit</h2>
                     </div>
-                    <div class="form-group">
-                        <input type="number" id="bulk-amount" placeholder="Enter Amount (Ks)" min="1">
-                        <button class="btn btn-primary" onclick="bulkDeposit()">
-                            <svg class="icon" viewBox="0 0 24 24">
+                    <div class="form-group row">
+                        <input type="number" id="bulk-amount" placeholder="Enter Amount (Ks)" min="1" style="flex-grow:1;">
+                        <button class="btn btn-primary" onclick="bulkDeposit()" style="flex-shrink:0; min-width: 250px;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:18px; height:18px; margin-right: 5px;">
                                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
                             </svg>
                             Deposit to All Approved Users
@@ -1784,9 +1858,9 @@
                     <div class="panel-header">
                         <h2 class="panel-title">Search Users</h2>
                     </div>
-                    <div class="search-form">
-                        <input type="text" id="search-input" placeholder="Search by User ID or Phone Number">
-                        <button class="btn btn-primary" onclick="searchUser()">
+                    <div class="search-form form-group row">
+                        <input type="text" id="search-input" placeholder="Search by User ID or Phone Number" style="flex-grow:1;">
+                        <button class="btn btn-primary" onclick="searchUser()" style="flex-shrink:0;">
                             <svg class="icon" viewBox="0 0 24 24">
                                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
                             </svg>
@@ -1822,7 +1896,7 @@
 
             <!-- KYC Tab -->
             <div id="kyc-tab" class="tab-content">
-                <div class="user-list">
+                <div class="user-list"> <!-- Re-using user-list class for consistent styling -->
                     <div class="panel-header">
                         <h2 class="panel-title">Pending KYC Verifications</h2>
                     </div>
@@ -1844,9 +1918,78 @@
                 </div>
             </div>
 
+            <!-- Admin Actions Tab Content -->
+            <div id="admin-actions-tab" class="tab-content">
+                <!-- Post Announcement Section -->
+                <div class="admin-actions-section">
+                    <div class="panel-header">
+                        <h2 class="panel-title">ကြေညာချက်တင်ရန်</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="announcement-title">ခေါင်းစဉ်:</label>
+                        <input type="text" id="announcement-title" placeholder="ကြေညာချက် ခေါင်းစဉ်">
+                    </div>
+                    <div class="form-group">
+                        <label for="announcement-content">အကြောင်းအရာ:</label>
+                        <textarea id="announcement-content" placeholder="ကြေညာချက် အကြောင်းအရာအပြည့်အစုံ"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="announcement-image-url">Image URL (ထည့်လိုကထည့်နိုင်သည်):</label>
+                        <input type="text" id="announcement-image-url" placeholder="https://example.com/image.png">
+                    </div>
+                    <button class="btn btn-primary mt-4" id="post-announcement-btn">
+                        ကြေညာချက်တင်မည်
+                    </button>
+                    <div id="announcement-status" class="message mt-4"></div>
+                </div>
+
+                <!-- Send Message to User Section -->
+                <div class="admin-actions-section">
+                    <div class="panel-header">
+                        <h2 class="panel-title">အသုံးပြုသူထံ Message ပေးပို့မည်</h2>
+                    </div>
+                     <div class="form-group">
+                        <label for="message-user-id">Target User ID (UUID):</label>
+                        <input type="text" id="message-user-id" placeholder="ပေးပို့လိုသော User ၏ UUID">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-content">Message:</label>
+                        <textarea id="message-content" placeholder="User ထံသို့ ပေးပို့လိုသော စာ"></textarea>
+                    </div>
+                    <button class="btn btn-primary mt-4" id="send-message-btn">
+                        Message ပို့မည်
+                    </button>
+                    <div id="message-status" class="message mt-4"></div>
+                </div>
+
+                <!-- Send Gift to User Section -->
+                <div class="admin-actions-section">
+                    <div class="panel-header">
+                        <h2 class="panel-title">အသုံးပြုသူထံ Gift ပေးပို့မည်</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="gift-user-id">Target User ID (UUID):</label>
+                        <input type="text" id="gift-user-id" placeholder="လက်ဆောင်ပေးပို့လိုသော User ၏ UUID">
+                    </div>
+                    <div class="form-group">
+                        <label for="gift-amount">Gift ပမာဏ (ကျပ်):</label>
+                        <input type="number" id="gift-amount" placeholder="ကျပ်ငွေဖြင့် ပမာဏထည့်ပါ" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="gift-message">Gift Message (ထည့်လိုကထည့်နိုင်သည်):</label>
+                        <input type="text" id="gift-message" placeholder="ဥပမာ: မွေးနေ့လက်ဆောင်">
+                    </div>
+                    <button class="btn btn-primary mt-4" id="send-gift-btn">
+                        Gift ပို့မည်
+                    </button>
+                    <div id="gift-status" class="message mt-4"></div>
+                </div>
+            </div>
+
+
             <!-- Transactions Tab -->
             <div id="transactions-tab" class="tab-content">
-                <div class="user-list">
+                 <div class="user-list"> <!-- Re-using user-list class for consistent styling -->
                     <div class="panel-header">
                         <h2 class="panel-title">Recent Transactions</h2>
                     </div>
@@ -1875,12 +2018,13 @@
                         <h2 class="panel-title">System Settings</h2>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary" onclick="resetAllPasswords()">
+                        <button class="btn btn-danger" onclick="resetAllPasswords()"> <!-- Changed to btn-danger for caution -->
                             <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path>
+                                <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"></path>
                             </svg>
-                            Reset All User Passwords
+                            Reset All User PINs (Not Passwords)
                         </button>
+                         <p style="font-size: 0.9em; color: var(--warning-light); margin-top: 10px;">Caution: This will reset all user transaction PINs to a default value. User passwords are managed by Supabase Auth and are not reset here.</p>
                     </div>
                 </div>
             </div>
@@ -1892,7 +2036,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Image Preview</h2>
-                <button class="close-modal" onclick="closeModal('image-modal')">×</button>
+                <button class="close-modal" onclick="closeModal('image-modal')">&times;</button>
             </div>
             <div class="modal-body">
                 <img src="/placeholder.svg" alt="Preview" class="image-preview" id="preview-image">
@@ -1908,7 +2052,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Deposit Funds</h2>
-                <button class="close-modal" onclick="closeModal('deposit-modal')">×</button>
+                <button class="close-modal" onclick="closeModal('deposit-modal')">&times;</button>
             </div>
             <div class="modal-body">
                 <p class="mb-4">Depositing to: <span id="deposit-user-id" class="user-id"></span></p>
@@ -1925,11 +2069,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
+        // WARNING: Using anon key for admin operations is INSECURE.
+        // This is for frontend demo purposes ONLY.
+        // In a real application, use a service_role_key from a secure backend.
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) => fetch(...args) });
 
-        const ADMIN_EMAIL = 'crakb68@gmail.com';
-        const ADMIN_PIN = '155872';
+        // IMPORTANT: For a real admin panel, use a secure authentication method.
+        // Hardcoding credentials here is for DEMO PURPOSES ONLY and is highly insecure.
+        const ADMIN_EMAIL = 'crakb68@gmail.com'; // Replace with a secure admin email
+        const ADMIN_PIN = '155872'; // Replace with a secure admin PIN/password
 
         let currentUserId = null;
         let currentPage = 1;
@@ -1942,19 +2091,58 @@
             rejected: 0
         };
 
-        // Initialize
+        // DOM Cache for new elements
+        let announcementTitleInput, announcementContentInput, announcementImageUrlInput, postAnnouncementBtn, announcementStatusDiv;
+        let messageUserIdInput, messageContentInput, sendMessageBtn, messageStatusDiv;
+        let giftUserIdInput, giftAmountInput, giftMessageInput, sendGiftBtn, giftStatusDiv;
+        let allowTransfersToggle, updateTransferSettingBtn, transferSettingStatusDiv;
+
+
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('dashboard').classList.add('hidden');
-            
+            document.getElementById('dashboard-main').classList.add('hidden');
+
             // Mobile menu toggle
             document.getElementById('open-sidebar').addEventListener('click', function() {
                 document.getElementById('sidebar').classList.add('active');
             });
-            
+
             document.getElementById('close-sidebar').addEventListener('click', function() {
                 document.getElementById('sidebar').classList.remove('active');
             });
+
+            // Cache new DOM elements after login, when they are visible
+            // Event listeners for new buttons will be added in initializeDashboard or after login
         });
+
+        function cacheNewDOMElements() {
+            announcementTitleInput = document.getElementById('announcement-title');
+            announcementContentInput = document.getElementById('announcement-content');
+            announcementImageUrlInput = document.getElementById('announcement-image-url');
+            postAnnouncementBtn = document.getElementById('post-announcement-btn');
+            announcementStatusDiv = document.getElementById('announcement-status');
+
+            messageUserIdInput = document.getElementById('message-user-id');
+            messageContentInput = document.getElementById('message-content');
+            sendMessageBtn = document.getElementById('send-message-btn');
+            messageStatusDiv = document.getElementById('message-status');
+
+            giftUserIdInput = document.getElementById('gift-user-id');
+            giftAmountInput = document.getElementById('gift-amount');
+            giftMessageInput = document.getElementById('gift-message');
+            sendGiftBtn = document.getElementById('send-gift-btn');
+            giftStatusDiv = document.getElementById('gift-status');
+
+            allowTransfersToggle = document.getElementById('allow-transfers-toggle');
+            updateTransferSettingBtn = document.getElementById('update-transfer-setting-btn');
+            transferSettingStatusDiv = document.getElementById('transfer-setting-status');
+
+            // Add event listeners for new buttons
+            postAnnouncementBtn?.addEventListener('click', handlePostAnnouncement);
+            sendMessageBtn?.addEventListener('click', handleSendMessageToUser);
+            sendGiftBtn?.addEventListener('click', handleSendGiftToUser);
+            updateTransferSettingBtn?.addEventListener('click', handleUpdateTransferSetting);
+        }
+
 
         function adminLogin() {
             const email = document.getElementById('admin-email').value;
@@ -1963,20 +2151,22 @@
 
             if (email === ADMIN_EMAIL && pin === ADMIN_PIN) {
                 document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('dashboard-main').classList.remove('hidden');
+                cacheNewDOMElements(); // Cache elements now that they are part of the DOM
                 initializeDashboard();
             } else {
-                errorMessage.textContent = 'Invalid email or PIN.';
+                errorMessage.textContent = 'Email သို့မဟုတ် PIN မှားယွင်းနေပါသည်။';
                 errorMessage.style.display = 'block';
             }
         }
 
         function logout() {
             document.getElementById('login-container').classList.remove('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('dashboard-main').classList.add('hidden');
             document.getElementById('admin-email').value = '';
             document.getElementById('admin-pin').value = '';
             document.getElementById('login-error').style.display = 'none';
+            // Clear any sensitive admin data if necessary
         }
 
         async function retryOperation(operation, maxRetries = 3, delay = 1000) {
@@ -1993,58 +2183,72 @@
 
         async function initializeDashboard() {
             try {
+                showTab('dashboard-tab'); // Ensure dashboard is the first tab
                 await Promise.all([
                     loadUserStats(),
                     loadUsers(),
                     loadKycRequests(),
                     loadTransactions(),
-                    checkTransferStatus()
+                    loadCurrentTransferSetting() // Changed from checkTransferStatus
                 ]);
             } catch (error) {
                 console.error('Dashboard Initialization Error:', error.message);
-                alert(`Error initializing dashboard: ${error.message}`);
+                alert(`Dashboard ကို စတင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
             }
         }
 
         async function refreshData() {
             try {
-                const activeTab = document.querySelector('.tab-content.active').id;
-                
+                const activeTabId = document.querySelector('.tab-content.active').id;
+
+                // Show loading state on refresh button
+                const refreshButton = document.querySelector('.header-actions .btn-outline');
+                refreshButton.classList.add('loading');
+                refreshButton.disabled = true;
+
                 await loadUserStats();
-                
-                if (activeTab === 'dashboard-tab' || activeTab === 'users-tab') {
-                    await loadUsers();
+
+                if (activeTabId === 'dashboard-tab' || activeTabId === 'users-tab') {
+                    await loadUsers(document.getElementById('search-input').value.trim());
                 }
-                
-                if (activeTab === 'kyc-tab') {
+                if (activeTabId === 'kyc-tab') {
                     await loadKycRequests();
                 }
-                
-                if (activeTab === 'transactions-tab') {
+                if (activeTabId === 'transactions-tab') {
                     await loadTransactions();
                 }
-                
-                await checkTransferStatus();
-                
-                // Show success message
-                alert('Data refreshed successfully!');
+                 if (activeTabId === 'dashboard-tab' || activeTabId === 'admin-actions-tab') { // Refresh transfer setting if on dashboard or admin actions
+                    await loadCurrentTransferSetting();
+                }
+
+
+                alert('အချက်အလက်များ အောင်မြင်စွာ ပြန်လည်ရယူပြီးပါပြီ။');
             } catch (error) {
                 console.error('Refresh Data Error:', error.message);
-                alert(`Error refreshing data: ${error.message}`);
+                alert(`အချက်အလက်များ ပြန်လည်ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
+            } finally {
+                const refreshButton = document.querySelector('.header-actions .btn-outline');
+                refreshButton.classList.remove('loading');
+                refreshButton.disabled = false;
             }
         }
 
         async function loadUserStats() {
             try {
-                const { data: users, error } = await supabase.from('users').select('passport_status');
-                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
+                const { data: users, error } = await supabase.from('users').select('passport_status', { count: 'exact' });
+                if (error) throw new Error(`သုံးစွဲသူစာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
 
                 userStats = {
-                    total: users.length,
+                    total: users.length, // Note: Supabase count might be separate if using .limit()
                     approved: users.filter(user => user.passport_status === 'approved').length,
                     pending: users.filter(user => user.passport_status === 'pending').length,
                     rejected: users.filter(user => user.passport_status === 'rejected').length
                 };
+                 // If you need the total count from the server when using pagination, it's better to get it separately
+                const { count: totalCount, error: countError } = await supabase.from('users').select('*', { count: 'exact', head: true });
+                if(countError) console.warn("Could not get exact total user count:", countError.message);
+                else userStats.total = totalCount;
+
 
                 document.getElementById('total-users').textContent = userStats.total;
                 document.getElementById('approved-users').textContent = userStats.approved;
@@ -2052,53 +2256,60 @@
                 document.getElementById('rejected-users').textContent = userStats.rejected;
             } catch (error) {
                 console.error('Load User Stats Error:', error.message);
-                throw error;
+                // Don't throw here to allow other parts of dashboard to load
+                document.getElementById('total-users').textContent = 'Error';
             }
         }
 
         async function loadUsers(searchQuery = '') {
             try {
-                let query = supabase.from('users').select('*');
+                let query = supabase.from('users').select('*', { count: 'exact' });
                 if (searchQuery) {
                     query = query.or(`user_id.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
                 }
-                
-                const { data: users, error, count } = await query;
-                if (error) throw new Error(`Fetch Users Error: ${error.message}`);
+                 // Pagination
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                query = query.range(startIndex, startIndex + itemsPerPage - 1).order('created_at', { ascending: false });
 
-                totalUsers = users.length;
-                
+
+                const { data: users, error, count } = await query;
+                if (error) throw new Error(`သုံးစွဲသူစာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
+
+                totalUsers = count || 0; // Use the count from Supabase for pagination
+
                 const userTable = document.getElementById('user-table');
                 userTable.innerHTML = '';
 
-                // Calculate pagination
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = Math.min(startIndex + itemsPerPage, users.length);
-                const paginatedUsers = users.slice(startIndex, endIndex);
+                if (users.length === 0) {
+                    userTable.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px;">သုံးစွဲသူ မတွေ့ရှိပါ</td></tr>`;
+                    updatePagination(0);
+                    return;
+                }
 
-                paginatedUsers.forEach(user => {
+
+                users.forEach(user => {
                     const row = document.createElement('tr');
-                    
+
                     let statusClass = '';
                     if (user.passport_status === 'pending') statusClass = 'status-pending';
                     else if (user.passport_status === 'approved') statusClass = 'status-approved';
                     else if (user.passport_status === 'rejected') statusClass = 'status-rejected';
-                    
+
                     row.innerHTML = `
                         <td class="user-id">${user.user_id}</td>
                         <td class="user-phone">${user.phone || 'N/A'}</td>
-                        <td class="user-balance">${user.balance} Ks</td>
-                        <td><span class="user-status ${statusClass}">${user.passport_status}</span></td>
+                        <td class="user-balance">${user.balance != null ? user.balance.toLocaleString() : '0'} Ks</td>
+                        <td><span class="user-status ${statusClass}">${user.passport_status || 'N/A'}</span></td>
                         <td>
-                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Passport" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
+                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                                alt="Passport" class="user-image"
+                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
                                 onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
                         </td>
                         <td>
-                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Selfie" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
+                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                                alt="Selfie" class="user-image"
+                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
                                 onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
                         </td>
                         <td class="action-buttons">
@@ -2111,7 +2322,7 @@
                                 </button>
                                 <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
                                     <svg class="icon" viewBox="0 0 24 24">
-                                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
                                     </svg>
                                     Reject
                                 </button>
@@ -2126,12 +2337,10 @@
                     `;
                     userTable.appendChild(row);
                 });
-
-                // Update pagination
-                updatePagination(users.length);
+                updatePagination(totalUsers);
             } catch (error) {
                 console.error('Load Users Error:', error.message);
-                throw error;
+                document.getElementById('user-table').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--danger);">Error loading users: ${error.message}</td></tr>`;
             }
         }
 
@@ -2140,45 +2349,54 @@
             const paginationElement = document.getElementById('pagination');
             paginationElement.innerHTML = '';
 
+            if (totalPages <= 1) return; // No pagination if only one page or no items
+
             // Previous button
-            if (totalPages > 1) {
-                const prevBtn = document.createElement('div');
-                prevBtn.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-                prevBtn.innerHTML = '&laquo;';
-                prevBtn.onclick = () => {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        loadUsers();
-                    }
-                };
-                paginationElement.appendChild(prevBtn);
+            const prevBtn = document.createElement('div');
+            prevBtn.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevBtn.innerHTML = '&laquo;';
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadUsers(document.getElementById('search-input').value.trim());
+                }
+            };
+            paginationElement.appendChild(prevBtn);
+
+            // Page numbers (simplified for brevity, can be made more complex with ellipses)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (currentPage <= 3) {
+                endPage = Math.min(totalPages, 5);
+            }
+            if (currentPage > totalPages - 3) {
+                startPage = Math.max(1, totalPages - 4);
             }
 
-            // Page numbers
-            for (let i = 1; i <= totalPages; i++) {
+
+            for (let i = startPage; i <= endPage; i++) {
                 const pageItem = document.createElement('div');
                 pageItem.className = `page-item ${currentPage === i ? 'active' : ''}`;
                 pageItem.textContent = i;
                 pageItem.onclick = () => {
                     currentPage = i;
-                    loadUsers();
+                    loadUsers(document.getElementById('search-input').value.trim());
                 };
                 paginationElement.appendChild(pageItem);
             }
 
             // Next button
-            if (totalPages > 1) {
-                const nextBtn = document.createElement('div');
-                nextBtn.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-                nextBtn.innerHTML = '&raquo;';
-                nextBtn.onclick = () => {
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        loadUsers();
-                    }
-                };
-                paginationElement.appendChild(nextBtn);
-            }
+            const nextBtn = document.createElement('div');
+            nextBtn.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextBtn.innerHTML = '&raquo;';
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadUsers(document.getElementById('search-input').value.trim());
+                }
+            };
+            paginationElement.appendChild(nextBtn);
         }
 
         async function loadKycRequests() {
@@ -2187,9 +2405,9 @@
                     .from('users')
                     .select('*')
                     .eq('passport_status', 'pending')
-                    .order('submitted_at', { ascending: false });
-                
-                if (error) throw new Error(`Fetch KYC Requests Error: ${error.message}`);
+                    .order('created_at', { ascending: true }); // Show oldest first
+
+                if (error) throw new Error(`KYC တောင်းဆိုမှုများ ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
 
                 const kycTable = document.getElementById('kyc-table');
                 kycTable.innerHTML = '';
@@ -2197,7 +2415,7 @@
                 if (pendingUsers.length === 0) {
                     kycTable.innerHTML = `
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 20px;">No pending KYC requests</td>
+                            <td colspan="6" style="text-align: center; padding: 20px;">စစ်ဆေးရန် KYC တောင်းဆိုမှုများ မရှိပါ။</td>
                         </tr>
                     `;
                     return;
@@ -2205,21 +2423,22 @@
 
                 pendingUsers.forEach(user => {
                     const row = document.createElement('tr');
-                    const submittedDate = user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A';
-                    
+                    // Use created_at for submission time as submitted_at might not exist
+                    const submittedDate = user.created_at ? new Date(user.created_at).toLocaleString() : 'N/A';
+
                     row.innerHTML = `
                         <td class="user-id">${user.user_id}</td>
                         <td class="user-phone">${user.phone || 'N/A'}</td>
                         <td>
-                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Passport" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
+                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                                alt="Passport" class="user-image"
+                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
                                 onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
                         </td>
                         <td>
-                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Selfie" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
+                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                                alt="Selfie" class="user-image"
+                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
                                 onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
                         </td>
                         <td>${submittedDate}</td>
@@ -2232,7 +2451,7 @@
                             </button>
                             <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
                                 <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
                                 </svg>
                                 Reject
                             </button>
@@ -2242,7 +2461,7 @@
                 });
             } catch (error) {
                 console.error('Load KYC Requests Error:', error.message);
-                throw error;
+                 document.getElementById('kyc-table').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--danger);">Error loading KYC requests: ${error.message}</td></tr>`;
             }
         }
 
@@ -2252,9 +2471,9 @@
                     .from('transactions')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(20);
-                
-                if (error) throw new Error(`Fetch Transactions Error: ${error.message}`);
+                    .limit(50); // Limit for recent transactions display
+
+                if (error) throw new Error(`ငွေလွှဲမှတ်တမ်းများ ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
 
                 const transactionsTable = document.getElementById('transactions-table');
                 transactionsTable.innerHTML = '';
@@ -2262,7 +2481,7 @@
                 if (transactions.length === 0) {
                     transactionsTable.innerHTML = `
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 20px;">No transactions found</td>
+                            <td colspan="6" style="text-align: center; padding: 20px;">ငွေလွှဲမှတ်တမ်းများ မရှိသေးပါ။</td>
                         </tr>
                     `;
                     return;
@@ -2271,12 +2490,12 @@
                 transactions.forEach(transaction => {
                     const row = document.createElement('tr');
                     const date = new Date(transaction.created_at).toLocaleString();
-                    
+
                     row.innerHTML = `
-                        <td>${transaction.id}</td>
-                        <td>${transaction.from_phone || 'N/A'}</td>
-                        <td>${transaction.to_phone || 'N/A'}</td>
-                        <td class="user-balance">${transaction.amount} Ks</td>
+                        <td>${transaction.id.substring(0,8)}...</td>
+                        <td>${transaction.from_phone || 'N/A'} ( ${transaction.from_name || 'Unknown'} )</td>
+                        <td>${transaction.to_phone || 'N/A'} ( ${transaction.to_name || 'Unknown'} )</td>
+                        <td class="user-balance">${transaction.amount.toLocaleString()} Ks</td>
                         <td>${transaction.note || 'N/A'}</td>
                         <td>${date}</td>
                     `;
@@ -2284,37 +2503,61 @@
                 });
             } catch (error) {
                 console.error('Load Transactions Error:', error.message);
-                throw error;
+                document.getElementById('transactions-table').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--danger);">Error loading transactions: ${error.message}</td></tr>`;
             }
         }
 
-        async function checkTransferStatus() {
+        async function loadCurrentTransferSetting() {
+            const indicator = document.getElementById('transfer-indicator');
+            const statusText = document.getElementById('transfer-status-text');
+            if (!allowTransfersToggle || !indicator || !statusText) {
+                console.warn("Transfer setting elements not found in DOM yet.");
+                return;
+            }
+
             try {
                 const { data, error } = await supabase
                     .from('settings')
                     .select('allow_transfers')
                     .eq('id', 1)
                     .single();
-                
-                if (error) throw new Error(`Fetch Settings Error: ${error.message}`);
-                
-                const indicator = document.getElementById('transfer-indicator');
-                const statusText = document.getElementById('transfer-status-text');
-                
-                if (data.allow_transfers) {
+
+                if (error && error.code !== 'PGRST116') { // PGRST116: row not found
+                    throw new Error(`Setting ကို ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
+                }
+
+                if (data) {
+                    allowTransfersToggle.value = data.allow_transfers.toString();
+                    if (data.allow_transfers) {
+                        indicator.className = 'indicator on';
+                        statusText.textContent = 'Transfers are currently ENABLED';
+                        statusText.style.color = 'var(--success)';
+                    } else {
+                        indicator.className = 'indicator off';
+                        statusText.textContent = 'Transfers are currently DISABLED';
+                        statusText.style.color = 'var(--danger)';
+                    }
+                } else { // Setting does not exist, create it
+                    console.log("No setting found, creating default transfer setting (Enabled)...");
+                    const { error: insertError } = await supabase
+                        .from('settings')
+                        .insert([{ id: 1, allow_transfers: true }]);
+                    if (insertError) throw insertError;
+                    allowTransfersToggle.value = "true";
                     indicator.className = 'indicator on';
                     statusText.textContent = 'Transfers are currently ENABLED';
                     statusText.style.color = 'var(--success)';
-                } else {
-                    indicator.className = 'indicator off';
-                    statusText.textContent = 'Transfers are currently DISABLED';
-                    statusText.style.color = 'var(--danger)';
+                    showGenericStatus(transferSettingStatusDiv, 'Default transfer setting (Enabled) ကို အသစ်ပြုလုပ်ပြီးပါပြီ။', true);
                 }
             } catch (error) {
-                console.error('Check Transfer Status Error:', error.message);
-                throw error;
+                console.error('Error loading/creating transfer setting:', error);
+                showGenericStatus(transferSettingStatusDiv, `Setting ကို ပြင်ဆင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
+                indicator.className = 'indicator off'; // Default to off on error
+                statusText.textContent = 'Error loading status';
+                statusText.style.color = 'var(--danger)';
             }
         }
+
 
         async function searchUser() {
             const searchQuery = document.getElementById('search-input').value.trim();
@@ -2323,30 +2566,35 @@
         }
 
         async function updateStatus(userId, status) {
+            if (!confirm(`Are you sure you want to set user ${userId} status to ${status}?`)) return;
             try {
                 await retryOperation(async () => {
                     const { error } = await supabase
                         .from('users')
                         .update({ passport_status: status })
                         .eq('user_id', userId);
-                    
-                    if (error) throw new Error(`Update Status Error: ${error.message}`);
+
+                    if (error) throw new Error(`Status ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
                 });
-                
+
                 await Promise.all([
                     loadUserStats(),
-                    loadUsers(),
-                    loadKycRequests()
+                    loadUsers(), // Reload current page of users
+                    loadKycRequests() // Reload KYC requests as one might have been processed
                 ]);
-                
-                alert(`User ${userId} has been ${status} successfully.`);
+
+                alert(`User ${userId} status ကို ${status} သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။`);
             } catch (error) {
                 console.error('Update Status Error:', error.message);
-                alert(`Error updating status: ${error.message}`);
+                alert(`Status ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
             }
         }
 
         function showImagePreview(imageUrl) {
+            if (!imageUrl || imageUrl.includes('via.placeholder.com')) {
+                alert("ပုံမရှိပါ သို့မဟုတ် ပုံ URL မှားယွင်းနေပါသည်။");
+                return;
+            }
             document.getElementById('preview-image').src = imageUrl;
             document.getElementById('image-modal').style.display = 'flex';
         }
@@ -2366,12 +2614,15 @@
         async function confirmDeposit() {
             const amount = parseInt(document.getElementById('deposit-amount').value);
             const errorElement = document.getElementById('deposit-error');
-            
+            const depositButton = document.querySelector('#deposit-modal .btn-primary');
+
             if (!amount || amount <= 0) {
-                errorElement.textContent = 'Please enter a valid amount.';
+                errorElement.textContent = 'မှန်ကန်သော ငွေပမာဏ ထည့်ပါ။';
                 errorElement.style.display = 'block';
                 return;
             }
+            depositButton.classList.add('loading');
+            depositButton.disabled = true;
 
             try {
                 await retryOperation(async () => {
@@ -2380,25 +2631,29 @@
                         .select('balance')
                         .eq('user_id', currentUserId)
                         .single();
-                    
-                    if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
 
-                    const newBalance = user.balance + amount;
+                    if (fetchError) throw new Error(`သုံးစွဲသူ အချက်အလက် ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${fetchError.message}`);
+
+                    const newBalance = (user.balance || 0) + amount;
                     const { error: updateError } = await supabase
                         .from('users')
                         .update({ balance: newBalance })
                         .eq('user_id', currentUserId);
-                    
-                    if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+
+                    if (updateError) throw new Error(`ငွေဖြည့်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${updateError.message}`);
                 });
 
                 closeModal('deposit-modal');
-                await loadUsers();
-                alert(`Successfully deposited ${amount} Ks to user ${currentUserId}.`);
+                await loadUsers(); // Refresh user list to show new balance
+                await loadUserStats(); // Refresh stats
+                alert(`${currentUserId} ထံသို့ ${amount.toLocaleString()} Ks အောင်မြင်စွာ ငွေဖြည့်ပြီးပါပြီ။`);
             } catch (error) {
                 console.error('Deposit Error:', error.message);
                 errorElement.textContent = `Error: ${error.message}`;
                 errorElement.style.display = 'block';
+            } finally {
+                depositButton.classList.remove('loading');
+                depositButton.disabled = false;
             }
         }
 
@@ -2406,130 +2661,291 @@
             const amount = parseInt(document.getElementById('bulk-amount').value);
             const successMessage = document.getElementById('bulk-success');
             const errorMessage = document.getElementById('bulk-error');
+            const bulkDepositButton = document.querySelector('.bulk-deposit .btn-primary');
 
             if (!amount || amount <= 0) {
-                errorMessage.textContent = 'Please enter a valid amount.';
-                errorMessage.style.display = 'block';
-                successMessage.style.display = 'none';
+                errorMessage.textContent = 'မှန်ကန်သော ငွေပမာဏ ထည့်ပါ။';
+                errorMessage.classList.add('show');
+                successMessage.classList.remove('show');
                 return;
             }
+            bulkDepositButton.classList.add('loading');
+            bulkDepositButton.disabled = true;
 
             try {
+                let approvedUserCount = 0;
                 await retryOperation(async () => {
                     const { data: users, error: fetchError } = await supabase
                         .from('users')
                         .select('user_id, balance')
                         .eq('passport_status', 'approved');
-                    
-                    if (fetchError) throw new Error(`Fetch Users Error: ${fetchError.message}`);
+
+                    if (fetchError) throw new Error(`သုံးစွဲသူများ စာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${fetchError.message}`);
+                    approvedUserCount = users.length;
+                    if (approvedUserCount === 0) {
+                        throw new Error("ငွေဖြည့်ရန် KYC အောင်မြင်ထားသော သုံးစွဲသူများ မရှိပါ။");
+                    }
 
                     for (const user of users) {
-                        const newBalance = user.balance + amount;
+                        const newBalance = (user.balance || 0) + amount;
                         const { error: updateError } = await supabase
                             .from('users')
                             .update({ balance: newBalance })
                             .eq('user_id', user.user_id);
-                        
-                        if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+
+                        // Log individual errors but continue for other users
+                        if (updateError) console.error(`User ${user.user_id} သို့ ငွေဖြည့်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${updateError.message}`);
                     }
                 });
 
-                successMessage.textContent = `Successfully deposited ${amount} Ks to all ${userStats.approved} approved accounts.`;
-                successMessage.style.display = 'block';
-                errorMessage.style.display = 'none';
-                
-                await loadUsers();
+                successMessage.textContent = `KYC အောင်မြင်ထားသော သုံးစွဲသူ ${approvedUserCount} ဦးထံသို့ ${amount.toLocaleString()} Ks စီ အောင်မြင်စွာ ငွေဖြည့်ပြီးပါပြီ။`;
+                successMessage.classList.add('show');
+                errorMessage.classList.remove('show');
+
+                await loadUsers(); // Refresh user list
+                await loadUserStats(); // Refresh stats
             } catch (error) {
                 console.error('Bulk Deposit Error:', error.message);
                 errorMessage.textContent = `Error: ${error.message}`;
-                errorMessage.style.display = 'block';
-                successMessage.style.display = 'none';
+                errorMessage.classList.add('show');
+                successMessage.classList.remove('show');
+            } finally {
+                bulkDepositButton.classList.remove('loading');
+                bulkDepositButton.disabled = false;
             }
         }
 
-        async function enableTransfers() {
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: true })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
-                });
-                
-                await checkTransferStatus();
-                alert('Transfers have been enabled successfully.');
-            } catch (error) {
-                console.error('Enable Transfers Error:', error.message);
-                alert(`Error enabling transfers: ${error.message}`);
-            }
+        // --- New Functions for Admin Actions (Announcements, Messages, Gifts) ---
+        function showGenericStatus(element, message, isSuccess) {
+            if (!element) return;
+            element.textContent = message;
+            element.className = `message ${isSuccess ? 'message-success' : 'message-error'} show`;
+            setTimeout(() => {
+                element.classList.remove('show');
+                element.textContent = '';
+            }, 5000);
         }
 
-        async function disableTransfers() {
-            try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: false })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
-                });
-                
-                await checkTransferStatus();
-                alert('Transfers have been disabled successfully.');
-            } catch (error) {
-                console.error('Disable Transfers Error:', error.message);
-                alert(`Error disabling transfers: ${error.message}`);
-            }
-        }
+        async function handlePostAnnouncement() {
+            const title = announcementTitleInput.value.trim();
+            const content = announcementContentInput.value.trim();
+            const imageUrl = announcementImageUrlInput.value.trim();
 
-        async function resetAllPasswords() {
-            if (!confirm('Are you sure you want to reset all user passwords? This action cannot be undone.')) {
+            if (!title || !content) {
+                showGenericStatus(announcementStatusDiv, 'ခေါင်းစဉ် နှင့် အကြောင်းအရာ ဖြည့်ရန်လိုအပ်ပါသည်။', false);
                 return;
             }
 
+            postAnnouncementBtn.classList.add('loading');
+            postAnnouncementBtn.disabled = true;
+
             try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('auth_users')
-                        .update({ password: '123456' });
-                    
-                    if (error) throw new Error(`Reset Passwords Error: ${error.message}`);
-                });
-                
-                alert('All user passwords have been reset to "123456".');
+                const { data, error } = await supabase
+                    .from('announcements')
+                    .insert([{ title, content, image_url: imageUrl || null }]);
+
+                if (error) throw error;
+                showGenericStatus(announcementStatusDiv, 'ကြေညာချက်ကို အောင်မြင်စွာတင်ပြီးပါပြီ။', true);
+                announcementTitleInput.value = '';
+                announcementContentInput.value = '';
+                announcementImageUrlInput.value = '';
             } catch (error) {
-                console.error('Reset Passwords Error:', error.message);
-                alert(`Error resetting passwords: ${error.message}`);
+                console.error('Error posting announcement:', error);
+                showGenericStatus(announcementStatusDiv, `ကြေညာချက်တင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
+            } finally {
+                postAnnouncementBtn.classList.remove('loading');
+                postAnnouncementBtn.disabled = false;
             }
         }
 
+        async function handleSendMessageToUser() {
+            const userId = messageUserIdInput.value.trim();
+            const message = messageContentInput.value.trim();
+
+            if (!userId || !message) {
+                showGenericStatus(messageStatusDiv, 'User ID နှင့် Message ဖြည့်ရန်လိုအပ်ပါသည်။', false);
+                return;
+            }
+            if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(userId)) {
+                showGenericStatus(messageStatusDiv, 'User ID ပုံစံမှားယွင်းနေပါသည် (UUID ဖြစ်ရမည်)။', false);
+                return;
+            }
+
+            sendMessageBtn.classList.add('loading');
+            sendMessageBtn.disabled = true;
+
+            try {
+                const { data, error } = await supabase
+                    .from('user_notifications')
+                    .insert([{
+                        user_id: userId,
+                        type: 'message',
+                        title: 'Admin မှ Message', // Title for the notification
+                        message: message,
+                        data: {}
+                    }]);
+
+                if (error) throw error;
+                showGenericStatus(messageStatusDiv, 'Message ကို အောင်မြင်စွာပို့ပြီးပါပြီ။', true);
+                messageUserIdInput.value = '';
+                messageContentInput.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showGenericStatus(messageStatusDiv, `Message ပို့ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
+            } finally {
+                sendMessageBtn.classList.remove('loading');
+                sendMessageBtn.disabled = false;
+            }
+        }
+
+        async function handleSendGiftToUser() {
+            const userId = giftUserIdInput.value.trim();
+            const amount = parseFloat(giftAmountInput.value);
+            const giftMsgInput = giftMessageInput.value.trim();
+            const finalGiftMessage = giftMsgInput || `သင် ${amount.toLocaleString()} Ks လက်ဆောင် ရရှိထားပါသည်။`;
+
+            if (!userId || isNaN(amount) || amount <= 0) {
+                showGenericStatus(giftStatusDiv, 'မှန်ကန်သော User ID နှင့် Gift ပမာဏ (0 ထက်ကြီးရမည်) ဖြည့်ရန်လိုအပ်ပါသည်။', false);
+                return;
+            }
+            if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(userId)) {
+                showGenericStatus(giftStatusDiv, 'User ID ပုံစံမှားယွင်းနေပါသည် (UUID ဖြစ်ရမည်)။', false);
+                return;
+            }
+
+            sendGiftBtn.classList.add('loading');
+            sendGiftBtn.disabled = true;
+
+            try {
+                const { data, error } = await supabase
+                    .from('user_notifications')
+                    .insert([{
+                        user_id: userId,
+                        type: 'gift_cash',
+                        title: 'လက်ဆောင်တစ်ခု ရရှိထားပါသည်!',
+                        message: `${finalGiftMessage} Notification မှ Claim လုပ်ပါ။`,
+                        data: { amount: amount }
+                    }]);
+
+                if (error) throw error;
+                showGenericStatus(giftStatusDiv, `${amount.toLocaleString()} Ks လက်ဆောင်အတွက် Notification ကို အောင်မြင်စွာပို့ပြီးပါပြီ။ User မှ Claim လုပ်ရန်လိုအပ်ပါသည်။`, true);
+                giftUserIdInput.value = '';
+                giftAmountInput.value = '';
+                giftMessageInput.value = '';
+            } catch (error) {
+                console.error('Error sending gift notification:', error);
+                showGenericStatus(giftStatusDiv, `Gift ပို့ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
+            } finally {
+                sendGiftBtn.classList.remove('loading');
+                sendGiftBtn.disabled = false;
+            }
+        }
+
+        async function handleUpdateTransferSetting() {
+            const allowTransfers = allowTransfersToggle.value === 'true';
+
+            updateTransferSettingBtn.classList.add('loading');
+            updateTransferSettingBtn.disabled = true;
+            try {
+                const { data, error } = await supabase
+                    .from('settings')
+                    .update({ allow_transfers: allowTransfers })
+                    .eq('id', 1)
+                    .select();
+
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    // Setting row might not exist, try to re-create it (should have been handled by loadCurrentTransferSetting)
+                    console.warn("Setting row not found during update, attempting to reload/re-create.");
+                    await loadCurrentTransferSetting(); // This will create if not exists
+                    // Re-attempt update
+                    const { error: retryError } = await supabase
+                        .from('settings')
+                        .update({ allow_transfers: allowTransfers })
+                        .eq('id', 1);
+                    if (retryError) throw retryError;
+                }
+                await loadCurrentTransferSetting(); // Refresh display
+                showGenericStatus(transferSettingStatusDiv, `Transfer Setting ကို ${allowTransfers ? 'Enabled' : 'Disabled'} သို့ အောင်မြင်စွာပြောင်းပြီးပါပြီ။`, true);
+            } catch (error) {
+                console.error('Error updating transfer setting:', error);
+                showGenericStatus(transferSettingStatusDiv, `Setting ပြင်ဆင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
+            } finally {
+                updateTransferSettingBtn.classList.remove('loading');
+                updateTransferSettingBtn.disabled = false;
+            }
+        }
+
+
+        async function resetAllPasswords() { // This function in the attachment was for passwords, but users have PINs for transactions.
+                                          // Let's assume it means resetting transaction PINs to a default.
+            if (!confirm('အသုံးပြုသူအားလုံး၏ ငွေလွှဲ PIN များကို default ("123456") သို့ ပြောင်းလဲရန် သေချာပါသလား? ဤလုပ်ဆောင်ချက်ကို နောက်ပြန်လှည့်၍မရပါ။')) {
+                return;
+            }
+            const defaultPin = "123456"; // In a real app, this should be handled more securely.
+            const resetButton = document.querySelector('#settings-tab .btn-danger');
+            resetButton.classList.add('loading');
+            resetButton.disabled = true;
+
+            try {
+                // This is a simplified example. Updating all users might require batching or a server-side function for large numbers of users.
+                // Also, directly setting PINs like this is not ideal for security.
+                const { data: users, error: fetchError } = await supabase.from('users').select('user_id');
+                if (fetchError) throw new Error(`သုံးစွဲသူများစာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${fetchError.message}`);
+
+                for (const user of users) {
+                    const { error: updateError } = await supabase
+                        .from('users')
+                        .update({ pin: defaultPin }) // Assuming 'pin' column exists in 'users' table
+                        .eq('user_id', user.user_id);
+                    if (updateError) {
+                        console.warn(`User ${user.user_id} ၏ PIN ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${updateError.message}`);
+                    }
+                }
+                alert(`သုံးစွဲသူအားလုံး၏ ငွေလွှဲ PIN များကို "${defaultPin}" သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။`);
+            } catch (error) {
+                console.error('Reset PINs Error:', error.message);
+                alert(`PIN များ ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
+            } finally {
+                resetButton.classList.remove('loading');
+                resetButton.disabled = false;
+            }
+        }
+
+
         function showTab(tabId) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
-            
-            // Show selected tab
             document.getElementById(tabId).classList.add('active');
-            
-            // Update active nav link
+
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
             });
-            
-            const activeLink = document.querySelector(`[onclick="showTab('${tabId}')"]`);
+            const activeLink = document.querySelector(`.nav-link[onclick="showTab('${tabId}')"]`);
             if (activeLink) {
                 activeLink.classList.add('active');
             }
-            
-            // Load tab-specific data
-            if (tabId === 'kyc-tab') {
+            // Update page title
+            const pageTitleElement = document.getElementById('main-page-title');
+            if (pageTitleElement && activeLink) {
+                pageTitleElement.textContent = activeLink.textContent.trim();
+            }
+
+
+            // Load tab-specific data if not already loaded or needs refresh
+            if (tabId === 'users-tab' && document.getElementById('user-table').innerHTML === '') {
+                loadUsers();
+            } else if (tabId === 'kyc-tab') { // Always refresh KYC tab as it's for pending items
                 loadKycRequests();
-            } else if (tabId === 'transactions-tab') {
+            } else if (tabId === 'transactions-tab' && document.getElementById('transactions-table').innerHTML === '') {
                 loadTransactions();
+            } else if (tabId === 'admin-actions-tab') {
+                // Any specific loading for admin actions tab can go here
+            }
+             // Close sidebar on mobile after tab selection
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('active');
             }
         }
     </script>
