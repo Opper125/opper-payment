@@ -696,9 +696,9 @@
             margin-top: 16px;
         }
         .form-group.row { /* New class for horizontal layout if needed */
-            flex-direction: row;
-            align-items: center;
-            gap: 16px;
+             flex-direction: row;
+             align-items: center;
+             gap: 16px;
         }
         .form-group.row > * {
             flex-grow: 1;
@@ -1031,7 +1031,7 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-        /* Ensure select dropdown arrow is visible */
+         /* Ensure select dropdown arrow is visible */
         select {
             appearance: none;
             -webkit-appearance: none;
@@ -1462,7 +1462,7 @@
 
             input, select, textarea {
                 padding: 18px 20px;
-                font-size: 16px !important; /* Important for iOS to prevent zoom */
+                font-size: 16px; /* Important for iOS to prevent zoom */
                 min-height: 48px;
             }
 
@@ -1530,7 +1530,7 @@
             animation: spin 1s linear infinite;
         }
         .btn-primary.loading::after, .btn-success.loading::after { /* Ensure spinner is visible on colored buttons */
-            border-top-color: var(--text-dark);
+             border-top-color: var(--text-dark);
         }
         .btn-outline.loading::after {
             border-top-color: var(--primary);
@@ -1570,7 +1570,7 @@
                 padding-bottom: max(24px, env(safe-area-inset-bottom));
             }
             .header { /* Adjust sticky header for safe area */
-                top: max(24px, env(safe-area-inset-top));
+                 top: max(24px, env(safe-area-inset-top));
             }
 
             .login-container {
@@ -1690,7 +1690,7 @@
                         KYC Verification
                     </a>
                 </li>
-                <li class="nav-item"> <!-- New Admin Actions Tab Link -->
+                 <li class="nav-item"> <!-- New Admin Actions Tab Link -->
                     <a href="#admin-actions" class="nav-link" onclick="showTab('admin-actions-tab')">
                         <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"></path></svg>
                         Admin Actions
@@ -1699,7 +1699,7 @@
                 <li class="nav-item">
                     <a href="#transactions" class="nav-link" onclick="showTab('transactions-tab')">
                         <svg class="icon" viewBox="0 0 24 24">
-                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm-4 4H7v-2h6v2zm4-8H7V7h10v2z"></path>
+                           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm-4 4H7v-2h6v2zm4-8H7V7h10v2z"></path>
                         </svg>
                         Transactions
                     </a>
@@ -1948,7 +1948,7 @@
                     <div class="panel-header">
                         <h2 class="panel-title">အသုံးပြုသူထံ Message ပေးပို့မည်</h2>
                     </div>
-                    <div class="form-group">
+                     <div class="form-group">
                         <label for="message-user-id">Target User ID (UUID):</label>
                         <input type="text" id="message-user-id" placeholder="ပေးပို့လိုသော User ၏ UUID">
                     </div>
@@ -1989,7 +1989,7 @@
 
             <!-- Transactions Tab -->
             <div id="transactions-tab" class="tab-content">
-                <div class="user-list"> <!-- Re-using user-list class for consistent styling -->
+                 <div class="user-list"> <!-- Re-using user-list class for consistent styling -->
                     <div class="panel-header">
                         <h2 class="panel-title">Recent Transactions</h2>
                     </div>
@@ -2018,13 +2018,13 @@
                         <h2 class="panel-title">System Settings</h2>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-danger" onclick="resetAllPins()"> <!-- Changed to resetAllPins -->
+                        <button class="btn btn-danger" onclick="resetAllPasswords()"> <!-- Changed to btn-danger for caution -->
                             <svg class="icon" viewBox="0 0 24 24">
                                 <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"></path>
                             </svg>
-                            Reset All User PINs
+                            Reset All User PINs (Not Passwords)
                         </button>
-                        <p style="font-size: 0.9em; color: var(--warning-light); margin-top: 10px;">Caution: This will reset all user transaction PINs to a default value. User passwords are managed by Supabase Auth and are not reset here.</p>
+                         <p style="font-size: 0.9em; color: var(--warning-light); margin-top: 10px;">Caution: This will reset all user transaction PINs to a default value. User passwords are managed by Supabase Auth and are not reset here.</p>
                     </div>
                 </div>
             </div>
@@ -2073,7 +2073,7 @@
         // This is for frontend demo purposes ONLY.
         // In a real application, use a service_role_key from a secure backend.
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey); // Corrected: Removed faulty fetch option
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) => fetch(...args) });
 
         // IMPORTANT: For a real admin panel, use a secure authentication method.
         // Hardcoding credentials here is for DEMO PURPOSES ONLY and is highly insecure.
@@ -2109,6 +2109,9 @@
             document.getElementById('close-sidebar').addEventListener('click', function() {
                 document.getElementById('sidebar').classList.remove('active');
             });
+
+            // Cache new DOM elements after login, when they are visible
+            // Event listeners for new buttons will be added in initializeDashboard or after login
         });
 
         function cacheNewDOMElements() {
@@ -2186,7 +2189,7 @@
                     loadUsers(),
                     loadKycRequests(),
                     loadTransactions(),
-                    loadCurrentTransferSetting()
+                    loadCurrentTransferSetting() // Changed from checkTransferStatus
                 ]);
             } catch (error) {
                 console.error('Dashboard Initialization Error:', error.message);
@@ -2198,6 +2201,7 @@
             try {
                 const activeTabId = document.querySelector('.tab-content.active').id;
 
+                // Show loading state on refresh button
                 const refreshButton = document.querySelector('.header-actions .btn-outline');
                 refreshButton.classList.add('loading');
                 refreshButton.disabled = true;
@@ -2213,9 +2217,10 @@
                 if (activeTabId === 'transactions-tab') {
                     await loadTransactions();
                 }
-                if (activeTabId === 'dashboard-tab' || activeTabId === 'admin-actions-tab') {
+                 if (activeTabId === 'dashboard-tab' || activeTabId === 'admin-actions-tab') { // Refresh transfer setting if on dashboard or admin actions
                     await loadCurrentTransferSetting();
                 }
+
 
                 alert('အချက်အလက်များ အောင်မြင်စွာ ပြန်လည်ရယူပြီးပါပြီ။');
             } catch (error) {
@@ -2230,15 +2235,20 @@
 
         async function loadUserStats() {
             try {
-                const { data: users, error, count } = await supabase.from('users').select('passport_status', { count: 'exact' });
+                const { data: users, error } = await supabase.from('users').select('passport_status', { count: 'exact' });
                 if (error) throw new Error(`သုံးစွဲသူစာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
 
                 userStats = {
-                    total: count || 0,
+                    total: users.length, // Note: Supabase count might be separate if using .limit()
                     approved: users.filter(user => user.passport_status === 'approved').length,
                     pending: users.filter(user => user.passport_status === 'pending').length,
                     rejected: users.filter(user => user.passport_status === 'rejected').length
                 };
+                 // If you need the total count from the server when using pagination, it's better to get it separately
+                const { count: totalCount, error: countError } = await supabase.from('users').select('*', { count: 'exact', head: true });
+                if(countError) console.warn("Could not get exact total user count:", countError.message);
+                else userStats.total = totalCount;
+
 
                 document.getElementById('total-users').textContent = userStats.total;
                 document.getElementById('approved-users').textContent = userStats.approved;
@@ -2246,6 +2256,7 @@
                 document.getElementById('rejected-users').textContent = userStats.rejected;
             } catch (error) {
                 console.error('Load User Stats Error:', error.message);
+                // Don't throw here to allow other parts of dashboard to load
                 document.getElementById('total-users').textContent = 'Error';
             }
         }
@@ -2256,6 +2267,7 @@
                 if (searchQuery) {
                     query = query.or(`user_id.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
                 }
+                 // Pagination
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 query = query.range(startIndex, startIndex + itemsPerPage - 1).order('created_at', { ascending: false });
 
@@ -2263,7 +2275,7 @@
                 const { data: users, error, count } = await query;
                 if (error) throw new Error(`သုံးစွဲသူစာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
 
-                totalUsers = count || 0;
+                totalUsers = count || 0; // Use the count from Supabase for pagination
 
                 const userTable = document.getElementById('user-table');
                 userTable.innerHTML = '';
@@ -2277,57 +2289,58 @@
 
                 users.forEach(user => {
                     const row = document.createElement('tr');
+
                     let statusClass = '';
                     if (user.passport_status === 'pending') statusClass = 'status-pending';
                     else if (user.passport_status === 'approved') statusClass = 'status-approved';
                     else if (user.passport_status === 'rejected') statusClass = 'status-rejected';
 
-                    row.innerHTML = \`
-                        <td class="user-id">\${user.user_id}</td>
-                        <td class="user-phone">\${user.phone || 'N/A'}</td>
-                        <td class="user-balance">\${user.balance != null ? user.balance.toLocaleString() : '0'} Ks</td>
-                        <td><span class="user-status \${statusClass}">\${user.passport_status || 'N/A'}</span></td>
+                    row.innerHTML = `
+                        <td class="user-id">${user.user_id}</td>
+                        <td class="user-phone">${user.phone || 'N/A'}</td>
+                        <td class="user-balance">${user.balance != null ? user.balance.toLocaleString() : '0'} Ks</td>
+                        <td><span class="user-status ${statusClass}">${user.passport_status || 'N/A'}</span></td>
                         <td>
-                            <img src="\${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}"
                                 alt="Passport" class="user-image"
                                 onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
-                                onclick="showImagePreview('\${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
+                                onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
                         </td>
                         <td>
-                            <img src="\${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}"
                                 alt="Selfie" class="user-image"
                                 onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
-                                onclick="showImagePreview('\${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
+                                onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
                         </td>
                         <td class="action-buttons">
-                            \${user.passport_status === 'pending' ? \`
-                                <button class="btn btn-success" onclick="updateStatus('\${user.user_id}', 'approved')">
+                            ${user.passport_status === 'pending' ? `
+                                <button class="btn btn-success" onclick="updateStatus('${user.user_id}', 'approved')">
                                     <svg class="icon" viewBox="0 0 24 24">
                                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
                                     </svg>
                                     Approve
                                 </button>
-                                <button class="btn btn-danger" onclick="updateStatus('\${user.user_id}', 'rejected')">
+                                <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
                                     <svg class="icon" viewBox="0 0 24 24">
                                         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
                                     </svg>
                                     Reject
                                 </button>
-                            \` : ''}
-                            <button class="btn btn-info" onclick="showDepositModal('\${user.user_id}')">
+                            ` : ''}
+                            <button class="btn btn-info" onclick="showDepositModal('${user.user_id}')">
                                 <svg class="icon" viewBox="0 0 24 24">
                                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
                                 </svg>
                                 Deposit
                             </button>
                         </td>
-                    \`;
+                    `;
                     userTable.appendChild(row);
                 });
                 updatePagination(totalUsers);
             } catch (error) {
                 console.error('Load Users Error:', error.message);
-                document.getElementById('user-table').innerHTML = \`<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--danger);">Error loading users: \${error.message}</td></tr>\`;
+                document.getElementById('user-table').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--danger);">Error loading users: ${error.message}</td></tr>`;
             }
         }
 
@@ -2336,10 +2349,11 @@
             const paginationElement = document.getElementById('pagination');
             paginationElement.innerHTML = '';
 
-            if (totalPages <= 1) return;
+            if (totalPages <= 1) return; // No pagination if only one page or no items
 
+            // Previous button
             const prevBtn = document.createElement('div');
-            prevBtn.className = \`page-item \${currentPage === 1 ? 'disabled' : ''}\`;
+            prevBtn.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
             prevBtn.innerHTML = '&laquo;';
             prevBtn.onclick = () => {
                 if (currentPage > 1) {
@@ -2349,14 +2363,21 @@
             };
             paginationElement.appendChild(prevBtn);
 
+            // Page numbers (simplified for brevity, can be made more complex with ellipses)
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, currentPage + 2);
-            if (currentPage <= 3) endPage = Math.min(totalPages, 5);
-            if (currentPage > totalPages - 3) startPage = Math.max(1, totalPages - 4);
+
+            if (currentPage <= 3) {
+                endPage = Math.min(totalPages, 5);
+            }
+            if (currentPage > totalPages - 3) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
 
             for (let i = startPage; i <= endPage; i++) {
                 const pageItem = document.createElement('div');
-                pageItem.className = \`page-item \${currentPage === i ? 'active' : ''}\`;
+                pageItem.className = `page-item ${currentPage === i ? 'active' : ''}`;
                 pageItem.textContent = i;
                 pageItem.onclick = () => {
                     currentPage = i;
@@ -2365,8 +2386,9 @@
                 paginationElement.appendChild(pageItem);
             }
 
+            // Next button
             const nextBtn = document.createElement('div');
-            nextBtn.className = \`page-item \${currentPage === totalPages ? 'disabled' : ''}\`;
+            nextBtn.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
             nextBtn.innerHTML = '&raquo;';
             nextBtn.onclick = () => {
                 if (currentPage < totalPages) {
@@ -2383,38 +2405,63 @@
                     .from('users')
                     .select('*')
                     .eq('passport_status', 'pending')
-                    .order('created_at', { ascending: true });
+                    .order('created_at', { ascending: true }); // Show oldest first
 
-                if (error) throw new Error(\`KYC တောင်းဆိုမှုများ ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`);
+                if (error) throw new Error(`KYC တောင်းဆိုမှုများ ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
 
                 const kycTable = document.getElementById('kyc-table');
                 kycTable.innerHTML = '';
 
                 if (pendingUsers.length === 0) {
-                    kycTable.innerHTML = \`<tr><td colspan="6" style="text-align: center; padding: 20px;">စစ်ဆေးရန် KYC တောင်းဆိုမှုများ မရှိပါ။</td></tr>\`;
+                    kycTable.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 20px;">စစ်ဆေးရန် KYC တောင်းဆိုမှုများ မရှိပါ။</td>
+                        </tr>
+                    `;
                     return;
                 }
 
                 pendingUsers.forEach(user => {
                     const row = document.createElement('tr');
+                    // Use created_at for submission time as submitted_at might not exist
                     const submittedDate = user.created_at ? new Date(user.created_at).toLocaleString() : 'N/A';
 
-                    row.innerHTML = \`
-                        <td class="user-id">\${user.user_id}</td>
-                        <td class="user-phone">\${user.phone || 'N/A'}</td>
-                        <td><img src="\${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}" alt="Passport" class="user-image" onerror="this.src='https://via.placeholder.com/60?text=No+Image'" onclick="showImagePreview('\${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')"></td>
-                        <td><img src="\${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}" alt="Selfie" class="user-image" onerror="this.src='https://via.placeholder.com/60?text=No+Image'" onclick="showImagePreview('\${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')"></td>
-                        <td>\${submittedDate}</td>
-                        <td class="action-buttons">
-                            <button class="btn btn-success" onclick="updateStatus('\${user.user_id}', 'approved')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg> Approve</button>
-                            <button class="btn btn-danger" onclick="updateStatus('\${user.user_id}', 'rejected')"><svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg> Reject</button>
+                    row.innerHTML = `
+                        <td class="user-id">${user.user_id}</td>
+                        <td class="user-phone">${user.phone || 'N/A'}</td>
+                        <td>
+                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                                alt="Passport" class="user-image"
+                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
+                                onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
                         </td>
-                    \`;
+                        <td>
+                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}"
+                                alt="Selfie" class="user-image"
+                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'"
+                                onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
+                        </td>
+                        <td>${submittedDate}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-success" onclick="updateStatus('${user.user_id}', 'approved')">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+                                </svg>
+                                Approve
+                            </button>
+                            <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
+                                </svg>
+                                Reject
+                            </button>
+                        </td>
+                    `;
                     kycTable.appendChild(row);
                 });
             } catch (error) {
                 console.error('Load KYC Requests Error:', error.message);
-                document.getElementById('kyc-table').innerHTML = \`<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--danger);">Error loading KYC requests: \${error.message}</td></tr>\`;
+                 document.getElementById('kyc-table').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--danger);">Error loading KYC requests: ${error.message}</td></tr>`;
             }
         }
 
@@ -2424,34 +2471,39 @@
                     .from('transactions')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(50);
+                    .limit(50); // Limit for recent transactions display
 
-                if (error) throw new Error(\`ငွေလွှဲမှတ်တမ်းများ ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`);
+                if (error) throw new Error(`ငွေလွှဲမှတ်တမ်းများ ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
 
                 const transactionsTable = document.getElementById('transactions-table');
                 transactionsTable.innerHTML = '';
 
                 if (transactions.length === 0) {
-                    transactionsTable.innerHTML = \`<tr><td colspan="6" style="text-align: center; padding: 20px;">ငွေလွှဲမှတ်တမ်းများ မရှိသေးပါ။</td></tr>\`;
+                    transactionsTable.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 20px;">ငွေလွှဲမှတ်တမ်းများ မရှိသေးပါ။</td>
+                        </tr>
+                    `;
                     return;
                 }
 
                 transactions.forEach(transaction => {
                     const row = document.createElement('tr');
                     const date = new Date(transaction.created_at).toLocaleString();
-                    row.innerHTML = \`
-                        <td>\${transaction.id.substring(0,8)}...</td>
-                        <td>\${transaction.from_phone || 'N/A'} ( \${transaction.from_name || 'Unknown'} )</td>
-                        <td>\${transaction.to_phone || 'N/A'} ( \${transaction.to_name || 'Unknown'} )</td>
-                        <td class="user-balance">\${transaction.amount.toLocaleString()} Ks</td>
-                        <td>\${transaction.note || 'N/A'}</td>
-                        <td>\${date}</td>
-                    \`;
+
+                    row.innerHTML = `
+                        <td>${transaction.id.substring(0,8)}...</td>
+                        <td>${transaction.from_phone || 'N/A'} ( ${transaction.from_name || 'Unknown'} )</td>
+                        <td>${transaction.to_phone || 'N/A'} ( ${transaction.to_name || 'Unknown'} )</td>
+                        <td class="user-balance">${transaction.amount.toLocaleString()} Ks</td>
+                        <td>${transaction.note || 'N/A'}</td>
+                        <td>${date}</td>
+                    `;
                     transactionsTable.appendChild(row);
                 });
             } catch (error) {
                 console.error('Load Transactions Error:', error.message);
-                document.getElementById('transactions-table').innerHTML = \`<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--danger);">Error loading transactions: \${error.message}</td></tr>\`;
+                document.getElementById('transactions-table').innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--danger);">Error loading transactions: ${error.message}</td></tr>`;
             }
         }
 
@@ -2462,9 +2514,18 @@
                 console.warn("Transfer setting elements not found in DOM yet.");
                 return;
             }
+
             try {
-                const { data, error } = await supabase.from('settings').select('allow_transfers').eq('id', 1).single();
-                if (error && error.code !== 'PGRST116') throw new Error(\`Setting ကို ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`);
+                const { data, error } = await supabase
+                    .from('settings')
+                    .select('allow_transfers')
+                    .eq('id', 1)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') { // PGRST116: row not found
+                    throw new Error(`Setting ကို ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
+                }
+
                 if (data) {
                     allowTransfersToggle.value = data.allow_transfers.toString();
                     if (data.allow_transfers) {
@@ -2476,9 +2537,11 @@
                         statusText.textContent = 'Transfers are currently DISABLED';
                         statusText.style.color = 'var(--danger)';
                     }
-                } else {
+                } else { // Setting does not exist, create it
                     console.log("No setting found, creating default transfer setting (Enabled)...");
-                    const { error: insertError } = await supabase.from('settings').insert([{ id: 1, allow_transfers: true }]);
+                    const { error: insertError } = await supabase
+                        .from('settings')
+                        .insert([{ id: 1, allow_transfers: true }]);
                     if (insertError) throw insertError;
                     allowTransfersToggle.value = "true";
                     indicator.className = 'indicator on';
@@ -2488,31 +2551,42 @@
                 }
             } catch (error) {
                 console.error('Error loading/creating transfer setting:', error);
-                showGenericStatus(transferSettingStatusDiv, \`Setting ကို ပြင်ဆင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`, false);
-                indicator.className = 'indicator off';
+                showGenericStatus(transferSettingStatusDiv, `Setting ကို ပြင်ဆင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
+                indicator.className = 'indicator off'; // Default to off on error
                 statusText.textContent = 'Error loading status';
                 statusText.style.color = 'var(--danger)';
             }
         }
 
+
         async function searchUser() {
             const searchQuery = document.getElementById('search-input').value.trim();
-            currentPage = 1;
+            currentPage = 1; // Reset to first page on search
             await loadUsers(searchQuery);
         }
 
         async function updateStatus(userId, status) {
-            if (!confirm(\`Are you sure you want to set user \${userId} status to \${status}?\`)) return;
+            if (!confirm(`Are you sure you want to set user ${userId} status to ${status}?`)) return;
             try {
                 await retryOperation(async () => {
-                    const { error } = await supabase.from('users').update({ passport_status: status }).eq('user_id', userId);
-                    if (error) throw new Error(\`Status ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`);
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ passport_status: status })
+                        .eq('user_id', userId);
+
+                    if (error) throw new Error(`Status ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
                 });
-                await Promise.all([loadUserStats(), loadUsers(), loadKycRequests()]);
-                alert(\`User \${userId} status ကို \${status} သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။\`);
+
+                await Promise.all([
+                    loadUserStats(),
+                    loadUsers(), // Reload current page of users
+                    loadKycRequests() // Reload KYC requests as one might have been processed
+                ]);
+
+                alert(`User ${userId} status ကို ${status} သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။`);
             } catch (error) {
                 console.error('Update Status Error:', error.message);
-                alert(\`Status ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`);
+                alert(`Status ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
             }
         }
 
@@ -2552,19 +2626,30 @@
 
             try {
                 await retryOperation(async () => {
-                    const { data: user, error: fetchError } = await supabase.from('users').select('balance').eq('user_id', currentUserId).single();
-                    if (fetchError) throw new Error(\`သုံးစွဲသူ အချက်အလက် ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${fetchError.message}\`);
+                    const { data: user, error: fetchError } = await supabase
+                        .from('users')
+                        .select('balance')
+                        .eq('user_id', currentUserId)
+                        .single();
+
+                    if (fetchError) throw new Error(`သုံးစွဲသူ အချက်အလက် ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${fetchError.message}`);
+
                     const newBalance = (user.balance || 0) + amount;
-                    const { error: updateError } = await supabase.from('users').update({ balance: newBalance }).eq('user_id', currentUserId);
-                    if (updateError) throw new Error(\`ငွေဖြည့်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${updateError.message}\`);
+                    const { error: updateError } = await supabase
+                        .from('users')
+                        .update({ balance: newBalance })
+                        .eq('user_id', currentUserId);
+
+                    if (updateError) throw new Error(`ငွေဖြည့်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${updateError.message}`);
                 });
+
                 closeModal('deposit-modal');
-                await loadUsers();
-                await loadUserStats();
-                alert(\`\${currentUserId} ထံသို့ \${amount.toLocaleString()} Ks အောင်မြင်စွာ ငွေဖြည့်ပြီးပါပြီ။\`);
+                await loadUsers(); // Refresh user list to show new balance
+                await loadUserStats(); // Refresh stats
+                alert(`${currentUserId} ထံသို့ ${amount.toLocaleString()} Ks အောင်မြင်စွာ ငွေဖြည့်ပြီးပါပြီ။`);
             } catch (error) {
                 console.error('Deposit Error:', error.message);
-                errorElement.textContent = \`Error: \${error.message}\`;
+                errorElement.textContent = `Error: ${error.message}`;
                 errorElement.style.display = 'block';
             } finally {
                 depositButton.classList.remove('loading');
@@ -2590,24 +2675,38 @@
             try {
                 let approvedUserCount = 0;
                 await retryOperation(async () => {
-                    const { data: users, error: fetchError } = await supabase.from('users').select('user_id, balance').eq('passport_status', 'approved');
-                    if (fetchError) throw new Error(\`သုံးစွဲသူများ စာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${fetchError.message}\`);
+                    const { data: users, error: fetchError } = await supabase
+                        .from('users')
+                        .select('user_id, balance')
+                        .eq('passport_status', 'approved');
+
+                    if (fetchError) throw new Error(`သုံးစွဲသူများ စာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${fetchError.message}`);
                     approvedUserCount = users.length;
-                    if (approvedUserCount === 0) throw new Error("ငွေဖြည့်ရန် KYC အောင်မြင်ထားသော သုံးစွဲသူများ မရှိပါ။");
+                    if (approvedUserCount === 0) {
+                        throw new Error("ငွေဖြည့်ရန် KYC အောင်မြင်ထားသော သုံးစွဲသူများ မရှိပါ။");
+                    }
+
                     for (const user of users) {
                         const newBalance = (user.balance || 0) + amount;
-                        const { error: updateError } = await supabase.from('users').update({ balance: newBalance }).eq('user_id', user.user_id);
-                        if (updateError) console.error(\`User \${user.user_id} သို့ ငွေဖြည့်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${updateError.message}\`);
+                        const { error: updateError } = await supabase
+                            .from('users')
+                            .update({ balance: newBalance })
+                            .eq('user_id', user.user_id);
+
+                        // Log individual errors but continue for other users
+                        if (updateError) console.error(`User ${user.user_id} သို့ ငွေဖြည့်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${updateError.message}`);
                     }
                 });
-                successMessage.textContent = \`KYC အောင်မြင်ထားသော သုံးစွဲသူ \${approvedUserCount} ဦးထံသို့ \${amount.toLocaleString()} Ks စီ အောင်မြင်စွာ ငွေဖြည့်ပြီးပါပြီ။\`;
+
+                successMessage.textContent = `KYC အောင်မြင်ထားသော သုံးစွဲသူ ${approvedUserCount} ဦးထံသို့ ${amount.toLocaleString()} Ks စီ အောင်မြင်စွာ ငွေဖြည့်ပြီးပါပြီ။`;
                 successMessage.classList.add('show');
                 errorMessage.classList.remove('show');
-                await loadUsers();
-                await loadUserStats();
+
+                await loadUsers(); // Refresh user list
+                await loadUserStats(); // Refresh stats
             } catch (error) {
                 console.error('Bulk Deposit Error:', error.message);
-                errorMessage.textContent = \`Error: \${error.message}\`;
+                errorMessage.textContent = `Error: ${error.message}`;
                 errorMessage.classList.add('show');
                 successMessage.classList.remove('show');
             } finally {
@@ -2616,10 +2715,11 @@
             }
         }
 
+        // --- New Functions for Admin Actions (Announcements, Messages, Gifts) ---
         function showGenericStatus(element, message, isSuccess) {
             if (!element) return;
             element.textContent = message;
-            element.className = \`message \${isSuccess ? 'message-success' : 'message-error'} show\`;
+            element.className = `message ${isSuccess ? 'message-success' : 'message-error'} show`;
             setTimeout(() => {
                 element.classList.remove('show');
                 element.textContent = '';
@@ -2630,14 +2730,20 @@
             const title = announcementTitleInput.value.trim();
             const content = announcementContentInput.value.trim();
             const imageUrl = announcementImageUrlInput.value.trim();
+
             if (!title || !content) {
                 showGenericStatus(announcementStatusDiv, 'ခေါင်းစဉ် နှင့် အကြောင်းအရာ ဖြည့်ရန်လိုအပ်ပါသည်။', false);
                 return;
             }
+
             postAnnouncementBtn.classList.add('loading');
             postAnnouncementBtn.disabled = true;
+
             try {
-                const { error } = await supabase.from('announcements').insert([{ title, content, image_url: imageUrl || null }]);
+                const { data, error } = await supabase
+                    .from('announcements')
+                    .insert([{ title, content, image_url: imageUrl || null }]);
+
                 if (error) throw error;
                 showGenericStatus(announcementStatusDiv, 'ကြေညာချက်ကို အောင်မြင်စွာတင်ပြီးပါပြီ။', true);
                 announcementTitleInput.value = '';
@@ -2645,7 +2751,7 @@
                 announcementImageUrlInput.value = '';
             } catch (error) {
                 console.error('Error posting announcement:', error);
-                showGenericStatus(announcementStatusDiv, \`ကြေညာချက်တင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`, false);
+                showGenericStatus(announcementStatusDiv, `ကြေညာချက်တင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
             } finally {
                 postAnnouncementBtn.classList.remove('loading');
                 postAnnouncementBtn.disabled = false;
@@ -2655,6 +2761,7 @@
         async function handleSendMessageToUser() {
             const userId = messageUserIdInput.value.trim();
             const message = messageContentInput.value.trim();
+
             if (!userId || !message) {
                 showGenericStatus(messageStatusDiv, 'User ID နှင့် Message ဖြည့်ရန်လိုအပ်ပါသည်။', false);
                 return;
@@ -2663,17 +2770,28 @@
                 showGenericStatus(messageStatusDiv, 'User ID ပုံစံမှားယွင်းနေပါသည် (UUID ဖြစ်ရမည်)။', false);
                 return;
             }
+
             sendMessageBtn.classList.add('loading');
             sendMessageBtn.disabled = true;
+
             try {
-                const { error } = await supabase.from('user_notifications').insert([{ user_id: userId, type: 'message', title: 'Admin မှ Message', message: message, data: {} }]);
+                const { data, error } = await supabase
+                    .from('user_notifications')
+                    .insert([{
+                        user_id: userId,
+                        type: 'message',
+                        title: 'Admin မှ Message', // Title for the notification
+                        message: message,
+                        data: {}
+                    }]);
+
                 if (error) throw error;
                 showGenericStatus(messageStatusDiv, 'Message ကို အောင်မြင်စွာပို့ပြီးပါပြီ။', true);
                 messageUserIdInput.value = '';
                 messageContentInput.value = '';
             } catch (error) {
                 console.error('Error sending message:', error);
-                showGenericStatus(messageStatusDiv, \`Message ပို့ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`, false);
+                showGenericStatus(messageStatusDiv, `Message ပို့ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
             } finally {
                 sendMessageBtn.classList.remove('loading');
                 sendMessageBtn.disabled = false;
@@ -2684,7 +2802,7 @@
             const userId = giftUserIdInput.value.trim();
             const amount = parseFloat(giftAmountInput.value);
             const giftMsgInput = giftMessageInput.value.trim();
-            const finalGiftMessage = giftMsgInput || \`သင် \${amount.toLocaleString()} Ks လက်ဆောင် ရရှိထားပါသည်။\`;
+            const finalGiftMessage = giftMsgInput || `သင် ${amount.toLocaleString()} Ks လက်ဆောင် ရရှိထားပါသည်။`;
 
             if (!userId || isNaN(amount) || amount <= 0) {
                 showGenericStatus(giftStatusDiv, 'မှန်ကန်သော User ID နှင့် Gift ပမာဏ (0 ထက်ကြီးရမည်) ဖြည့်ရန်လိုအပ်ပါသည်။', false);
@@ -2694,18 +2812,29 @@
                 showGenericStatus(giftStatusDiv, 'User ID ပုံစံမှားယွင်းနေပါသည် (UUID ဖြစ်ရမည်)။', false);
                 return;
             }
+
             sendGiftBtn.classList.add('loading');
             sendGiftBtn.disabled = true;
+
             try {
-                const { error } = await supabase.from('user_notifications').insert([{ user_id: userId, type: 'gift_cash', title: 'လက်ဆောင်တစ်ခု ရရှိထားပါသည်!', message: \`\${finalGiftMessage} Notification မှ Claim လုပ်ပါ။\`, data: { amount: amount } }]);
+                const { data, error } = await supabase
+                    .from('user_notifications')
+                    .insert([{
+                        user_id: userId,
+                        type: 'gift_cash',
+                        title: 'လက်ဆောင်တစ်ခု ရရှိထားပါသည်!',
+                        message: `${finalGiftMessage} Notification မှ Claim လုပ်ပါ။`,
+                        data: { amount: amount }
+                    }]);
+
                 if (error) throw error;
-                showGenericStatus(giftStatusDiv, \`\${amount.toLocaleString()} Ks လက်ဆောင်အတွက် Notification ကို အောင်မြင်စွာပို့ပြီးပါပြီ။ User မှ Claim လုပ်ရန်လိုအပ်ပါသည်။\`, true);
+                showGenericStatus(giftStatusDiv, `${amount.toLocaleString()} Ks လက်ဆောင်အတွက် Notification ကို အောင်မြင်စွာပို့ပြီးပါပြီ။ User မှ Claim လုပ်ရန်လိုအပ်ပါသည်။`, true);
                 giftUserIdInput.value = '';
                 giftAmountInput.value = '';
                 giftMessageInput.value = '';
             } catch (error) {
                 console.error('Error sending gift notification:', error);
-                showGenericStatus(giftStatusDiv, \`Gift ပို့ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`, false);
+                showGenericStatus(giftStatusDiv, `Gift ပို့ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
             } finally {
                 sendGiftBtn.classList.remove('loading');
                 sendGiftBtn.disabled = false;
@@ -2714,65 +2843,110 @@
 
         async function handleUpdateTransferSetting() {
             const allowTransfers = allowTransfersToggle.value === 'true';
+
             updateTransferSettingBtn.classList.add('loading');
             updateTransferSettingBtn.disabled = true;
             try {
-                const { data, error } = await supabase.from('settings').update({ allow_transfers: allowTransfers }).eq('id', 1).select();
+                const { data, error } = await supabase
+                    .from('settings')
+                    .update({ allow_transfers: allowTransfers })
+                    .eq('id', 1)
+                    .select();
+
                 if (error) throw error;
                 if (!data || data.length === 0) {
+                    // Setting row might not exist, try to re-create it (should have been handled by loadCurrentTransferSetting)
                     console.warn("Setting row not found during update, attempting to reload/re-create.");
-                    await loadCurrentTransferSetting();
-                    const { error: retryError } = await supabase.from('settings').update({ allow_transfers: allowTransfers }).eq('id', 1);
+                    await loadCurrentTransferSetting(); // This will create if not exists
+                    // Re-attempt update
+                    const { error: retryError } = await supabase
+                        .from('settings')
+                        .update({ allow_transfers: allowTransfers })
+                        .eq('id', 1);
                     if (retryError) throw retryError;
                 }
-                await loadCurrentTransferSetting();
-                showGenericStatus(transferSettingStatusDiv, \`Transfer Setting ကို \${allowTransfers ? 'Enabled' : 'Disabled'} သို့ အောင်မြင်စွာပြောင်းပြီးပါပြီ။\`, true);
+                await loadCurrentTransferSetting(); // Refresh display
+                showGenericStatus(transferSettingStatusDiv, `Transfer Setting ကို ${allowTransfers ? 'Enabled' : 'Disabled'} သို့ အောင်မြင်စွာပြောင်းပြီးပါပြီ။`, true);
             } catch (error) {
                 console.error('Error updating transfer setting:', error);
-                showGenericStatus(transferSettingStatusDiv, \`Setting ပြင်ဆင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`, false);
+                showGenericStatus(transferSettingStatusDiv, `Setting ပြင်ဆင်ရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`, false);
             } finally {
                 updateTransferSettingBtn.classList.remove('loading');
                 updateTransferSettingBtn.disabled = false;
             }
         }
 
-        async function resetAllPins() { // Changed from resetAllPasswords
-            if (!confirm('အသုံးပြုသူအားလုံး၏ ငွေလွှဲ PIN များကို default ("123456") သို့ ပြောင်းလဲရန် သေချာပါသလား? ဤလုပ်ဆောင်ချက်ကို နောက်ပြန်လှည့်၍မရပါ။')) return;
-            const defaultPin = "123456";
+
+        async function resetAllPasswords() { // This function in the attachment was for passwords, but users have PINs for transactions.
+                                          // Let's assume it means resetting transaction PINs to a default.
+            if (!confirm('အသုံးပြုသူအားလုံး၏ ငွေလွှဲ PIN များကို default ("123456") သို့ ပြောင်းလဲရန် သေချာပါသလား? ဤလုပ်ဆောင်ချက်ကို နောက်ပြန်လှည့်၍မရပါ။')) {
+                return;
+            }
+            const defaultPin = "123456"; // In a real app, this should be handled more securely.
             const resetButton = document.querySelector('#settings-tab .btn-danger');
             resetButton.classList.add('loading');
             resetButton.disabled = true;
+
             try {
+                // This is a simplified example. Updating all users might require batching or a server-side function for large numbers of users.
+                // Also, directly setting PINs like this is not ideal for security.
                 const { data: users, error: fetchError } = await supabase.from('users').select('user_id');
-                if (fetchError) throw new Error(\`သုံးစွဲသူများစာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${fetchError.message}\`);
+                if (fetchError) throw new Error(`သုံးစွဲသူများစာရင်း ရယူရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${fetchError.message}`);
+
                 for (const user of users) {
-                    const { error: updateError } = await supabase.from('users').update({ pin: defaultPin }).eq('user_id', user.user_id);
-                    if (updateError) console.warn(\`User \${user.user_id} ၏ PIN ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${updateError.message}\`);
+                    const { error: updateError } = await supabase
+                        .from('users')
+                        .update({ pin: defaultPin }) // Assuming 'pin' column exists in 'users' table
+                        .eq('user_id', user.user_id);
+                    if (updateError) {
+                        console.warn(`User ${user.user_id} ၏ PIN ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${updateError.message}`);
+                    }
                 }
-                alert(\`သုံးစွဲသူအားလုံး၏ ငွေလွှဲ PIN များကို "\${defaultPin}" သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။\`);
+                alert(`သုံးစွဲသူအားလုံး၏ ငွေလွှဲ PIN များကို "${defaultPin}" သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။`);
             } catch (error) {
                 console.error('Reset PINs Error:', error.message);
-                alert(\`PIN များ ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: \${error.message}\`);
+                alert(`PIN များ ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပွားပါသည်: ${error.message}`);
             } finally {
                 resetButton.classList.remove('loading');
                 resetButton.disabled = false;
             }
         }
 
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-            const activeLink = document.querySelector(\`.nav-link[onclick="showTab('\${tabId}')"]\`);
-            if (activeLink) activeLink.classList.add('active');
-            const pageTitleElement = document.getElementById('main-page-title');
-            if (pageTitleElement && activeLink) pageTitleElement.textContent = activeLink.textContent.trim();
 
-            if (tabId === 'users-tab' && document.getElementById('user-table').innerHTML === '') loadUsers();
-            else if (tabId === 'kyc-tab') loadKycRequests();
-            else if (tabId === 'transactions-tab' && document.getElementById('transactions-table').innerHTML === '') loadTransactions();
-            
-            if (window.innerWidth < 992) document.getElementById('sidebar').classList.remove('active');
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            const activeLink = document.querySelector(`.nav-link[onclick="showTab('${tabId}')"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+            // Update page title
+            const pageTitleElement = document.getElementById('main-page-title');
+            if (pageTitleElement && activeLink) {
+                pageTitleElement.textContent = activeLink.textContent.trim();
+            }
+
+
+            // Load tab-specific data if not already loaded or needs refresh
+            if (tabId === 'users-tab' && document.getElementById('user-table').innerHTML === '') {
+                loadUsers();
+            } else if (tabId === 'kyc-tab') { // Always refresh KYC tab as it's for pending items
+                loadKycRequests();
+            } else if (tabId === 'transactions-tab' && document.getElementById('transactions-table').innerHTML === '') {
+                loadTransactions();
+            } else if (tabId === 'admin-actions-tab') {
+                // Any specific loading for admin actions tab can go here
+            }
+             // Close sidebar on mobile after tab selection
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
         }
     </script>
 </body>
