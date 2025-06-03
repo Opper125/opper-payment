@@ -32,7 +32,6 @@
         <div class="gradient-orb orb-1"></div>
         <div class="gradient-orb orb-2"></div>
         <div class="gradient-orb orb-3"></div>
-        <!-- <div class="gradient-orb orb-4"></div> Removed as it was not in original CSS -->
         <div class="floating-particles">
             <div class="particle"></div>
             <div class="particle"></div>
@@ -214,9 +213,9 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="notification-bell clickable">
+                <div class="notification-bell clickable" id="notification-bell-trigger">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">2</span>
+                    <span class="notification-badge" id="notification-badge">0</span>
                     <div class="notification-pulse"></div>
                 </div>
                 <div class="user-profile clickable" id="profile-dropdown-trigger">
@@ -278,6 +277,13 @@
                             <div class="nav-indicator"></div>
                         </a>
                     </li>
+                     <li>
+                        <a href="#posts" data-page="posts" class="clickable">
+                            <i class="fas fa-newspaper"></i> <!-- New Icon for Posts -->
+                            <span>ပို့စ်များ</span>
+                            <div class="nav-indicator"></div>
+                        </a>
+                    </li>
                     <li>
                         <a href="#kyc" data-page="kyc" class="clickable">
                             <i class="fas fa-id-card"></i>
@@ -312,7 +318,6 @@
                     <p>မင်္ဂလာပါ <span id="greeting-name">အကောင့်</span>!</p>
                 </div>
 
-                <!-- Balance Card -->
                 <div class="balance-card">
                     <div class="balance-header">
                         <h3>လက်ကျန်ငွေ</h3>
@@ -341,7 +346,6 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
                 <div class="quick-actions">
                     <h3>အမြန်လုပ်ဆောင်ချက်များ</h3>
                     <div class="action-grid">
@@ -359,6 +363,14 @@
                                 <div class="icon-glow"></div>
                             </div>
                             <div class="action-text">မှတ်တမ်းများ</div>
+                            <div class="card-hover-effect"></div>
+                        </div>
+                         <div class="action-card clickable" data-page="posts">
+                            <div class="action-icon">
+                                <i class="fas fa-newspaper"></i>
+                                <div class="icon-glow"></div>
+                            </div>
+                            <div class="action-text">ပို့စ်များ</div>
                             <div class="card-hover-effect"></div>
                         </div>
                         <div class="action-card clickable" data-page="kyc">
@@ -380,7 +392,6 @@
                     </div>
                 </div>
 
-                <!-- Recent Transactions -->
                 <div class="recent-transactions">
                     <div class="section-header">
                         <h3>နောက်ဆုံးလုပ်ဆောင်ချက်များ</h3>
@@ -469,6 +480,21 @@
                     <div class="empty-state">
                         <i class="fas fa-history"></i>
                         <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Posts Page -->
+            <section class="page" id="posts-page">
+                <div class="page-header">
+                    <h2>ပို့စ်များ</h2>
+                    <p>နောက်ဆုံးရ သတင်းများနှင့် အကြောင်းအရာများ</p>
+                </div>
+                <div class="posts-container" id="posts-container">
+                    <!-- Posts will be loaded here by script.js -->
+                    <div class="empty-state">
+                        <i class="fas fa-newspaper"></i>
+                        <p>ပို့စ်များ မရှိသေးပါ</p>
                     </div>
                 </div>
             </section>
@@ -640,7 +666,7 @@
                 <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
-                        <p>OPPER Payment v2.1</p> <!-- Version updated for new features -->
+                        <p>OPPER Payment v2.2</p> <!-- Version updated -->
                         <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
@@ -673,6 +699,16 @@
             <span>အကောင့်ထွက်ရန်</span>
         </div>
     </div>
+
+    <!-- Notification Dropdown (for gifts) -->
+    <div class="dropdown-menu notification-dropdown" id="notification-dropdown">
+        <!-- Gift notifications will be populated here by script.js -->
+        <div class="dropdown-item no-notifications">
+            <i class="fas fa-bell-slash"></i>
+            <span>No new notifications</span>
+        </div>
+    </div>
+
 
     <!-- Change Password Modal -->
     <div class="modal" id="change-password-modal">
@@ -848,7 +884,7 @@
     </div>
 
     <!-- Receipt Modal -->
-    <div class="modal receipt-modal-animated" id="receipt-modal"> <!-- Added receipt-modal-animated class -->
+    <div class="modal receipt-modal-animated" id="receipt-modal">
         <div class="modal-content receipt-modal-content">
             <div class="modal-header receipt-header">
                 <h3>ငွေလွှဲပြေစာ</h3>
@@ -914,7 +950,8 @@
     <!-- Audio Elements -->
     <audio id="transfer-sent-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_sent.mp3" preload="auto"></audio>
     <audio id="transfer-received-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_received.mp3" preload="auto"></audio>
-    <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio> <!-- Please ensure click.mp3 exists at this URL or replace it -->
+    <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio>
+    <audio id="notification-sound" src="https://github.com/Opper125/opper-payment/raw/main/notification.mp3" preload="auto"></audio> <!-- New notification sound -->
 
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
