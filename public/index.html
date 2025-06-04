@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OPPER Payment</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -73,6 +73,9 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
     <!-- Auth Container -->
     <div class="auth-container" id="auth-container">
         <div class="auth-card">
@@ -137,6 +140,14 @@
 
             <!-- Signup Form -->
             <div class="auth-form" id="signup-form">
+                <div class="form-group">
+                    <label for="signup-name">အမည်</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="signup-name" placeholder="သင့်အမည်ထည့်ပါ" required>
+                        <div class="input-focus-line"></div>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="signup-email">အီးမေးလ်</label>
                     <div class="input-with-icon">
@@ -215,7 +226,8 @@
             <div class="header-right">
                 <div class="notification-bell clickable" id="notification-bell-trigger">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="notification-badge-count">0</span>
+                    <span class="notification-badge" id="notification-badge">0</span>
+                    <div class="notification-pulse"></div>
                 </div>
                 <div class="user-profile clickable" id="profile-dropdown-trigger">
                     <div class="user-avatar">
@@ -263,13 +275,6 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#announcements" data-page="announcements" class="clickable">
-                            <i class="fas fa-bullhorn"></i>
-                            <span>ကြေညာချက်များ</span>
-                            <div class="nav-indicator"></div>
-                        </a>
-                    </li>
-                    <li>
                         <a href="#transfer" data-page="transfer" class="clickable">
                             <i class="fas fa-exchange-alt"></i>
                             <span>ငွေလွှဲရန်</span>
@@ -280,6 +285,13 @@
                         <a href="#history" data-page="history" class="clickable">
                             <i class="fas fa-history"></i>
                             <span>မှတ်တမ်းများ</span>
+                            <div class="nav-indicator"></div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#posts" data-page="posts" class="clickable">
+                            <i class="fas fa-newspaper"></i>
+                            <span>ပို့စ်များ</span>
                             <div class="nav-indicator"></div>
                         </a>
                     </li>
@@ -316,12 +328,6 @@
                     <h2>ပင်မစာမျက်နှာ</h2>
                     <p>မင်္ဂလာပါ <span id="greeting-name">အကောင့်</span>!</p>
                 </div>
-
-                <!-- General Announcements Display Area -->
-                <div class="general-announcements-container" id="general-announcements-display">
-                    <!-- Announcements from server.html will be displayed here -->
-                </div>
-
 
                 <!-- Balance Card -->
                 <div class="balance-card">
@@ -372,6 +378,14 @@
                             <div class="action-text">မှတ်တမ်းများ</div>
                             <div class="card-hover-effect"></div>
                         </div>
+                        <div class="action-card clickable" data-page="posts">
+                            <div class="action-icon">
+                                <i class="fas fa-newspaper"></i>
+                                <div class="icon-glow"></div>
+                            </div>
+                            <div class="action-text">ပို့စ်များ</div>
+                            <div class="card-hover-effect"></div>
+                        </div>
                         <div class="action-card clickable" data-page="kyc">
                             <div class="action-icon">
                                 <i class="fas fa-id-card"></i>
@@ -406,22 +420,6 @@
                 </div>
             </section>
 
-            <!-- Announcements Page -->
-            <section class="page" id="announcements-page">
-                <div class="page-header">
-                    <h2>ကြေညာချက်များ</h2>
-                    <p>နောက်ဆုံးရ သတင်းများနှင့် ကြေညာချက်များ</p>
-                </div>
-                <div class="announcements-list" id="announcements-list-content">
-                    <!-- Announcements will be loaded here -->
-                    <div class="empty-state">
-                        <i class="fas fa-bullhorn"></i>
-                        <p>ကြေညာချက်များ မရှိသေးပါ</p>
-                    </div>
-                </div>
-            </section>
-
-
             <!-- Transfer Page -->
             <section class="page" id="transfer-page">
                 <div class="page-header">
@@ -430,7 +428,7 @@
                 </div>
 
                 <div id="recipient-info" style="display: none;"></div>
-                <div class="transfer-form">
+                <form class="transfer-form" id="transfer-form">
                     <div class="form-group">
                         <label for="transfer-phone">လက်ခံမည့်သူ၏ ဖုန်းနံပါတ်</label>
                         <div class="input-with-icon">
@@ -455,14 +453,14 @@
                             <div class="input-focus-line"></div>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-block clickable" id="transfer-btn">
+                    <button type="button" class="btn btn-primary btn-block clickable" id="transfer-btn">
                         <span class="btn-text">ငွေလွှဲမည်</span>
                         <i class="fas fa-paper-plane btn-icon"></i>
                         <div class="btn-ripple"></div>
                     </button>
                     <div class="auth-message error" id="transfer-error"></div>
                     <div class="auth-message success" id="transfer-success"></div>
-                </div>
+                </form>
             </section>
 
             <!-- History Page -->
@@ -500,6 +498,20 @@
                 </div>
             </section>
 
+            <!-- Posts Page -->
+            <section class="page" id="posts-page">
+                <div class="page-header">
+                    <h2>ပို့စ်များ</h2>
+                    <p>နောက်ဆုံးရ သတင်းများနှင့် အကြောင်းအရာများ</p>
+                </div>
+                <div class="posts-container" id="posts-container">
+                    <div class="empty-state">
+                        <i class="fas fa-newspaper"></i>
+                        <p>ပို့စ်များ မရှိသေးပါ</p>
+                    </div>
+                </div>
+            </section>
+
             <!-- KYC Page -->
             <section class="page" id="kyc-page">
                 <div class="page-header">
@@ -518,7 +530,7 @@
                     </div>
                 </div>
 
-                <div class="kyc-form" id="kyc-form">
+                <form class="kyc-form" id="kyc-form">
                     <div class="form-group">
                         <label for="kyc-passport">နိုင်ငံကူးလက်မှတ်နံပါတ်</label>
                         <div class="input-with-icon">
@@ -577,14 +589,14 @@
                             <div class="file-preview" id="selfie-preview"></div>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-block clickable" id="kyc-submit-btn">
+                    <button type="submit" class="btn btn-primary btn-block clickable" id="kyc-submit-btn">
                         <span class="btn-text">တင်သွင်းမည်</span>
                         <i class="fas fa-check-circle btn-icon"></i>
                         <div class="btn-ripple"></div>
                     </button>
                     <div class="auth-message error" id="kyc-error"></div>
                     <div class="auth-message success" id="kyc-success"></div>
-                </div>
+                </form>
             </section>
 
             <!-- Settings Page -->
@@ -667,7 +679,7 @@
                 <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
-                        <p>OPPER Payment v2.1</p>
+                        <p>OPPER Payment v2.2</p>
                         <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
@@ -702,20 +714,17 @@
     </div>
 
     <!-- Notification Dropdown -->
-    <div class="dropdown-menu notification-dropdown" id="notification-dropdown-menu">
+    <div class="dropdown-menu notification-dropdown" id="notification-dropdown">
         <div class="notification-header">
-            <h3>အသိပေးချက်များ</h3>
-            <button class="btn btn-sm btn-outline clickable" id="mark-all-notifications-read">အားလုံးဖတ်ပြီး</button>
+            <h4><i class="fas fa-gift"></i> လက်ဆောင်များ</h4>
         </div>
-        <div class="notification-list" id="notification-list-items">
-            <!-- Notifications will be loaded here -->
-            <div class="notification-empty-state">
+        <div class="notification-list-container" id="notification-list-container">
+            <div class="empty-state small">
                 <i class="fas fa-bell-slash"></i>
                 <p>အသိပေးချက်များ မရှိသေးပါ</p>
             </div>
         </div>
     </div>
-
 
     <!-- Change Password Modal -->
     <div class="modal" id="change-password-modal">
@@ -725,35 +734,37 @@
                 <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="current-password">လက်ရှိစကားဝှက်</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="current-password" placeholder="လက်ရှိစကားဝှက်ထည့်ပါ" required>
-                        <i class="fas fa-eye-slash toggle-password clickable"></i>
-                        <div class="input-focus-line"></div>
+                <form id="change-password-form">
+                    <div class="form-group">
+                        <label for="current-password">လက်ရှိစကားဝှက်</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="current-password" placeholder="လက်ရှိစကားဝှက်ထည့်ပါ" required>
+                            <i class="fas fa-eye-slash toggle-password clickable"></i>
+                            <div class="input-focus-line"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="new-password">စကားဝှက်အသစ်</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="new-password" placeholder="စကားဝှက်အသစ်ထည့်ပါ" required>
-                        <i class="fas fa-eye-slash toggle-password clickable"></i>
-                        <div class="input-focus-line"></div>
+                    <div class="form-group">
+                        <label for="new-password">စကားဝှက်အသစ်</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="new-password" placeholder="စကားဝှက်အသစ်ထည့်ပါ" required>
+                            <i class="fas fa-eye-slash toggle-password clickable"></i>
+                            <div class="input-focus-line"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="confirm-new-password">စကားဝှက်အသစ်အတည်ပြုပါ</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirm-new-password" placeholder="စကားဝှက်အသစ်ပြန်ထည့်ပါ" required>
-                        <i class="fas fa-eye-slash toggle-password clickable"></i>
-                        <div class="input-focus-line"></div>
+                    <div class="form-group">
+                        <label for="confirm-new-password">စကားဝှက်အသစ်အတည်ပြုပါ</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirm-new-password" placeholder="စကားဝှက်အသစ်ပြန်ထည့်ပါ" required>
+                            <i class="fas fa-eye-slash toggle-password clickable"></i>
+                            <div class="input-focus-line"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="auth-message error" id="change-password-error"></div>
-                <div class="auth-message success" id="change-password-success"></div>
+                    <div class="auth-message error" id="change-password-error"></div>
+                    <div class="auth-message success" id="change-password-success"></div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
@@ -770,35 +781,37 @@
                 <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="current-pin">လက်ရှိ PIN</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="current-pin" placeholder="လက်ရှိ PIN ထည့်ပါ" maxlength="6" required>
-                        <i class="fas fa-eye-slash toggle-password clickable"></i>
-                        <div class="input-focus-line"></div>
+                <form id="change-pin-form">
+                    <div class="form-group">
+                        <label for="current-pin">လက်ရှိ PIN</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="current-pin" placeholder="လက်ရှိ PIN ထည့်ပါ" maxlength="6" required>
+                            <i class="fas fa-eye-slash toggle-password clickable"></i>
+                            <div class="input-focus-line"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="new-pin">PIN အသစ်</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="new-pin" placeholder="PIN အသစ်ထည့်ပါ" maxlength="6" required>
-                        <i class="fas fa-eye-slash toggle-password clickable"></i>
-                        <div class="input-focus-line"></div>
+                    <div class="form-group">
+                        <label for="new-pin">PIN အသစ်</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="new-pin" placeholder="PIN အသစ်ထည့်ပါ" maxlength="6" required>
+                            <i class="fas fa-eye-slash toggle-password clickable"></i>
+                            <div class="input-focus-line"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="confirm-new-pin">PIN အသစ်အတည်ပြုပါ</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirm-new-pin" placeholder="PIN အသစ်ပြန်ထည့်ပါ" maxlength="6" required>
-                        <i class="fas fa-eye-slash toggle-password clickable"></i>
-                        <div class="input-focus-line"></div>
+                    <div class="form-group">
+                        <label for="confirm-new-pin">PIN အသစ်အတည်ပြုပါ</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirm-new-pin" placeholder="PIN အသစ်ပြန်ထည့်ပါ" maxlength="6" required>
+                            <i class="fas fa-eye-slash toggle-password clickable"></i>
+                            <div class="input-focus-line"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="auth-message error" id="change-pin-error"></div>
-                <div class="auth-message success" id="change-pin-success"></div>
+                    <div class="auth-message error" id="change-pin-error"></div>
+                    <div class="auth-message success" id="change-pin-success"></div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
@@ -870,7 +883,7 @@
                 <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="text-center mb-4">ငွေလွှဲရန် သင့် PIN ကုဒ်ထည့်ပါ</p>
+                <p class="text-center mb-4" id="pin-recipient-info">ငွေလွှဲရန် သင့် PIN ကုဒ်ထည့်ပါ</p>
                 <div class="pin-input-container">
                     <div class="pin-input-wrapper">
                         <input type="password" class="pin-input" maxlength="1" data-index="0">
@@ -884,7 +897,7 @@
                 <div class="auth-message error" id="pin-error"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+                <button class="btn btn-outline modal-cancel clickable" id="cancel-pin-btn">မလုပ်တော့ပါ</button>
                 <button class="btn btn-primary clickable" id="confirm-pin-btn">အတည်ပြုသည်</button>
             </div>
         </div>
@@ -902,7 +915,7 @@
                     <button class="modal-close clickable">&times;</button>
                 </div>
             </div>
-            <div class="modal-body receipt-body" id="receipt-container">
+            <div class="modal-body receipt-body" id="receipt-content">
                 <!-- Receipt content will be dynamically generated -->
             </div>
         </div>
@@ -958,9 +971,7 @@
     <audio id="transfer-sent-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_sent.mp3" preload="auto"></audio>
     <audio id="transfer-received-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_received.mp3" preload="auto"></audio>
     <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio>
-    <audio id="notification-sound" src="https://github.com/Opper125/opper-payment/raw/main/notification.mp3" preload="auto"></audio> <!-- New sound for notifications -->
-    <audio id="gift-claim-sound" src="https://github.com/Opper125/opper-payment/raw/main/gift_claim.mp3" preload="auto"></audio> <!-- New sound for gift claims -->
-
+    <audio id="notification-sound" src="https://github.com/Opper125/opper-payment/raw/main/notification.mp3" preload="auto"></audio>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
