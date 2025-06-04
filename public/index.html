@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OPPER Payment</title>
+    <link rel="icon" type="image/png" href="https://github.com/Opper125/opper-payment/raw/main/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
@@ -95,7 +96,7 @@
             </div>
 
             <!-- Login Form -->
-            <div class="auth-form active" id="login-form">
+            <form class="auth-form active" id="login-form">
                 <div class="form-group">
                     <label for="login-email">အီးမေးလ်</label>
                     <div class="input-with-icon">
@@ -121,7 +122,7 @@
                     </div>
                     <a href="#" class="forgot-password clickable">စကားဝှက်မေ့သွားပြီလား?</a>
                 </div>
-                <button class="btn btn-primary btn-block clickable" id="login-btn">
+                <button type="submit" class="btn btn-primary btn-block clickable">
                     <span class="btn-text">အကောင့်ဝင်မည်</span>
                     <i class="fas fa-arrow-right btn-icon"></i>
                     <div class="btn-ripple"></div>
@@ -129,17 +130,17 @@
                 <div class="auth-separator">
                     <span>သို့မဟုတ်</span>
                 </div>
-                <button class="btn btn-outline btn-block clickable" id="google-login-btn">
+                <button type="button" class="btn btn-outline btn-block clickable" id="google-login-btn">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
                     <span>Google ဖြင့် အကောင့်ဝင်မည်</span>
                     <div class="btn-ripple"></div>
                 </button>
                 <div class="auth-message error" id="login-error"></div>
                 <div class="auth-message success" id="login-success"></div>
-            </div>
+            </form>
 
             <!-- Signup Form -->
-            <div class="auth-form" id="signup-form">
+            <form class="auth-form" id="signup-form">
                 <div class="form-group">
                     <label for="signup-name">အမည်</label>
                     <div class="input-with-icon">
@@ -189,7 +190,7 @@
                         <div class="checkbox-checkmark"></div>
                     </div>
                 </div>
-                <button class="btn btn-primary btn-block clickable" id="signup-btn">
+                <button type="submit" class="btn btn-primary btn-block clickable">
                     <span class="btn-text">အကောင့်ဖွင့်မည်</span>
                     <i class="fas fa-user-plus btn-icon"></i>
                     <div class="btn-ripple"></div>
@@ -197,14 +198,14 @@
                 <div class="auth-separator">
                     <span>သို့မဟုတ်</span>
                 </div>
-                <button class="btn btn-outline btn-block clickable" id="google-signup-btn">
+                <button type="button" class="btn btn-outline btn-block clickable" id="google-signup-btn">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
                     <span>Google ဖြင့် အကောင့်ဖွင့်မည်</span>
                     <div class="btn-ripple"></div>
                 </button>
                 <div class="auth-message error" id="signup-error"></div>
                 <div class="auth-message success" id="signup-success"></div>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -610,6 +611,14 @@
                     <h3>အကောင့်ဆက်တင်များ</h3>
                     <div class="settings-form">
                         <div class="form-group">
+                            <label for="settings-name">အမည်</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="settings-name" placeholder="သင့်အမည်" disabled>
+                                <div class="input-focus-line"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="settings-phone">ဖုန်းနံပါတ်</label>
                             <div class="input-with-icon">
                                 <i class="fas fa-phone"></i>
@@ -641,14 +650,14 @@
                 <div class="settings-card">
                     <h3>အပြင်အဆင်</h3>
                     <div class="theme-selector">
-                        <div class="theme-option active clickable" data-theme="light">
+                        <div class="theme-option clickable" data-theme="light">
                             <div class="theme-preview light">
                                 <div class="preview-header"></div>
                                 <div class="preview-content"></div>
                             </div>
                             <span>အလင်းရောင်</span>
                         </div>
-                        <div class="theme-option clickable" data-theme="dark">
+                        <div class="theme-option active clickable" data-theme="dark">
                             <div class="theme-preview dark">
                                 <div class="preview-header"></div>
                                 <div class="preview-content"></div>
@@ -730,7 +739,7 @@
     <div class="modal" id="change-password-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>စကားဝှက်ပြောင်းရန်</h3>
+                <h3>��ကားဝှက်ပြောင်းရန်</h3>
                 <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
@@ -852,7 +861,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
-                <button class="btn btn-danger clickable" id="confirm-delete-btn">အကောင့်ဖျက်မည်</button>
+                <button class="btn btn-danger clickable" id="confirm-delete-account-btn">အကောင့်ဖျက်မည်</button>
             </div>
         </div>
     </div>
@@ -915,8 +924,10 @@
                     <button class="modal-close clickable">&times;</button>
                 </div>
             </div>
-            <div class="modal-body receipt-body" id="receipt-content">
-                <!-- Receipt content will be dynamically generated -->
+            <div class="modal-body receipt-body">
+                <div id="receipt-content">
+                    <!-- Receipt content will be dynamically generated -->
+                </div>
             </div>
         </div>
     </div>
@@ -973,7 +984,9 @@
     <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio>
     <audio id="notification-sound" src="https://github.com/Opper125/opper-payment/raw/main/notification.mp3" preload="auto"></audio>
 
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Main Script -->
     <script src="script.js"></script>
 </body>
 </html>
