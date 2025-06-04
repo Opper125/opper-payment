@@ -34,9 +34,6 @@ const transferReceivedSound = document.getElementById("transfer-received-sound")
 const clickSound = document.getElementById("click-sound")
 const notificationSound = document.getElementById("notification-sound")
 
-// Import html2canvas (ensure it's loaded in index.html)
-// const html2canvas = window.html2canvas; // Already declared in your previous script.js
-
 // Initialize App
 document.addEventListener("DOMContentLoaded", async () => {
   document.body.setAttribute("data-theme", currentTheme)
