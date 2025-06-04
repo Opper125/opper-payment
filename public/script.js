@@ -2,7 +2,7 @@
 const supabaseUrl = "https://vtsczzlnhsrgnbkfyizi.supabase.co"
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68"
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) })
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
 
 // Global Variables
 let currentUser = null
@@ -25,8 +25,15 @@ const giftBoxModal = document.getElementById("gift-box-modal")
 
 // Initialize App
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("[INFO] OPPER Payment System Initializing...")
+
   // Apply saved theme
   document.body.setAttribute("data-theme", currentTheme)
+
+  // Show intro animation
+  setTimeout(() => {
+    document.getElementById("intro-animation").style.display = "none"
+  }, 3000)
 
   // Show loader
   showLoader()
@@ -39,16 +46,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Hide loader after initialization
   setTimeout(hideLoader, 1500)
+
+  console.log("[SUCCESS] OPPER Payment System Initialized")
 })
 
 // Check if user is logged in
 async function checkSession() {
   try {
+    console.log("[INFO] Checking user session...")
+
     // Check local storage for session
     const session = localStorage.getItem("opperSession")
 
     if (session) {
       const sessionData = JSON.parse(session)
+      console.log("[INFO] Session found, validating...")
+
       const { data: user, error } = await supabase
         .from("auth_users")
         .select("*")
@@ -57,7 +70,7 @@ async function checkSession() {
         .single()
 
       if (error || !user) {
-        // Invalid session
+        console.log("[WARNING] Invalid session, clearing...")
         localStorage.removeItem("opperSession")
         showAuthContainer()
         return
@@ -65,14 +78,15 @@ async function checkSession() {
 
       // Valid session, load user data
       currentUser = user
+      console.log("[SUCCESS] Valid session found for user:", user.email)
       await loadUserData()
       showAppContainer()
     } else {
-      // No session found
+      console.log("[INFO] No session found, showing auth")
       showAuthContainer()
     }
   } catch (error) {
-    console.error("Session check error:", error)
+    console.error("[ERROR] Session check failed:", error)
     showAuthContainer()
   }
 }
@@ -82,6 +96,8 @@ async function loadUserData() {
   try {
     if (!currentUser) return
 
+    console.log("[INFO] Loading user data...")
+
     // Get user profile data
     const { data: userData, error: userError } = await supabase
       .from("users")
@@ -89,11 +105,19 @@ async function loadUserData() {
       .eq("user_id", currentUser.user_id)
       .single()
 
-    if (userError) throw userError
+    if (userError) {
+      console.error("[ERROR] Failed to load user data:", userError)
+      throw userError
+    }
 
     // Update global variables
     userBalance = userData.balance || 0
     userKycStatus = userData.passport_status || "pending"
+
+    console.log("[SUCCESS] User data loaded:", {
+      balance: userBalance,
+      kycStatus: userKycStatus,
+    })
 
     // Update UI with user data
     updateUserUI(userData)
@@ -114,16 +138,19 @@ async function loadUserData() {
     setupRealtimeSubscriptions()
 
     // Load transactions and announcements
-    loadTransactions()
-    loadAnnouncements()
+    await loadTransactions()
+    await loadAnnouncements()
   } catch (error) {
-    console.error("Load user data error:", error)
+    console.error("[ERROR] Load user data failed:", error)
+    showToast("Failed to load user data", "error")
   }
 }
 
 // Load announcements
 async function loadAnnouncements() {
   try {
+    console.log("[INFO] Loading announcements...")
+
     const { data: announcementsData, error } = await supabase
       .from("announcements")
       .select("*")
@@ -133,10 +160,13 @@ async function loadAnnouncements() {
     if (error) throw error
 
     announcements = announcementsData || []
+    console.log("[SUCCESS] Loaded", announcements.length, "announcements")
+
     updateAnnouncementsUI()
     updateNotificationCount()
   } catch (error) {
-    console.error("Load announcements error:", error)
+    console.error("[ERROR] Load announcements failed:", error)
+    showToast("Failed to load announcements", "error")
   }
 }
 
@@ -236,7 +266,7 @@ function createGiftBoxAnnouncement(announcement) {
             <div class="announcement-header">
                 <div class="announcement-icon gift-box-icon">
                     <i class="fas fa-gift"></i>
-                    ${!isFullyClaimed ? '<div class="gift-sparkle"></div>' : ""}
+                    ${!isFullyClaimed ? '<div class="gift-sparkle"></div><div class="gift-sparkle"></div><div class="gift-sparkle"></div>' : ""}
                 </div>
                 <div class="announcement-meta">
                     <h3>${announcement.title}</h3>
@@ -270,56 +300,70 @@ function createGiftBoxAnnouncement(announcement) {
 
 // Show gift box modal
 async function showGiftBoxModal(announcement) {
-  currentGiftBox = announcement
+  try {
+    currentGiftBox = announcement
 
-  // Update modal content
-  document.getElementById("gift-box-title").textContent = announcement.title
-  document.getElementById("gift-box-amount").textContent = `${announcement.gift_amount.toLocaleString()} Ks`
-  document.getElementById("gift-claimed-count").textContent = announcement.gift_claimed_count
-  document.getElementById("gift-total-limit").textContent = announcement.gift_user_limit
+    console.log("[INFO] Opening gift box modal for:", announcement.title)
 
-  // Update progress bar
-  const progress = (announcement.gift_claimed_count / announcement.gift_user_limit) * 100
-  document.getElementById("gift-progress-bar").style.width = `${progress}%`
+    // Update modal content
+    document.getElementById("gift-box-title").textContent = announcement.title
+    document.getElementById("gift-box-amount").textContent = `${announcement.gift_amount.toLocaleString()} Ks`
+    document.getElementById("gift-claimed-count").textContent = announcement.gift_claimed_count
+    document.getElementById("gift-total-limit").textContent = announcement.gift_user_limit
 
-  // Check if user already claimed
-  const { data: existingClaim, error } = await supabase
-    .from("gift_claims")
-    .select("*")
-    .eq("announcement_id", announcement.id)
-    .eq("user_id", currentUser.user_id)
-    .single()
+    // Update progress bar
+    const progress = (announcement.gift_claimed_count / announcement.gift_user_limit) * 100
+    document.getElementById("gift-progress-bar").style.width = `${progress}%`
 
-  const claimBtn = document.getElementById("claim-gift-btn")
-  const isFullyClaimed = announcement.gift_claimed_count >= announcement.gift_user_limit
+    // Check if user already claimed
+    const { data: existingClaim, error } = await supabase
+      .from("gift_claims")
+      .select("*")
+      .eq("announcement_id", announcement.id)
+      .eq("user_id", currentUser.user_id)
+      .single()
 
-  if (existingClaim) {
-    claimBtn.innerHTML = '<i class="fas fa-check"></i><span>ယူပြီးပါပြီ</span>'
-    claimBtn.disabled = true
-    claimBtn.classList.add("claimed")
-  } else if (isFullyClaimed) {
-    claimBtn.innerHTML = '<i class="fas fa-times"></i><span>ပြည့်ပြီး</span>'
-    claimBtn.disabled = true
-    claimBtn.classList.add("disabled")
-  } else {
-    claimBtn.innerHTML = '<i class="fas fa-gift"></i><span>လက်ဆောင်ယူမည်</span>'
-    claimBtn.disabled = false
-    claimBtn.classList.remove("claimed", "disabled")
+    const claimBtn = document.getElementById("claim-gift-btn")
+    const isFullyClaimed = announcement.gift_claimed_count >= announcement.gift_user_limit
+
+    if (existingClaim) {
+      claimBtn.innerHTML = '<i class="fas fa-check"></i><span>ယူပြီးပါပြီ</span>'
+      claimBtn.disabled = true
+      claimBtn.classList.add("claimed")
+    } else if (isFullyClaimed) {
+      claimBtn.innerHTML = '<i class="fas fa-times"></i><span>ပြည့်ပြီး</span>'
+      claimBtn.disabled = true
+      claimBtn.classList.add("disabled")
+    } else {
+      claimBtn.innerHTML = '<i class="fas fa-gift"></i><span>လက်ဆောင်ယူမည်</span>'
+      claimBtn.disabled = false
+      claimBtn.classList.remove("claimed", "disabled")
+    }
+
+    // Load leaderboard
+    await loadGiftLeaderboard(announcement.id)
+
+    // Show modal
+    giftBoxModal.classList.add("active")
+  } catch (error) {
+    console.error("[ERROR] Failed to show gift box modal:", error)
+    showToast("Failed to load gift box details", "error")
   }
-
-  // Load leaderboard
-  await loadGiftLeaderboard(announcement.id)
-
-  // Show modal
-  giftBoxModal.classList.add("active")
 }
 
 // Load gift leaderboard
 async function loadGiftLeaderboard(announcementId) {
   try {
-    const { data: leaderboard, error } = await supabase.rpc("get_gift_leaderboard", {
-      p_announcement_id: announcementId,
-    })
+    const { data: leaderboard, error } = await supabase
+      .from("gift_claims")
+      .select(`
+                claimed_amount,
+                claimed_at,
+                users!inner(phone)
+            `)
+      .eq("announcement_id", announcementId)
+      .order("claimed_at", { ascending: true })
+      .limit(10)
 
     if (error) throw error
 
@@ -333,13 +377,15 @@ async function loadGiftLeaderboard(announcementId) {
     let leaderboardHTML = '<h4>လက်ဆောင်ယူသူများ</h4><div class="leaderboard-list">'
 
     leaderboard.forEach((entry, index) => {
-      const isKing = entry.rank === 1
-      const maskedPhone = entry.user_phone ? entry.user_phone.replace(/(\d{2})\d{7}(\d{2})/, "$1*******$2") : "Unknown"
+      const isKing = index === 0
+      const maskedPhone = entry.users.phone
+        ? entry.users.phone.replace(/(\d{2})\d{7}(\d{2})/, "$1*******$2")
+        : "Unknown"
 
       leaderboardHTML += `
                 <div class="leaderboard-item ${isKing ? "king" : ""}">
                     <div class="rank">
-                        ${isKing ? '<i class="fas fa-crown"></i>' : `#${entry.rank}`}
+                        ${isKing ? '<i class="fas fa-crown"></i>' : `#${index + 1}`}
                     </div>
                     <div class="user-info">
                         <span class="user-phone">${maskedPhone}</span>
@@ -354,8 +400,8 @@ async function loadGiftLeaderboard(announcementId) {
     leaderboardHTML += "</div>"
     leaderboardContainer.innerHTML = leaderboardHTML
   } catch (error) {
-    console.error("Load leaderboard error:", error)
-    document.getElementById("gift-leaderboard").innerHTML = '<p class="error">လီဒါဘုတ် ရယူ၍မရပါ</p>'
+    console.error("[ERROR] Load leaderboard failed:", error)
+    document.getElementById("gift-leaderboard").innerHTML = '<p class="error">လီဒါဘ���တ် ရယူ၍မရပါ</p>'
   }
 }
 
@@ -367,6 +413,8 @@ async function claimGiftBox() {
   const successElement = document.getElementById("gift-box-success")
   const claimBtn = document.getElementById("claim-gift-btn")
 
+  console.log("[INFO] Claiming gift box:", currentGiftBox.id)
+
   // Clear previous messages
   errorElement.style.display = "none"
   successElement.style.display = "none"
@@ -376,49 +424,112 @@ async function claimGiftBox() {
   claimBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>ယူနေသည်...</span>'
 
   try {
-    const { data: result, error } = await supabase.rpc("claim_gift_box", {
-      p_announcement_id: currentGiftBox.id,
-      p_user_id: currentUser.user_id,
+    // Check if gift box is still available
+    const { data: currentAnnouncement, error: checkError } = await supabase
+      .from("announcements")
+      .select("gift_claimed_count, gift_user_limit")
+      .eq("id", currentGiftBox.id)
+      .single()
+
+    if (checkError) throw checkError
+
+    if (currentAnnouncement.gift_claimed_count >= currentAnnouncement.gift_user_limit) {
+      throw new Error("Gift box is already fully claimed")
+    }
+
+    // Check if user already claimed
+    const { data: existingClaim, error: existingError } = await supabase
+      .from("gift_claims")
+      .select("*")
+      .eq("announcement_id", currentGiftBox.id)
+      .eq("user_id", currentUser.user_id)
+      .single()
+
+    if (existingClaim) {
+      throw new Error("You have already claimed this gift")
+    }
+
+    // Calculate claim amount (equal distribution)
+    const claimAmount = Math.floor(currentGiftBox.gift_amount / currentGiftBox.gift_user_limit)
+
+    // Start transaction
+    const { data: userUpdate, error: userError } = await supabase
+      .from("users")
+      .update({ balance: userBalance + claimAmount })
+      .eq("user_id", currentUser.user_id)
+      .select()
+      .single()
+
+    if (userError) throw userError
+
+    // Create gift claim record
+    const { data: claimRecord, error: claimError } = await supabase
+      .from("gift_claims")
+      .insert([
+        {
+          announcement_id: currentGiftBox.id,
+          user_id: currentUser.user_id,
+          claimed_amount: claimAmount,
+        },
+      ])
+      .select()
+      .single()
+
+    if (claimError) throw claimError
+
+    // Update announcement claimed count
+    const { error: announcementError } = await supabase
+      .from("announcements")
+      .update({ gift_claimed_count: currentAnnouncement.gift_claimed_count + 1 })
+      .eq("id", currentGiftBox.id)
+
+    if (announcementError) throw announcementError
+
+    // Update user balance
+    userBalance = userUpdate.balance
+    document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
+    document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
+
+    // Show success message
+    successElement.textContent = `လက်ဆောင် ${claimAmount.toLocaleString()} Ks ရရှိပါပြီ!`
+    successElement.style.display = "block"
+
+    // Update button
+    claimBtn.innerHTML = '<i class="fas fa-check"></i><span>ယူပြီးပါပြီ</span>'
+    claimBtn.classList.add("claimed")
+
+    // Trigger claim animation
+    const giftBoxModalContent = document.querySelector(".gift-box-modal-content")
+    giftBoxModalContent.classList.add("gift-claimed-animation")
+
+    // Add sparkle animations with random positions
+    const sparkles = giftBoxModalContent.querySelectorAll(".gift-sparkles .sparkle")
+    sparkles.forEach((sparkle) => {
+      sparkle.style.setProperty("--x", (Math.random() - 0.5) * 2)
+      sparkle.style.setProperty("--y", (Math.random() - 0.5) * 2)
     })
 
-    if (error) throw error
+    // Remove animation class after delay
+    setTimeout(() => {
+      giftBoxModalContent.classList.remove("gift-claimed-animation")
+    }, 2000)
 
-    if (result.success) {
-      // Update user balance
-      userBalance = result.new_balance
-      document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
-      document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
-
-      // Show success message
-      successElement.textContent = `လက်ဆောင် ${result.claimed_amount.toLocaleString()} Ks ရရှိပါပြီ!`
-      successElement.style.display = "block"
-
-      // Update button
-      claimBtn.innerHTML = '<i class="fas fa-check"></i><span>ယူပြီးပါပြီ</span>'
-      claimBtn.classList.add("claimed")
-
-      // Play sound
-      const giftSound = document.getElementById("gift-claim-sound")
-      if (giftSound) {
-        giftSound.play().catch(() => {})
-      }
-
-      // Reload announcements and leaderboard
-      setTimeout(() => {
-        loadAnnouncements()
-        loadGiftLeaderboard(currentGiftBox.id)
-      }, 1000)
-    } else {
-      errorElement.textContent = result.message
-      errorElement.style.display = "block"
-
-      // Reset button
-      claimBtn.disabled = false
-      claimBtn.innerHTML = '<i class="fas fa-gift"></i><span>လက်ဆောင်ယူမည်</span>'
+    // Play sound
+    const giftSound = document.getElementById("gift-claim-sound")
+    if (giftSound) {
+      giftSound.play().catch(() => {})
     }
+
+    console.log("[SUCCESS] Gift claimed successfully:", claimAmount, "Ks")
+
+    // Reload announcements and leaderboard
+    setTimeout(() => {
+      loadAnnouncements()
+      loadGiftLeaderboard(currentGiftBox.id)
+    }, 1000)
   } catch (error) {
-    console.error("Claim gift error:", error)
-    errorElement.textContent = "လက်ဆောင်ယူရာတွင် အမှားရှိနေပါသည်။"
+    console.error("[ERROR] Claim gift failed:", error)
+    errorElement.textContent = error.message || "လက်ဆောင်ယူရာတွင် အမှားရှိနေပါသည်။"
     errorElement.style.display = "block"
 
     // Reset button
@@ -430,13 +541,13 @@ async function claimGiftBox() {
 // Update notification count
 function updateNotificationCount() {
   const notificationCount = document.querySelector(".notification-badge")
-  const activeAnnouncements = announcements.filter(
+  const activeGiftBoxes = announcements.filter(
     (a) => a.type === "gift_box" && a.gift_claimed_count < a.gift_user_limit,
   ).length
 
-  notificationCount.textContent = activeAnnouncements
+  notificationCount.textContent = activeGiftBoxes
 
-  if (activeAnnouncements > 0) {
+  if (activeGiftBoxes > 0) {
     notificationCount.style.display = "flex"
   } else {
     notificationCount.style.display = "none"
@@ -534,6 +645,8 @@ function updateTransferStatus() {
 
 // Set up realtime subscriptions
 function setupRealtimeSubscriptions() {
+  console.log("[INFO] Setting up realtime subscriptions...")
+
   // Subscribe to user balance changes
   const userChannel = supabase
     .channel("user-updates")
@@ -546,6 +659,8 @@ function setupRealtimeSubscriptions() {
         filter: `user_id=eq.${currentUser.user_id}`,
       },
       (payload) => {
+        console.log("[INFO] User data updated:", payload.new)
+
         // Update balance if changed
         if (payload.new.balance !== userBalance) {
           userBalance = payload.new.balance
@@ -573,6 +688,7 @@ function setupRealtimeSubscriptions() {
         table: "settings",
       },
       (payload) => {
+        console.log("[INFO] Settings updated:", payload.new)
         if (payload.new.allow_transfers !== transfersEnabled) {
           transfersEnabled = payload.new.allow_transfers
           updateTransferStatus()
@@ -592,14 +708,9 @@ function setupRealtimeSubscriptions() {
         table: "transactions",
       },
       (payload) => {
-        // Check if transaction involves current user
-        if (
-          currentUser &&
-          (payload.new.from_phone === currentUser.phone || payload.new.to_phone === currentUser.phone)
-        ) {
-          // Refresh transactions list
-          loadTransactions()
-        }
+        console.log("[INFO] New transaction:", payload.new)
+        // Refresh transactions list
+        loadTransactions()
       },
     )
     .subscribe()
@@ -615,17 +726,22 @@ function setupRealtimeSubscriptions() {
         table: "announcements",
       },
       (payload) => {
+        console.log("[INFO] Announcements updated:", payload)
         // Refresh announcements
         loadAnnouncements()
       },
     )
     .subscribe()
+
+  console.log("[SUCCESS] Realtime subscriptions set up")
 }
 
 // Load transactions
 async function loadTransactions() {
   try {
     if (!currentUser) return
+
+    console.log("[INFO] Loading transactions...")
 
     // Get user phone number
     const { data: userData, error: userError } = await supabase
@@ -634,7 +750,10 @@ async function loadTransactions() {
       .eq("user_id", currentUser.user_id)
       .single()
 
-    if (userError || !userData || !userData.phone) return
+    if (userError || !userData || !userData.phone) {
+      console.log("[WARNING] User phone not found")
+      return
+    }
 
     const userPhone = userData.phone
 
@@ -651,10 +770,13 @@ async function loadTransactions() {
     // Store transactions globally
     transactions = transactionsData || []
 
+    console.log("[SUCCESS] Loaded", transactions.length, "transactions")
+
     // Update UI with transactions
     updateTransactionsUI(transactions, userPhone)
   } catch (error) {
-    console.error("Load transactions error:", error)
+    console.error("[ERROR] Load transactions failed:", error)
+    showToast("Failed to load transactions", "error")
   }
 }
 
@@ -1639,7 +1761,7 @@ async function processTransfer(pin) {
   } catch (error) {
     console.error("Transfer error:", error)
     processingOverlay.classList.remove("active")
-    errorElement.textContent = "ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။"
+    errorElement.textContent = "ငွေလွှဲရာတွင် အမှားရှိနေပါသည်��"
     errorElement.style.display = "block"
     successElement.style.display = "none"
   }
@@ -1816,3 +1938,32 @@ async function logout() {
   // Show auth container
   showAuthContainer()
 }
+
+// Show toast message
+function showToast(message, type = "success") {
+  const toastContainer = document.getElementById("toast-container")
+
+  // Create toast element
+  const toast = document.createElement("div")
+  toast.classList.add("toast", type)
+  toast.textContent = message
+
+  // Add to container
+  toastContainer.appendChild(toast)
+
+  // Show toast
+  setTimeout(() => {
+    toast.classList.add("show")
+  }, 100)
+
+  // Hide toast after delay
+  setTimeout(() => {
+    toast.classList.remove("show")
+    setTimeout(() => {
+      toast.remove()
+    }, 300)
+  }, 3000)
+}
+
+//declare html2pdf
+const { jsPDF } = window.jspdf
