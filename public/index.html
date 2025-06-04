@@ -213,10 +213,9 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="notification-bell clickable">
+                <div class="notification-bell clickable" id="notification-bell-trigger">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="notification-count">0</span>
-                    <div class="notification-pulse"></div>
+                    <span class="notification-badge" id="notification-badge-count">0</span>
                 </div>
                 <div class="user-profile clickable" id="profile-dropdown-trigger">
                     <div class="user-avatar">
@@ -266,7 +265,7 @@
                     <li>
                         <a href="#announcements" data-page="announcements" class="clickable">
                             <i class="fas fa-bullhorn"></i>
-                            <span>ကြေငြာများ</span>
+                            <span>ကြေညာချက်များ</span>
                             <div class="nav-indicator"></div>
                         </a>
                     </li>
@@ -318,6 +317,12 @@
                     <p>မင်္ဂလာပါ <span id="greeting-name">အကောင့်</span>!</p>
                 </div>
 
+                <!-- General Announcements Display Area -->
+                <div class="general-announcements-container" id="general-announcements-display">
+                    <!-- Announcements from server.html will be displayed here -->
+                </div>
+
+
                 <!-- Balance Card -->
                 <div class="balance-card">
                     <div class="balance-header">
@@ -351,14 +356,6 @@
                 <div class="quick-actions">
                     <h3>အမြန်လုပ်ဆောင်ချက်များ</h3>
                     <div class="action-grid">
-                        <div class="action-card clickable" data-page="announcements">
-                            <div class="action-icon">
-                                <i class="fas fa-bullhorn"></i>
-                                <div class="icon-glow"></div>
-                            </div>
-                            <div class="action-text">ကြေငြာများ</div>
-                            <div class="card-hover-effect"></div>
-                        </div>
                         <div class="action-card clickable" data-page="transfer">
                             <div class="action-icon">
                                 <i class="fas fa-paper-plane"></i>
@@ -383,6 +380,14 @@
                             <div class="action-text">KYC အတည်ပြုရန်</div>
                             <div class="card-hover-effect"></div>
                         </div>
+                        <div class="action-card clickable" data-page="settings">
+                            <div class="action-icon">
+                                <i class="fas fa-cog"></i>
+                                <div class="icon-glow"></div>
+                            </div>
+                            <div class="action-text">ဆက်တင်များ</div>
+                            <div class="card-hover-effect"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -404,17 +409,18 @@
             <!-- Announcements Page -->
             <section class="page" id="announcements-page">
                 <div class="page-header">
-                    <h2>ကြေငြာများ</h2>
-                    <p>နောက်ဆုံးကြေငြာများနှင့် လက်ဆောင်များ</p>
+                    <h2>ကြေညာချက်များ</h2>
+                    <p>နောက်ဆုံးရ သတင်းများနှင့် ကြေညာချက်များ</p>
                 </div>
-
-                <div class="announcements-container" id="announcements-container">
+                <div class="announcements-list" id="announcements-list-content">
+                    <!-- Announcements will be loaded here -->
                     <div class="empty-state">
                         <i class="fas fa-bullhorn"></i>
-                        <p>ကြေငြာများမရှိသေးပါ</p>
+                        <p>ကြေညာချက်များ မရှိသေးပါ</p>
                     </div>
                 </div>
             </section>
+
 
             <!-- Transfer Page -->
             <section class="page" id="transfer-page">
@@ -661,7 +667,7 @@
                 <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
-                        <p>OPPER Payment v2.2</p>
+                        <p>OPPER Payment v2.1</p>
                         <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
@@ -695,51 +701,21 @@
         </div>
     </div>
 
-    <!-- Gift Box Modal -->
-    <div class="modal" id="gift-box-modal">
-        <div class="modal-content gift-box-modal-content">
-            <div class="modal-header gift-box-header">
-                <h3 id="gift-box-title">လက်ဆောင်သေတ္တာ</h3>
-                <button class="modal-close clickable">&times;</button>
-            </div>
-            <div class="modal-body gift-box-body">
-                <div class="gift-box-animation">
-                    <div class="gift-box-icon">
-                        <i class="fas fa-gift"></i>
-                    </div>
-                    <div class="gift-sparkles">
-                        <div class="sparkle"></div>
-                        <div class="sparkle"></div>
-                        <div class="sparkle"></div>
-                        <div class="sparkle"></div>
-                    </div>
-                </div>
-                <div class="gift-box-info">
-                    <div class="gift-amount" id="gift-box-amount">0 Ks</div>
-                    <div class="gift-progress">
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" id="gift-progress-bar"></div>
-                        </div>
-                        <div class="progress-text">
-                            <span id="gift-claimed-count">0</span> / <span id="gift-total-limit">0</span> ယူထားပြီး
-                        </div>
-                    </div>
-                    <div class="gift-leaderboard" id="gift-leaderboard">
-                        <!-- Leaderboard will be populated here -->
-                    </div>
-                </div>
-                <div class="auth-message error" id="gift-box-error"></div>
-                <div class="auth-message success" id="gift-box-success"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline modal-cancel clickable">ပိတ်မည်</button>
-                <button class="btn btn-primary clickable" id="claim-gift-btn">
-                    <i class="fas fa-gift"></i>
-                    <span>လက်ဆောင်ယူမည်</span>
-                </button>
+    <!-- Notification Dropdown -->
+    <div class="dropdown-menu notification-dropdown" id="notification-dropdown-menu">
+        <div class="notification-header">
+            <h3>အသိပေးချက်များ</h3>
+            <button class="btn btn-sm btn-outline clickable" id="mark-all-notifications-read">အားလုံးဖတ်ပြီး</button>
+        </div>
+        <div class="notification-list" id="notification-list-items">
+            <!-- Notifications will be loaded here -->
+            <div class="notification-empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <p>အသိပေးချက်များ မရှိသေးပါ</p>
             </div>
         </div>
     </div>
+
 
     <!-- Change Password Modal -->
     <div class="modal" id="change-password-modal">
@@ -982,7 +958,9 @@
     <audio id="transfer-sent-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_sent.mp3" preload="auto"></audio>
     <audio id="transfer-received-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_received.mp3" preload="auto"></audio>
     <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio>
-    <audio id="gift-claim-sound" src="https://github.com/Opper125/opper-payment/raw/main/gift_claim.mp3" preload="auto"></audio>
+    <audio id="notification-sound" src="https://github.com/Opper125/opper-payment/raw/main/notification.mp3" preload="auto"></audio> <!-- New sound for notifications -->
+    <audio id="gift-claim-sound" src="https://github.com/Opper125/opper-payment/raw/main/gift_claim.mp3" preload="auto"></audio> <!-- New sound for gift claims -->
+
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
