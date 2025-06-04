@@ -146,7 +146,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 80%, rgba(255, 77, 77, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(0, 204, 255, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 40% 40%, rgba(255, 204, 0, 0.05) 0%, transparent 50%);
@@ -308,13 +308,15 @@
             box-shadow: var(--shadow-md);
         }
 
-        .nav-link i, .nav-link .icon {
+        .nav-link i, .nav-link .icon { /* Keep i for FontAwesome if used, .icon for SVGs */
             font-size: 20px;
             width: 24px;
             height: 24px;
             text-align: center;
             transition: var(--transition);
+            fill: currentColor; /* For SVG icons */
         }
+
 
         .nav-link:hover i, .nav-link:hover .icon {
             transform: scale(1.2) rotate(5deg);
@@ -526,6 +528,7 @@
             font-size: 24px;
             transition: var(--transition);
             box-shadow: var(--shadow-md);
+            fill: currentColor; /* For SVG icons */
         }
 
         .stat-icon:hover {
@@ -570,7 +573,7 @@
         }
 
         /* Enhanced Control Panel */
-        .control-panel, .bulk-deposit, .search-bar, .user-list {
+        .control-panel, .bulk-deposit, .search-bar, .user-list, .post-management, .gift-management { /* Added new classes */
             background: var(--bg-card);
             border-radius: var(--radius-lg);
             padding: 24px;
@@ -584,7 +587,7 @@
             overflow: hidden;
         }
 
-        .control-panel::before, .bulk-deposit::before, .search-bar::before, .user-list::before {
+        .control-panel::before, .bulk-deposit::before, .search-bar::before, .user-list::before, .post-management::before, .gift-management::before { /* Added new classes */
             content: '';
             position: absolute;
             top: 0;
@@ -681,11 +684,15 @@
         }
 
         .form-group, .search-form {
-            display: flex;
-            gap: 16px;
-            margin-top: 16px;
-            flex-wrap: wrap;
+            margin-bottom: 20px; /* Increased margin */
         }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.9);
+        }
+
 
         /* Enhanced Table */
         .table-container {
@@ -728,8 +735,12 @@
 
         tr:hover {
             background: rgba(255, 255, 255, 0.05);
-            transform: scale(1.01);
+            /* transform: scale(1.01); remove for better table usability */
         }
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03); /* Slight highlight on hover */
+        }
+
 
         .user-id {
             font-weight: 600;
@@ -783,7 +794,7 @@
             background: linear-gradient(135deg, rgba(255, 51, 51, 0.2), rgba(255, 51, 51, 0.1));
             color: var(--danger);
             border: 1px solid var(--danger);
-            box-shadow: 0 0 10px rgba(255, 51, 51, 0.2);
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.1);
         }
 
         .user-image {
@@ -819,12 +830,16 @@
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            display: none;
+            display: none; /* Changed from flex to none */
             justify-content: center;
             align-items: center;
             z-index: 1000;
             padding: 20px;
         }
+        .modal.active { /* Added active class for display */
+            display: flex;
+        }
+
 
         .modal-content {
             background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
@@ -923,12 +938,16 @@
             background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            display: flex;
+            display: flex; /* Keep flex for initial display */
             justify-content: center;
             align-items: center;
             z-index: 2000;
             padding: 20px;
         }
+        .login-container.hidden { /* Added hidden class */
+            display: none !important;
+        }
+
 
         .login-box {
             background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
@@ -1084,7 +1103,7 @@
 
         .btn-danger {
             background: linear-gradient(135deg, var(--danger), var(--danger-light));
-            color: var(--text-light);
+            color: var(--text-light); /* Changed to light for better contrast on dark red */
             box-shadow: var(--shadow-md);
         }
 
@@ -1096,7 +1115,7 @@
 
         .btn-info {
             background: linear-gradient(135deg, var(--info), var(--info-light));
-            color: var(--text-light);
+            color: var(--text-dark); /* Changed to dark for better contrast on light blue */
             box-shadow: var(--shadow-md);
         }
 
@@ -1246,7 +1265,7 @@
                 position: sticky;
                 top: 16px;
                 padding: 16px 20px;
-                margin: -16px -16px 24px;
+                margin: 0 0 24px; /* Adjusted margin for sticky header */
             }
 
             .page-title {
@@ -1258,7 +1277,7 @@
                 gap: 16px;
             }
 
-            .control-panel, .bulk-deposit, .search-bar, .user-list {
+            .control-panel, .bulk-deposit, .search-bar, .user-list, .post-management, .gift-management {
                 padding: 20px;
                 margin-bottom: 24px;
             }
@@ -1272,6 +1291,10 @@
             .form-group, .search-form {
                 flex-direction: column;
             }
+            .search-form input, .search-form button { /* Make search elements full width */
+                width: 100%;
+            }
+
 
             .control-buttons {
                 flex-direction: column;
@@ -1280,6 +1303,10 @@
             .action-buttons {
                 flex-direction: column;
             }
+            .action-buttons .btn { /* Ensure buttons in actions stack well */
+                width: 100%;
+            }
+
 
             .btn {
                 width: 100%;
@@ -1312,6 +1339,10 @@
             .modal-footer {
                 flex-direction: column;
             }
+            .modal-footer .btn { /* Ensure modal footer buttons stack well */
+                width: 100%;
+            }
+
 
             .pagination {
                 gap: 4px;
@@ -1361,7 +1392,7 @@
             }
 
             .header {
-                margin: -12px -12px 20px;
+                margin: 0 0 20px; /* Adjusted margin for sticky header */
                 padding: 12px 16px;
             }
 
@@ -1484,10 +1515,10 @@
         }
 
         /* Icons */
-        .icon {
+        .icon { /* General icon class for SVGs */
             display: inline-block;
-            width: 1em;
-            height: 1em;
+            width: 1em; /* Default size, can be overridden */
+            height: 1em; /* Default size, can be overridden */
             stroke-width: 0;
             stroke: currentColor;
             fill: currentColor;
@@ -1495,24 +1526,36 @@
             transition: var(--transition);
         }
 
+
         /* Safe Area Support for Mobile Devices */
         @supports (padding: max(0px)) {
             .sidebar {
                 padding-left: max(24px, env(safe-area-inset-left));
                 padding-right: max(24px, env(safe-area-inset-right));
+                padding-top: max(24px, env(safe-area-inset-top)); /* Added top */
+                padding-bottom: max(24px, env(safe-area-inset-bottom)); /* Added bottom */
             }
 
             .main-content {
                 padding-left: max(24px, env(safe-area-inset-left));
                 padding-right: max(24px, env(safe-area-inset-right));
+                padding-top: max(24px, env(safe-area-inset-top)); /* Added top */
+                padding-bottom: max(24px, env(safe-area-inset-bottom)); /* Added bottom */
             }
 
             .login-container {
                 padding-left: max(20px, env(safe-area-inset-left));
                 padding-right: max(20px, env(safe-area-inset-right));
+                padding-top: max(20px, env(safe-area-inset-top)); /* Added top */
                 padding-bottom: max(20px, env(safe-area-inset-bottom));
             }
+            .header {
+                padding-left: max(24px, env(safe-area-inset-left));
+                padding-right: max(24px, env(safe-area-inset-right));
+                top: max(24px, env(safe-area-inset-top)); /* Adjust sticky top */
+            }
         }
+
 
         /* Reduced Motion Support */
         @media (prefers-reduced-motion: reduce) {
@@ -1550,6 +1593,96 @@
                 border: 2px solid var(--primary);
             }
         }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            min-width: 250px;
+            max-width: 350px;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            animation: toastInRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        .toast::before { /* Progress bar */
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background-color: rgba(255,255,255,0.3);
+            animation: toastProgress 5s linear forwards;
+        }
+
+
+        .toast-success {
+            background: linear-gradient(135deg, rgba(51, 204, 51, 0.8), rgba(51, 204, 51, 0.6));
+            border-color: var(--success);
+        }
+        .toast-success::before { background-color: var(--success-light); }
+
+        .toast-error {
+            background: linear-gradient(135deg, rgba(255, 51, 51, 0.8), rgba(255, 51, 51, 0.6));
+            border-color: var(--danger);
+        }
+        .toast-error::before { background-color: var(--danger-light); }
+
+        .toast-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(59, 130, 246, 0.6));
+            border-color: var(--info);
+        }
+        .toast-info::before { background-color: var(--info-light); }
+
+
+        @keyframes toastInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .toast-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+        .toast-close-btn:hover {
+            color: var(--primary);
+        }
+
     </style>
 </head>
 <body>
@@ -1558,6 +1691,9 @@
         <div class="wave"></div>
         <div class="wave"></div>
     </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
 
     <!-- Login Container -->
     <div class="login-container" id="login-container">
@@ -1584,7 +1720,7 @@
     </div>
 
     <!-- Dashboard -->
-    <div class="dashboard" id="dashboard">
+    <div class="dashboard hidden" id="dashboard-main"> <!-- Changed ID and initially hidden -->
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -1602,7 +1738,9 @@
                 <li class="nav-item">
                     <a href="#dashboard" class="nav-link active" onclick="showTab('dashboard-tab')">
                         <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path>
+                            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10
+</cut_off_point>
+zm0-18v6h8V3h-8z"></path>
                         </svg>
                         Dashboard
                     </a>
@@ -1624,6 +1762,18 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#posts" class="nav-link" onclick="showTab('posts-tab')">
+                         <svg class="icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"></path></svg>
+                        Post Management
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#gifts" class="nav-link" onclick="showTab('gifts-tab')">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3s-3 1.34-3 3c0 .35.07.69.18 1H10V4h4V2H4v2h4v2H2.18C2.07 5.69 2 5.35 2 5c0-1.66 1.34-3 3-3s3 1.34 3 3c0 .35-.07.69-.18 1H10v2H8v4H6v-4H4v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8h-2V6zM6 6h.18C6.07 5.69 6 5.35 6 5c0-.55.45-1 1-1s1 .45 1 1c0 .35-.07.69-.18 1H6V6zm12 0h.18C18.07 5.69 18 5.35 18 5c0-.55.45-1 1-1s1 .45 1 1c0 .35-.07.69-.18 1H18V6zM4 18h16v-2H4v2z"></path></svg>
+                        Gift Management
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#transactions" class="nav-link" onclick="showTab('transactions-tab')">
                         <svg class="icon" viewBox="0 0 24 24">
                             <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"></path>
@@ -1634,7 +1784,7 @@
                 <li class="nav-item">
                     <a href="#settings" class="nav-link" onclick="showTab('settings-tab')">
                         <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
+                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
                         </svg>
                         Settings
                     </a>
@@ -1665,7 +1815,7 @@
                         <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path>
                     </svg>
                 </button>
-                <h1 class="page-title">Dashboard</h1>
+                <h1 class="page-title" id="current-page-title">Dashboard</h1>
                 <div class="header-actions">
                     <button class="btn btn-outline" onclick="refreshData()">
                         <svg class="icon" viewBox="0 0 24 24">
@@ -1772,30 +1922,25 @@
                             Deposit to All Approved Users
                         </button>
                     </div>
-                    <div class="message message-success" id="bulk-success"></div>
-                    <div class="message message-error" id="bulk-error"></div>
                 </div>
             </div>
 
             <!-- Users Tab -->
             <div id="users-tab" class="tab-content">
-                <!-- Search Bar -->
                 <div class="search-bar">
                     <div class="panel-header">
                         <h2 class="panel-title">Search Users</h2>
                     </div>
-                    <div class="search-form">
+                    <form class="search-form" onsubmit="event.preventDefault(); searchUser();">
                         <input type="text" id="search-input" placeholder="Search by User ID or Phone Number">
-                        <button class="btn btn-primary" onclick="searchUser()">
+                        <button type="submit" class="btn btn-primary">
                             <svg class="icon" viewBox="0 0 24 24">
                                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
                             </svg>
                             Search
                         </button>
-                    </div>
+                    </form>
                 </div>
-
-                <!-- User List -->
                 <div class="user-list">
                     <div class="panel-header">
                         <h2 class="panel-title">All Users</h2>
@@ -1822,7 +1967,7 @@
 
             <!-- KYC Tab -->
             <div id="kyc-tab" class="tab-content">
-                <div class="user-list">
+                <div class="user-list"> <!-- Re-using user-list class for consistent styling -->
                     <div class="panel-header">
                         <h2 class="panel-title">Pending KYC Verifications</h2>
                     </div>
@@ -1844,9 +1989,108 @@
                 </div>
             </div>
 
+            <!-- Posts Tab -->
+            <div id="posts-tab" class="tab-content">
+                <div class="post-management">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Create New Post</h2>
+                    </div>
+                    <form id="create-post-form">
+                        <div class="form-group">
+                            <label for="post-title-input">Title:</label>
+                            <input type="text" id="post-title-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="post-type-select">Type:</label>
+                            <select id="post-type-select">
+                                <option value="text">Text</option>
+                                <option value="image">Image</option>
+                                <option value="video_url">Video URL</option>
+                                <option value="audio_file">Audio File</option>
+                                <option value="apk_file">APK File</option>
+                                <option value="file">Generic File</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="post-content-text-area">Content / Description:</label>
+                            <textarea id="post-content-text-area" rows="4"></textarea>
+                        </div>
+                        <div class="form-group hidden" id="post-file-url-group">
+                            <label for="post-file-url-input">File URL (for Video type):</label>
+                            <input type="text" id="post-file-url-input">
+                        </div>
+                        <div class="form-group hidden" id="post-file-upload-group">
+                            <label for="post-file-upload-input">Upload File:</label>
+                            <input type="file" id="post-file-upload-input">
+                            <p id="admin-file-upload-status" class="mt-2"></p>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                             <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg>
+                            Create Post
+                        </button>
+                    </form>
+                </div>
+                <div class="user-list mt-4"> <!-- Re-using user-list for consistent styling -->
+                    <div class="panel-header">
+                        <h2 class="panel-title">Existing Posts</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="existing-posts-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="existing-posts-list">
+                                <!-- Posts will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gifts Tab -->
+            <div id="gifts-tab" class="tab-content">
+                <div class="gift-management">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Send Gift</h2>
+                    </div>
+                    <form id="send-gift-form">
+                        <div class="form-group">
+                            <label for="gift-target-type-select">Target:</label>
+                            <select id="gift-target-type-select">
+                                <option value="all_approved">All Approved Users</option>
+                                <option value="specific_user_id">Specific User (by User ID)</option>
+                                <option value="specific_user_phone">Specific User (by Phone)</option>
+                            </select>
+                        </div>
+                        <div class="form-group hidden" id="gift-user-identifier-group">
+                            <label for="gift-user-identifier-input">User ID or Phone:</label>
+                            <input type="text" id="gift-user-identifier-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="gift-amount-input">Amount (Ks):</label>
+                            <input type="number" id="gift-amount-input" required min="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="gift-message-input">Message (optional):</label>
+                            <input type="text" id="gift-message-input" placeholder="e.g., Happy New Year!">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3s-3 1.34-3 3c0 .35.07.69.18 1H10V4h4V2H4v2h4v2H2.18C2.07 5.69 2 5.35 2 5c0-1.66 1.34-3 3-3s3 1.34 3 3c0 .35-.07.69-.18 1H10v2H8v4H6v-4H4v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8h-2V6zM6 6h.18C6.07 5.69 6 5.35 6 5c0-.55.45-1 1-1s1 .45 1 1c0 .35-.07.69-.18 1H6V6zm12 0h.18C18.07 5.69 18 5.35 18 5c0-.55.45-1 1-1s1 .45 1 1c0 .35-.07.69-.18 1H18V6zM4 18h16v-2H4v2z"></path></svg>
+                            Send Gift
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+
             <!-- Transactions Tab -->
             <div id="transactions-tab" class="tab-content">
-                <div class="user-list">
+                 <div class="user-list"> <!-- Re-using user-list class for consistent styling -->
                     <div class="panel-header">
                         <h2 class="panel-title">Recent Transactions</h2>
                     </div>
@@ -1875,11 +2119,19 @@
                         <h2 class="panel-title">System Settings</h2>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary" onclick="resetAllPasswords()">
+                        <button class="btn btn-danger" onclick="resetAllPasswords()"> <!-- Changed to danger -->
                             <svg class="icon" viewBox="0 0 24 24">
                                 <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path>
                             </svg>
-                            Reset All User Passwords
+                            Reset All User Passwords to '123456'
+                        </button>
+                    </div>
+                     <div class="form-group">
+                        <label for="admin-change-pin-input">Change Admin PIN:</label>
+                        <input type="password" id="admin-change-pin-input" placeholder="New Admin PIN (6 digits)">
+                        <button class="btn btn-primary" onclick="changeAdminPin()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm1-7H9V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2z"></path></svg>
+                            Update Admin PIN
                         </button>
                     </div>
                 </div>
@@ -1892,10 +2144,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Image Preview</h2>
-                <button class="close-modal" onclick="closeModal('image-modal')">×</button>
+                <button class="close-modal" onclick="closeModal('image-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <img src="/placeholder.svg" alt="Preview" class="image-preview" id="preview-image">
+                <img src="/placeholder.svg?width=400&height=300" alt="Preview" class="image-preview" id="preview-image">
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal('image-modal')">Close</button>
@@ -1908,12 +2160,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Deposit Funds</h2>
-                <button class="close-modal" onclick="closeModal('deposit-modal')">×</button>
+                <button class="close-modal" onclick="closeModal('deposit-modal')">&times;</button>
             </div>
             <div class="modal-body">
                 <p class="mb-4">Depositing to: <span id="deposit-user-id" class="user-id"></span></p>
                 <input type="number" id="deposit-amount" placeholder="Enter Amount (Ks)" min="1">
-                <div class="message message-error" id="deposit-error"></div>
+                <div class="message message-error mt-2" id="deposit-error"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal('deposit-modal')">Cancel</button>
@@ -1924,12 +2176,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // IMPORTANT: For a real admin panel, this key should be a SERVICE_ROLE_KEY
+        // and this entire HTML file should be protected by server-side authentication.
+        // Using an ANON KEY here is for demonstration purposes ONLY and is INSECURE for admin operations.
         const supabaseUrl = 'https://vtsczzlnhsrgnbkfyizi.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) });
 
-        const ADMIN_EMAIL = 'crakb68@gmail.com';
-        const ADMIN_PIN = '155872';
+        let ADMIN_EMAIL = 'crakb68@gmail.com'; // Default, can be changed via localStorage
+        let ADMIN_PIN = '155872'; // Default, can be changed via localStorage
 
         let currentUserId = null;
         let currentPage = 1;
@@ -1944,17 +2199,74 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('dashboard').classList.add('hidden');
-            
+            // Load admin credentials from localStorage if they exist
+            const storedAdminPin = localStorage.getItem('opperAdminPin');
+            if (storedAdminPin) {
+                ADMIN_PIN = storedAdminPin;
+            }
+
+            // Check if already logged in (e.g. page refresh)
+            if (sessionStorage.getItem('opperAdminLoggedIn') === 'true') {
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('dashboard-main').classList.remove('hidden');
+                initializeDashboard();
+            } else {
+                document.getElementById('login-container').classList.remove('hidden');
+                document.getElementById('dashboard-main').classList.add('hidden');
+            }
+
             // Mobile menu toggle
             document.getElementById('open-sidebar').addEventListener('click', function() {
                 document.getElementById('sidebar').classList.add('active');
             });
-            
+
             document.getElementById('close-sidebar').addEventListener('click', function() {
                 document.getElementById('sidebar').classList.remove('active');
             });
+
+            // Post Management: Show/hide file URL or file upload based on type
+            const postTypeSelect = document.getElementById("post-type-select");
+            const postFileUrlGroupEl = document.getElementById("post-file-url-group");
+            const postFileUploadGroupEl = document.getElementById("post-file-upload-group");
+
+            postTypeSelect.addEventListener("change", function() {
+                postFileUrlGroupEl.classList.toggle("hidden", this.value !== "video_url");
+                const fileUploadTypes = ["image", "audio_file", "apk_file", "file"];
+                postFileUploadGroupEl.classList.toggle("hidden", !fileUploadTypes.includes(this.value));
+            });
+
+            // Gift Management: Show/hide user identifier based on target type
+            const giftTargetTypeSelectEl = document.getElementById("gift-target-type-select");
+            const giftUserIdentifierGroupEl = document.getElementById("gift-user-identifier-group");
+
+            giftTargetTypeSelectEl.addEventListener("change", function() {
+                giftUserIdentifierGroupEl.classList.toggle("hidden", !["specific_user_id", "specific_user_phone"].includes(this.value));
+            });
+
+            // Form Submissions
+            document.getElementById("create-post-form").addEventListener("submit", handleCreatePost);
+            document.getElementById("send-gift-form").addEventListener("submit", handleSendGift);
+
         });
+
+        function showToast(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `${message} <button class="toast-close-btn" onclick="this.parentElement.remove()">&times;</button>`;
+            
+            toast.style.animationDuration = `${duration/1000}s`; // For progress bar
+            const progressBar = toast.querySelector('::before');
+            if(progressBar) progressBar.style.animationDuration = `${duration/1000}s`;
+
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, duration);
+        }
+
 
         function adminLogin() {
             const email = document.getElementById('admin-email').value;
@@ -1962,22 +2274,42 @@
             const errorMessage = document.getElementById('login-error');
 
             if (email === ADMIN_EMAIL && pin === ADMIN_PIN) {
+                sessionStorage.setItem('opperAdminLoggedIn', 'true'); // Use sessionStorage for login state
                 document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('dashboard-main').classList.remove('hidden');
                 initializeDashboard();
+                errorMessage.style.display = 'none';
             } else {
                 errorMessage.textContent = 'Invalid email or PIN.';
                 errorMessage.style.display = 'block';
+                showToast('Invalid admin credentials.', 'error');
             }
         }
 
         function logout() {
+            sessionStorage.removeItem('opperAdminLoggedIn');
             document.getElementById('login-container').classList.remove('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('dashboard-main').classList.add('hidden');
             document.getElementById('admin-email').value = '';
             document.getElementById('admin-pin').value = '';
             document.getElementById('login-error').style.display = 'none';
+            showToast('Logged out successfully.', 'info');
         }
+        
+        function changeAdminPin() {
+            const newPin = document.getElementById('admin-change-pin-input').value;
+            if (newPin && newPin.length === 6 && /^\d+$/.test(newPin)) {
+                if (confirm(`Are you sure you want to change the admin PIN to "${newPin}"? You will need to remember this for future logins.`)) {
+                    ADMIN_PIN = newPin;
+                    localStorage.setItem('opperAdminPin', newPin); // Persist for next session
+                    showToast('Admin PIN changed successfully. Please use this new PIN for your next login.', 'success');
+                    document.getElementById('admin-change-pin-input').value = '';
+                }
+            } else {
+                showToast('New PIN must be 6 digits.', 'error');
+            }
+        }
+
 
         async function retryOperation(operation, maxRetries = 3, delay = 1000) {
             for (let i = 0; i < maxRetries; i++) {
@@ -1993,46 +2325,56 @@
 
         async function initializeDashboard() {
             try {
+                showTab('dashboard-tab'); // Ensure dashboard is the default active tab visually
                 await Promise.all([
                     loadUserStats(),
-                    loadUsers(),
-                    loadKycRequests(),
-                    loadTransactions(),
+                    loadUsers(), // Load users for the user tab initially
+                    // loadKycRequests(), // Load these when KYC tab is clicked
+                    // loadTransactions(), // Load these when Transactions tab is clicked
                     checkTransferStatus()
                 ]);
             } catch (error) {
                 console.error('Dashboard Initialization Error:', error.message);
-                alert(`Error initializing dashboard: ${error.message}`);
+                showToast(`Error initializing dashboard: ${error.message}`, 'error');
             }
         }
 
         async function refreshData() {
             try {
-                const activeTab = document.querySelector('.tab-content.active').id;
-                
-                await loadUserStats();
-                
-                if (activeTab === 'dashboard-tab' || activeTab === 'users-tab') {
-                    await loadUsers();
+                const activeTabElement = document.querySelector('.tab-content.active');
+                if (!activeTabElement) {
+                    console.warn("No active tab found during refresh.");
+                    initializeDashboard(); // Fallback to full init
+                    return;
                 }
+                const activeTabId = activeTabElement.id;
                 
-                if (activeTab === 'kyc-tab') {
+                showToast('Refreshing data...', 'info', 2000);
+
+                await loadUserStats(); // Always refresh stats
+                await checkTransferStatus(); // Always refresh transfer status
+
+                if (activeTabId === 'dashboard-tab') {
+                    // Dashboard specific refreshes if any, besides stats
+                } else if (activeTabId === 'users-tab') {
+                    await loadUsers(document.getElementById('search-input').value.trim());
+                } else if (activeTabId === 'kyc-tab') {
                     await loadKycRequests();
-                }
-                
-                if (activeTab === 'transactions-tab') {
+                } else if (activeTabId === 'posts-tab') {
+                    await loadExistingPosts();
+                } else if (activeTabId === 'gifts-tab') {
+                    // No specific data to load for gifts tab itself, form is static
+                } else if (activeTabId === 'transactions-tab') {
                     await loadTransactions();
                 }
                 
-                await checkTransferStatus();
-                
-                // Show success message
-                alert('Data refreshed successfully!');
+                showToast('Data refreshed successfully!', 'success');
             } catch (error) {
                 console.error('Refresh Data Error:', error.message);
-                alert(`Error refreshing data: ${error.message}`);
+                showToast(`Error refreshing data: ${error.message}`, 'error');
             }
         }
+
 
         async function loadUserStats() {
             try {
@@ -2052,133 +2394,129 @@
                 document.getElementById('rejected-users').textContent = userStats.rejected;
             } catch (error) {
                 console.error('Load User Stats Error:', error.message);
-                throw error;
+                showToast(`Error loading user stats: ${error.message}`, 'error');
             }
         }
 
         async function loadUsers(searchQuery = '') {
             try {
-                let query = supabase.from('users').select('*');
+                let query = supabase.from('users').select('*', { count: 'exact' }); // Get total count for pagination
                 if (searchQuery) {
                     query = query.or(`user_id.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
                 }
-                
-                const { data: users, error, count } = await query;
+                 // Add order by created_at descending
+                query = query.order('created_at', { ascending: false });
+
+                const { data: users, error, count } = await query.range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+
                 if (error) throw new Error(`Fetch Users Error: ${error.message}`);
 
-                totalUsers = users.length;
-                
+                totalUsers = count; // Total count from Supabase
+
                 const userTable = document.getElementById('user-table');
-                userTable.innerHTML = '';
+                userTable.innerHTML = ''; // Clear previous entries
 
-                // Calculate pagination
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = Math.min(startIndex + itemsPerPage, users.length);
-                const paginatedUsers = users.slice(startIndex, endIndex);
+                if (users.length === 0) {
+                    userTable.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No users found.</td></tr>`;
+                    updatePagination(0);
+                    return;
+                }
 
-                paginatedUsers.forEach(user => {
+
+                users.forEach(user => {
                     const row = document.createElement('tr');
-                    
                     let statusClass = '';
                     if (user.passport_status === 'pending') statusClass = 'status-pending';
                     else if (user.passport_status === 'approved') statusClass = 'status-approved';
                     else if (user.passport_status === 'rejected') statusClass = 'status-rejected';
-                    
+
                     row.innerHTML = `
                         <td class="user-id">${user.user_id}</td>
                         <td class="user-phone">${user.phone || 'N/A'}</td>
-                        <td class="user-balance">${user.balance} Ks</td>
-                        <td><span class="user-status ${statusClass}">${user.passport_status}</span></td>
+                        <td class="user-balance">${user.balance != null ? user.balance.toLocaleString() : '0'} Ks</td>
+                        <td><span class="user-status ${statusClass}">${user.passport_status || 'N/A'}</span></td>
                         <td>
-                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Passport" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
+                            <img src="${user.passport_image || '/placeholder.svg?width=60&height=60&text=No+Image'}"
+                                alt="Passport" class="user-image"
+                                onerror="this.src='/placeholder.svg?width=60&height=60&text=Error'"
+                                onclick="showImagePreview('${user.passport_image || '/placeholder.svg?width=300&height=300&text=No+Image'}')">
                         </td>
                         <td>
-                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Selfie" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
+                            <img src="${user.selfie_image || '/placeholder.svg?width=60&height=60&text=No+Image'}"
+                                alt="Selfie" class="user-image"
+                                onerror="this.src='/placeholder.svg?width=60&height=60&text=Error'"
+                                onclick="showImagePreview('${user.selfie_image || '/placeholder.svg?width=300&height=300&text=No+Image'}')">
                         </td>
                         <td class="action-buttons">
                             ${user.passport_status === 'pending' ? `
-                                <button class="btn btn-success" onclick="updateStatus('${user.user_id}', 'approved')">
-                                    <svg class="icon" viewBox="0 0 24 24">
-                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
-                                    </svg>
-                                    Approve
-                                </button>
-                                <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
-                                    <svg class="icon" viewBox="0 0 24 24">
-                                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
-                                    </svg>
-                                    Reject
-                                </button>
-                            ` : ''}
-                            <button class="btn btn-info" onclick="showDepositModal('${user.user_id}')">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
-                                </svg>
-                                Deposit
-                            </button>
+                                <button class="btn btn-success btn-sm" onclick="updateStatus('${user.user_id}', 'approved')">Approve</button>
+                                <button class="btn btn-danger btn-sm" onclick="updateStatus('${user.user_id}', 'rejected')">Reject</button>
+                            ` : (user.passport_status === 'rejected' ? `
+                                <button class="btn btn-success btn-sm" onclick="updateStatus('${user.user_id}', 'approved')">Approve</button>
+                            ` : '')}
+                            <button class="btn btn-info btn-sm" onclick="showDepositModal('${user.user_id}')">Deposit</button>
                         </td>
                     `;
                     userTable.appendChild(row);
                 });
-
-                // Update pagination
-                updatePagination(users.length);
+                updatePagination(totalUsers);
             } catch (error) {
                 console.error('Load Users Error:', error.message);
-                throw error;
+                showToast(`Error loading users: ${error.message}`, 'error');
+                document.getElementById('user-table').innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">Error loading users.</td></tr>`;
             }
         }
+
 
         function updatePagination(totalItems) {
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             const paginationElement = document.getElementById('pagination');
             paginationElement.innerHTML = '';
 
-            // Previous button
-            if (totalPages > 1) {
-                const prevBtn = document.createElement('div');
-                prevBtn.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-                prevBtn.innerHTML = '&laquo;';
-                prevBtn.onclick = () => {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        loadUsers();
-                    }
-                };
-                paginationElement.appendChild(prevBtn);
-            }
+            if (totalPages <= 1) return; // No pagination needed for 1 or 0 pages
 
-            // Page numbers
-            for (let i = 1; i <= totalPages; i++) {
+            // Previous button
+            const prevBtn = document.createElement('div');
+            prevBtn.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevBtn.innerHTML = '&laquo;';
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadUsers(document.getElementById('search-input').value.trim());
+                }
+            };
+            paginationElement.appendChild(prevBtn);
+
+            // Page numbers (simplified for brevity, can be made more complex with ellipses)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (currentPage <=3) endPage = Math.min(totalPages, 5);
+            if (currentPage >= totalPages - 2) startPage = Math.max(1, totalPages - 4);
+
+
+            for (let i = startPage; i <= endPage; i++) {
                 const pageItem = document.createElement('div');
                 pageItem.className = `page-item ${currentPage === i ? 'active' : ''}`;
                 pageItem.textContent = i;
                 pageItem.onclick = () => {
                     currentPage = i;
-                    loadUsers();
+                    loadUsers(document.getElementById('search-input').value.trim());
                 };
                 paginationElement.appendChild(pageItem);
             }
 
             // Next button
-            if (totalPages > 1) {
-                const nextBtn = document.createElement('div');
-                nextBtn.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-                nextBtn.innerHTML = '&raquo;';
-                nextBtn.onclick = () => {
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        loadUsers();
-                    }
-                };
-                paginationElement.appendChild(nextBtn);
-            }
+            const nextBtn = document.createElement('div');
+            nextBtn.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextBtn.innerHTML = '&raquo;';
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadUsers(document.getElementById('search-input').value.trim());
+                }
+            };
+            paginationElement.appendChild(nextBtn);
         }
 
         async function loadKycRequests() {
@@ -2187,8 +2525,8 @@
                     .from('users')
                     .select('*')
                     .eq('passport_status', 'pending')
-                    .order('submitted_at', { ascending: false });
-                
+                    .order('submitted_at', { ascending: true }); // Show oldest first
+
                 if (error) throw new Error(`Fetch KYC Requests Error: ${error.message}`);
 
                 const kycTable = document.getElementById('kyc-table');
@@ -2206,43 +2544,33 @@
                 pendingUsers.forEach(user => {
                     const row = document.createElement('tr');
                     const submittedDate = user.submitted_at ? new Date(user.submitted_at).toLocaleString() : 'N/A';
-                    
+
                     row.innerHTML = `
                         <td class="user-id">${user.user_id}</td>
                         <td class="user-phone">${user.phone || 'N/A'}</td>
                         <td>
-                            <img src="${user.passport_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Passport" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.passport_image || 'https://via.placeholder.com/300?text=No+Image'}')">
+                            <img src="${user.passport_image || '/placeholder.svg?width=60&height=60&text=No+Image'}"
+                                alt="Passport" class="user-image"
+                                onerror="this.src='/placeholder.svg?width=60&height=60&text=Error'"
+                                onclick="showImagePreview('${user.passport_image || '/placeholder.svg?width=300&height=300&text=No+Image'}')">
                         </td>
                         <td>
-                            <img src="${user.selfie_image || 'https://via.placeholder.com/60?text=No+Image'}" 
-                                alt="Selfie" class="user-image" 
-                                onerror="this.src='https://via.placeholder.com/60?text=No+Image'" 
-                                onclick="showImagePreview('${user.selfie_image || 'https://via.placeholder.com/300?text=No+Image'}')">
+                            <img src="${user.selfie_image || '/placeholder.svg?width=60&height=60&text=No+Image'}"
+                                alt="Selfie" class="user-image"
+                                onerror="this.src='/placeholder.svg?width=60&height=60&text=Error'"
+                                onclick="showImagePreview('${user.selfie_image || '/placeholder.svg?width=300&height=300&text=No+Image'}')">
                         </td>
                         <td>${submittedDate}</td>
                         <td class="action-buttons">
-                            <button class="btn btn-success" onclick="updateStatus('${user.user_id}', 'approved')">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
-                                </svg>
-                                Approve
-                            </button>
-                            <button class="btn btn-danger" onclick="updateStatus('${user.user_id}', 'rejected')">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
-                                </svg>
-                                Reject
-                            </button>
+                            <button class="btn btn-success btn-sm" onclick="updateStatus('${user.user_id}', 'approved')">Approve</button>
+                            <button class="btn btn-danger btn-sm" onclick="updateStatus('${user.user_id}', 'rejected')">Reject</button>
                         </td>
                     `;
                     kycTable.appendChild(row);
                 });
             } catch (error) {
                 console.error('Load KYC Requests Error:', error.message);
-                throw error;
+                showToast(`Error loading KYC requests: ${error.message}`, 'error');
             }
         }
 
@@ -2252,8 +2580,8 @@
                     .from('transactions')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(20);
-                
+                    .limit(50); // Load more transactions
+
                 if (error) throw new Error(`Fetch Transactions Error: ${error.message}`);
 
                 const transactionsTable = document.getElementById('transactions-table');
@@ -2271,12 +2599,12 @@
                 transactions.forEach(transaction => {
                     const row = document.createElement('tr');
                     const date = new Date(transaction.created_at).toLocaleString();
-                    
+
                     row.innerHTML = `
                         <td>${transaction.id}</td>
-                        <td>${transaction.from_phone || 'N/A'}</td>
-                        <td>${transaction.to_phone || 'N/A'}</td>
-                        <td class="user-balance">${transaction.amount} Ks</td>
+                        <td>${transaction.from_phone || transaction.from_name || 'N/A'}</td>
+                        <td>${transaction.to_phone || transaction.to_name || 'N/A'}</td>
+                        <td class="user-balance">${transaction.amount.toLocaleString()} Ks</td>
                         <td>${transaction.note || 'N/A'}</td>
                         <td>${date}</td>
                     `;
@@ -2284,7 +2612,7 @@
                 });
             } catch (error) {
                 console.error('Load Transactions Error:', error.message);
-                throw error;
+                showToast(`Error loading transactions: ${error.message}`, 'error');
             }
         }
 
@@ -2293,14 +2621,14 @@
                 const { data, error } = await supabase
                     .from('settings')
                     .select('allow_transfers')
-                    .eq('id', 1)
+                    .eq('id', 1) // Assuming settings table has one row with id=1
                     .single();
-                
+
                 if (error) throw new Error(`Fetch Settings Error: ${error.message}`);
-                
+
                 const indicator = document.getElementById('transfer-indicator');
                 const statusText = document.getElementById('transfer-status-text');
-                
+
                 if (data.allow_transfers) {
                     indicator.className = 'indicator on';
                     statusText.textContent = 'Transfers are currently ENABLED';
@@ -2312,7 +2640,7 @@
                 }
             } catch (error) {
                 console.error('Check Transfer Status Error:', error.message);
-                throw error;
+                showToast(`Error checking transfer status: ${error.message}`, 'error');
             }
         }
 
@@ -2323,32 +2651,37 @@
         }
 
         async function updateStatus(userId, status) {
+            if (!confirm(`Are you sure you want to set KYC status to "${status}" for user ${userId}?`)) return;
             try {
                 await retryOperation(async () => {
                     const { error } = await supabase
                         .from('users')
                         .update({ passport_status: status })
                         .eq('user_id', userId);
-                    
+
                     if (error) throw new Error(`Update Status Error: ${error.message}`);
                 });
-                
+
                 await Promise.all([
                     loadUserStats(),
-                    loadUsers(),
-                    loadKycRequests()
+                    loadUsers(document.getElementById('search-input').value.trim()), // Maintain search query
+                    loadKycRequests() // Refresh KYC list as user might move out of pending
                 ]);
-                
-                alert(`User ${userId} has been ${status} successfully.`);
+
+                showToast(`User ${userId} KYC status updated to ${status}.`, 'success');
             } catch (error) {
                 console.error('Update Status Error:', error.message);
-                alert(`Error updating status: ${error.message}`);
+                showToast(`Error updating status: ${error.message}`, 'error');
             }
         }
 
         function showImagePreview(imageUrl) {
+            if (!imageUrl || imageUrl.includes('placeholder.svg')) {
+                showToast('No image available for preview.', 'info');
+                return;
+            }
             document.getElementById('preview-image').src = imageUrl;
-            document.getElementById('image-modal').style.display = 'flex';
+            document.getElementById('image-modal').classList.add('active');
         }
 
         function showDepositModal(userId) {
@@ -2356,182 +2689,403 @@
             document.getElementById('deposit-user-id').textContent = userId;
             document.getElementById('deposit-amount').value = '';
             document.getElementById('deposit-error').style.display = 'none';
-            document.getElementById('deposit-modal').style.display = 'flex';
+            document.getElementById('deposit-modal').classList.add('active');
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+            document.getElementById(modalId).classList.remove('active');
         }
 
         async function confirmDeposit() {
-            const amount = parseInt(document.getElementById('deposit-amount').value);
+            const amountInput = document.getElementById('deposit-amount');
+            const amount = parseInt(amountInput.value);
             const errorElement = document.getElementById('deposit-error');
-            
-            if (!amount || amount <= 0) {
-                errorElement.textContent = 'Please enter a valid amount.';
+
+            if (isNaN(amount) || amount <= 0) {
+                errorElement.textContent = 'Please enter a valid positive amount.';
                 errorElement.style.display = 'block';
                 return;
             }
+            errorElement.style.display = 'none';
+
 
             try {
-                await retryOperation(async () => {
-                    const { data: user, error: fetchError } = await supabase
-                        .from('users')
-                        .select('balance')
-                        .eq('user_id', currentUserId)
-                        .single();
-                    
-                    if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
+                const { data: user, error: fetchError } = await supabase
+                    .from('users')
+                    .select('balance')
+                    .eq('user_id', currentUserId)
+                    .single();
 
-                    const newBalance = user.balance + amount;
-                    const { error: updateError } = await supabase
-                        .from('users')
-                        .update({ balance: newBalance })
-                        .eq('user_id', currentUserId);
-                    
-                    if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
-                });
+                if (fetchError) throw new Error(`Fetch User Error: ${fetchError.message}`);
+
+                const newBalance = (user.balance || 0) + amount; // Ensure balance is a number
+                const { error: updateError } = await supabase
+                    .from('users')
+                    .update({ balance: newBalance })
+                    .eq('user_id', currentUserId);
+
+                if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+
 
                 closeModal('deposit-modal');
-                await loadUsers();
-                alert(`Successfully deposited ${amount} Ks to user ${currentUserId}.`);
+                await loadUsers(document.getElementById('search-input').value.trim()); // Refresh user list with current search
+                showToast(`Successfully deposited ${amount.toLocaleString()} Ks to user ${currentUserId}.`, 'success');
             } catch (error) {
                 console.error('Deposit Error:', error.message);
                 errorElement.textContent = `Error: ${error.message}`;
                 errorElement.style.display = 'block';
+                showToast(`Deposit failed: ${error.message}`, 'error');
             }
         }
 
         async function bulkDeposit() {
-            const amount = parseInt(document.getElementById('bulk-amount').value);
-            const successMessage = document.getElementById('bulk-success');
-            const errorMessage = document.getElementById('bulk-error');
+            const amountInput = document.getElementById('bulk-amount');
+            const amount = parseInt(amountInput.value);
 
-            if (!amount || amount <= 0) {
-                errorMessage.textContent = 'Please enter a valid amount.';
-                errorMessage.style.display = 'block';
-                successMessage.style.display = 'none';
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Please enter a valid positive amount for bulk deposit.', 'error');
                 return;
             }
 
-            try {
-                await retryOperation(async () => {
-                    const { data: users, error: fetchError } = await supabase
-                        .from('users')
-                        .select('user_id, balance')
-                        .eq('passport_status', 'approved');
-                    
-                    if (fetchError) throw new Error(`Fetch Users Error: ${fetchError.message}`);
+            if (!confirm(`Are you sure you want to deposit ${amount.toLocaleString()} Ks to ALL approved users?`)) return;
 
-                    for (const user of users) {
-                        const newBalance = user.balance + amount;
+            try {
+                const { data: users, error: fetchError } = await supabase
+                    .from('users')
+                    .select('user_id, balance')
+                    .eq('passport_status', 'approved');
+
+                if (fetchError) throw new Error(`Fetch Approved Users Error: ${fetchError.message}`);
+
+                if (users.length === 0) {
+                    showToast('No approved users found for bulk deposit.', 'info');
+                    return;
+                }
+
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const user of users) {
+                    try {
+                        const newBalance = (user.balance || 0) + amount;
                         const { error: updateError } = await supabase
                             .from('users')
                             .update({ balance: newBalance })
                             .eq('user_id', user.user_id);
-                        
-                        if (updateError) throw new Error(`Update Balance Error: ${updateError.message}`);
+                        if (updateError) {
+                            console.error(`Failed to update balance for ${user.user_id}: ${updateError.message}`);
+                            failCount++;
+                        } else {
+                            successCount++;
+                        }
+                    } catch (loopError) {
+                        console.error(`Error in bulk deposit loop for ${user.user_id}: ${loopError.message}`);
+                        failCount++;
                     }
-                });
-
-                successMessage.textContent = `Successfully deposited ${amount} Ks to all ${userStats.approved} approved accounts.`;
-                successMessage.style.display = 'block';
-                errorMessage.style.display = 'none';
+                }
                 
-                await loadUsers();
+                showToast(`Bulk deposit complete. ${successCount} users updated. ${failCount} failed.`, failCount > 0 ? 'warning' : 'success');
+                await loadUsers(document.getElementById('search-input').value.trim());
+                await loadUserStats(); // Refresh stats
+                amountInput.value = '';
+
             } catch (error) {
                 console.error('Bulk Deposit Error:', error.message);
-                errorMessage.textContent = `Error: ${error.message}`;
-                errorMessage.style.display = 'block';
-                successMessage.style.display = 'none';
+                showToast(`Bulk deposit failed: ${error.message}`, 'error');
             }
         }
 
         async function enableTransfers() {
+            if (!confirm("Are you sure you want to ENABLE global transfers?")) return;
             try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: true })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
-                });
-                
+                const { error } = await supabase
+                    .from('settings')
+                    .update({ allow_transfers: true })
+                    .eq('id', 1); // Assuming settings table has one row with id=1
+
+                if (error) throw new Error(`Enable Transfers Error: ${error.message}`);
+
                 await checkTransferStatus();
-                alert('Transfers have been enabled successfully.');
+                showToast('Transfers have been enabled successfully.', 'success');
             } catch (error) {
                 console.error('Enable Transfers Error:', error.message);
-                alert(`Error enabling transfers: ${error.message}`);
+                showToast(`Error enabling transfers: ${error.message}`, 'error');
             }
         }
 
         async function disableTransfers() {
+            if (!confirm("Are you sure you want to DISABLE global transfers?")) return;
             try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('settings')
-                        .update({ allow_transfers: false })
-                        .eq('id', 1);
-                    
-                    if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
-                });
-                
+                const { error } = await supabase
+                    .from('settings')
+                    .update({ allow_transfers: false })
+                    .eq('id', 1); // Assuming settings table has one row with id=1
+
+                if (error) throw new Error(`Disable Transfers Error: ${error.message}`);
+
                 await checkTransferStatus();
-                alert('Transfers have been disabled successfully.');
+                showToast('Transfers have been disabled successfully.', 'success');
             } catch (error) {
                 console.error('Disable Transfers Error:', error.message);
-                alert(`Error disabling transfers: ${error.message}`);
+                showToast(`Error disabling transfers: ${error.message}`, 'error');
             }
         }
 
         async function resetAllPasswords() {
-            if (!confirm('Are you sure you want to reset all user passwords? This action cannot be undone.')) {
+            if (!confirm('DANGER: Are you sure you want to reset ALL user passwords to "123456"? This action cannot be undone and affects all users.')) {
+                return;
+            }
+            // Add a second confirmation for such a critical action
+            if (!confirm('SECOND CONFIRMATION: Reset all user passwords to "123456"?')) {
                 return;
             }
 
             try {
-                await retryOperation(async () => {
-                    const { error } = await supabase
-                        .from('auth_users')
-                        .update({ password: '123456' });
-                    
-                    if (error) throw new Error(`Reset Passwords Error: ${error.message}`);
-                });
-                
-                alert('All user passwords have been reset to "123456".');
+                // This is a placeholder. Supabase auth user passwords cannot be bulk updated like this
+                // without iterating through users and using admin functions, which is complex and risky client-side.
+                // For a real scenario, this would be a backend operation with service_role key.
+                // const { error } = await supabase.rpc('reset_all_user_passwords_to_default'); // Example of an RPC
+                // if (error) throw new Error(`Reset Passwords RPC Error: ${error.message}`);
+
+                showToast('Password reset functionality needs a secure backend implementation. This is a placeholder.', 'warning');
+                console.warn("Simulating password reset. In a real app, this requires a secure backend process.");
+
             } catch (error) {
                 console.error('Reset Passwords Error:', error.message);
-                alert(`Error resetting passwords: ${error.message}`);
+                showToast(`Error resetting passwords: ${error.message}`, 'error');
             }
         }
 
         function showTab(tabId) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
-            
-            // Show selected tab
-            document.getElementById(tabId).classList.add('active');
-            
-            // Update active nav link
+            const currentTab = document.getElementById(tabId);
+            if (currentTab) {
+                currentTab.classList.add('active');
+            }
+
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
             });
-            
-            const activeLink = document.querySelector(`[onclick="showTab('${tabId}')"]`);
+            const activeLink = document.querySelector(`.nav-link[onclick="showTab('${tabId}')"]`);
             if (activeLink) {
                 activeLink.classList.add('active');
+                document.getElementById('current-page-title').textContent = activeLink.textContent.trim();
             }
             
-            // Load tab-specific data
-            if (tabId === 'kyc-tab') {
+            // Close sidebar on mobile after tab selection
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+
+
+            // Load data for the selected tab
+            if (tabId === 'users-tab') {
+                loadUsers();
+            } else if (tabId === 'kyc-tab') {
                 loadKycRequests();
+            } else if (tabId === 'posts-tab') {
+                loadExistingPosts();
             } else if (tabId === 'transactions-tab') {
                 loadTransactions();
             }
         }
+
+        // --- Post Management Functions ---
+        async function handleCreatePost(event) {
+            event.preventDefault();
+            const title = document.getElementById("post-title-input").value;
+            const type = document.getElementById("post-type-select").value;
+            const content_text = document.getElementById("post-content-text-area").value;
+            const file_url_video = document.getElementById("post-file-url-input").value;
+            const fileInput = document.getElementById("post-file-upload-input");
+            const fileUploadStatusEl = document.getElementById("admin-file-upload-status");
+
+            let uploadedFileUrl = null;
+            let uploadedFileName = null;
+            let uploadedFileSize = null;
+
+            fileUploadStatusEl.textContent = "Processing...";
+            fileUploadStatusEl.style.color = "var(--info)";
+
+            try {
+                if (["image", "audio_file", "apk_file", "file"].includes(type) && fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    // Use a more structured path, e.g., posts/[type]/filename
+                    const filePath = `posts/${type}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+                    fileUploadStatusEl.textContent = `Uploading ${file.name}...`;
+
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from("post-files") // Ensure this bucket exists and has appropriate policies
+                        .upload(filePath, file);
+
+                    if (uploadError) throw new Error(`Storage Upload Error: ${uploadError.message}`);
+
+                    const { data: publicUrlData } = supabase.storage.from("post-files").getPublicUrl(filePath);
+                    uploadedFileUrl = publicUrlData.publicUrl;
+                    uploadedFileName = file.name;
+                    uploadedFileSize = file.size;
+                    fileUploadStatusEl.textContent = `Uploaded ${file.name} successfully!`;
+                } else if (type === "video_url") {
+                    if (!file_url_video.startsWith('http://') && !file_url_video.startsWith('https://')) {
+                         throw new Error("Invalid video URL. Must start with http:// or https://");
+                    }
+                    uploadedFileUrl = file_url_video;
+                }
+
+                const postData = {
+                    title,
+                    type,
+                    content_text: content_text || null,
+                    file_url: uploadedFileUrl,
+                    file_name: uploadedFileName,
+                    file_size: uploadedFileSize,
+                    // user_id: 'admin_user_id' // Or associate with the logged-in admin if you have admin users table
+                };
+
+                const { error: insertError } = await supabase.from("posts").insert(postData);
+                if (insertError) throw new Error(`DB Insert Error: ${insertError.message}`);
+
+                showToast("Post created successfully!", "success");
+                event.target.reset(); // Reset the form
+                document.getElementById("post-file-url-group").classList.add("hidden");
+                document.getElementById("post-file-upload-group").classList.add("hidden");
+                fileUploadStatusEl.textContent = "";
+                loadExistingPosts();
+            } catch (err) {
+                console.error("Error creating post:", err);
+                showToast(`Error creating post: ${err.message}`, "error");
+                fileUploadStatusEl.textContent = `Error: ${err.message}`;
+                fileUploadStatusEl.style.color = "var(--danger)";
+            }
+        }
+
+        async function loadExistingPosts() {
+            const listEl = document.getElementById('existing-posts-list');
+            listEl.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading posts...</td></tr>';
+            try {
+                const { data: posts, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+
+                if (posts.length === 0) {
+                    listEl.innerHTML = '<tr><td colspan="4" style="text-align:center;">No posts found.</td></tr>';
+                    return;
+                }
+                listEl.innerHTML = posts.map(post => `
+                    <tr>
+                        <td>${post.title}</td>
+                        <td>${post.type}</td>
+                        <td>${new Date(post.created_at).toLocaleString()}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-danger btn-sm" onclick="deletePost('${post.id}', '${post.file_url && post.type !== 'video_url' ? post.file_url : ''}')">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                listEl.innerHTML = `<tr><td colspan="4" style="text-align:center;">Error loading posts: ${err.message}</td></tr>`;
+                showToast(`Error loading posts: ${err.message}`, 'error');
+            }
+        }
+
+        async function deletePost(postId, fileUrlToDelete) {
+            if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) return;
+            try {
+                // If there's a file URL and it's from Supabase storage, extract path and delete
+                if (fileUrlToDelete && fileUrlToDelete.includes(supabaseUrl)) {
+                     // Example: https://<project_ref>.supabase.co/storage/v1/object/public/post-files/posts/image/1720000000000_myimage.png
+                    const urlParts = fileUrlToDelete.split('/post-files/');
+                    if (urlParts.length > 1) {
+                        const filePath = `posts/${urlParts[1].substring(urlParts[1].indexOf('/') + 1)}`; // Reconstruct path from "posts/..."
+                        console.log("Attempting to delete from storage:", filePath);
+                        const { error: storageError } = await supabase.storage.from('post-files').remove([filePath]);
+                        if (storageError) {
+                            // Log error but continue to delete DB record, as file might not exist or path is wrong
+                            console.warn(`Could not delete file from storage: ${storageError.message}. Path: ${filePath}`);
+                            showToast(`Warning: Could not delete file from storage. DB record will still be deleted. ${storageError.message}`, 'warning');
+                        } else {
+                             showToast('File deleted from storage.', 'info');
+                        }
+                    }
+                }
+
+                const { error: dbError } = await supabase.from('posts').delete().eq('id', postId);
+                if (dbError) throw new Error(`DB Delete Error: ${dbError.message}`);
+
+                showToast('Post deleted successfully.', 'success');
+                loadExistingPosts();
+            } catch (err) {
+                console.error("Error deleting post:", err);
+                showToast(`Error deleting post: ${err.message}`, 'error');
+            }
+        }
+
+
+        // --- Gift Management Functions ---
+        async function handleSendGift(event) {
+            event.preventDefault();
+            const targetType = document.getElementById("gift-target-type-select").value;
+            const userIdentifier = document.getElementById("gift-user-identifier-input").value.trim();
+            const amountInput = document.getElementById("gift-amount-input");
+            const amount = parseFloat(amountInput.value);
+            const message = document.getElementById("gift-message-input").value.trim();
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast("Invalid gift amount. Must be a positive number.", "error");
+                return;
+            }
+
+            try {
+                let targetUserIds = [];
+                if (targetType === "all_approved") {
+                    const { data: users, error } = await supabase.from("users").select("user_id").eq("passport_status", "approved");
+                    if (error) throw new Error(`Fetch Approved Users Error: ${error.message}`);
+                    if (!users || users.length === 0) {
+                        showToast("No approved users found to send gifts to.", "info");
+                        return;
+                    }
+                    targetUserIds = users.map(u => u.user_id);
+                } else if (targetType === "specific_user_id") {
+                    if (!userIdentifier) { showToast("User ID is required for specific user gift.", "error"); return; }
+                    // Validate if user_id exists (optional, but good practice)
+                    const { data: user, error } = await supabase.from("users").select("user_id").eq("user_id", userIdentifier).single();
+                    if (error || !user) { showToast(`User with ID "${userIdentifier}" not found.`, "error"); return; }
+                    targetUserIds.push(userIdentifier);
+                } else if (targetType === "specific_user_phone") {
+                    if (!userIdentifier) { showToast("User Phone is required for specific user gift.", "error"); return; }
+                    const { data: user, error } = await supabase.from("users").select("user_id").eq("phone", userIdentifier).single();
+                    if (error || !user) { showToast(`User with phone "${userIdentifier}" not found.`, "error"); return; }
+                    targetUserIds.push(user.user_id);
+                }
+
+                if (targetUserIds.length === 0) {
+                    showToast("No target users identified for the gift.", "info");
+                    return;
+                }
+
+                const giftsToInsert = targetUserIds.map(userId => ({
+                    user_id: userId,
+                    amount: amount,
+                    message: message || `A special gift from OPPER!`,
+                    is_claimed: false,
+                    // admin_id: 'current_admin_user_id' // If you have admin user tracking
+                }));
+
+                const { error: insertError } = await supabase.from("gifts").insert(giftsToInsert);
+                if (insertError) throw new Error(`DB Gift Insert Error: ${insertError.message}`);
+
+                showToast(`Gift(s) of ${amount.toLocaleString()} Ks sent successfully to ${targetUserIds.length} user(s)!`, "success");
+                event.target.reset();
+                document.getElementById("gift-user-identifier-group").classList.add("hidden");
+            } catch (err) {
+                console.error("Error sending gift:", err);
+                showToast(`Error sending gift: ${err.message}`, "error");
+            }
+        }
+
     </script>
 </body>
 </html>
