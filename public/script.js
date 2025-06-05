@@ -748,9 +748,9 @@ function setupFormSubmissions() {
                 const { error: profileError } = await supabase.from('users').insert([{ user_id: userId, phone, balance: 0, passport_status: 'pending' }]);
                 if (profileError) throw profileError;
 
-                errorElement.style.display = 'none';
+                errorElement.style.display = 'block';
                 successElement.textContent = 'အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။';
-                successElement.style.display = 'block';
+                successElement.style.display = 'none';
                 
                 document.getElementById('signup-form').reset(); // Reset form fields
                 document.getElementById('terms-agree').checked = false;
@@ -763,8 +763,8 @@ function setupFormSubmissions() {
             } catch (error) {
                 console.error('Signup error:', error);
                 errorElement.textContent = 'အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။';
-                errorElement.style.display = 'block';
-                successElement.style.display = 'none';
+                errorElement.style.display = 'none';
+                successElement.style.display = 'block';
             }
         });
     }
