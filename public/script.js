@@ -14,7 +14,6 @@ let userKycStatus = "pending"
 let transfersEnabled = true
 let currentTheme = localStorage.getItem("theme") || "light"
 let transactions = []
-let currentReceiptTransaction = null // For storing current transaction details for receipt download
 
 // Asset URLs
 const LOGO_URL = "https://github.com/Opper125/opper-payment/raw/main/logo.png"
@@ -55,7 +54,6 @@ async function initializeApp() {
     initializeUI() // Initialize UI elements and event listeners regardless of auth state
   } catch (error) {
     console.error("Error during app initialization:", error)
-    logToConsole("App initialization error: " + error.message, "error", error)
     showAuthContainer() // Fallback to auth container on error
   } finally {
     // Hide intro animation after a delay, then hide main loader
@@ -83,6 +81,17 @@ async function checkSession() {
       const sessionData = JSON.parse(session)
       console.log("Found session in localStorage:", sessionData)
 
+      // Validate session with Supabase (optional but good practice)
+      // This example assumes localStorage session is trusted if present.
+      // For higher security, you'd re-verify with Supabase auth.
+      // const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      // if (authError || !authUser || authUser.id !== sessionData.user_id) {
+      //   console.warn("Session mismatch or Supabase auth error. Clearing local session.", authError);
+      //   localStorage.removeItem("opperSession");
+      //   return false;
+      // }
+
+      // Fetch user from our custom auth_users table
       const { data: user, error } = await supabase
         .from("auth_users")
         .select("*")
@@ -92,23 +101,19 @@ async function checkSession() {
 
       if (error || !user) {
         console.warn("User not found in auth_users or error:", error)
-        logToConsole("Session check: User not found or error. Clearing session.", "warn", error)
         localStorage.removeItem("opperSession")
         return false
       }
 
       currentUser = user
       console.log("Session valid. Current user set:", currentUser)
-      logToConsole("Session valid. Current user: " + currentUser.email, "info")
       return true
     } else {
       console.log("No session found in localStorage.")
-      logToConsole("No session found in localStorage.", "info")
       return false
     }
   } catch (error) {
     console.error("Session check error:", error)
-    logToConsole("Session check error: " + error.message, "error", error)
     localStorage.removeItem("opperSession") // Clear potentially corrupted session
     return false
   }
@@ -117,11 +122,9 @@ async function checkSession() {
 // Load user data
 async function loadUserData() {
   console.log("Loading user data for:", currentUser?.user_id)
-  logToConsole("Loading user data for: " + currentUser?.user_id, "info")
   try {
     if (!currentUser || !currentUser.user_id) {
       console.warn("Cannot load user data: currentUser is not set.")
-      logToConsole("Cannot load user data: currentUser is not set.", "warn")
       return
     }
 
@@ -133,13 +136,16 @@ async function loadUserData() {
 
     if (userError) {
       console.error("Error fetching user profile data:", userError)
-      logToConsole("Error fetching user profile data: " + userError.message, "error", userError)
-      throw userError
+      // Potentially handle this by logging out the user or showing an error message
+      // For now, we'll let the UI show default/empty states.
+      throw userError // Re-throw to be caught by initializeApp
     }
 
     if (!userData) {
       console.warn("User profile data not found for user_id:", currentUser.user_id)
-      logToConsole("User profile data not found for user_id: " + currentUser.user_id, "warn")
+      // This could happen if a user exists in auth_users but not in users table.
+      // Handle appropriately, e.g., prompt to create profile or logout.
+      // For now, treat as an error state.
       throw new Error("User profile not found.")
     }
 
@@ -147,31 +153,30 @@ async function loadUserData() {
     userBalance = userData.balance || 0
     userKycStatus = userData.passport_status || "pending"
     console.log("User profile data loaded:", userProfileData)
-    logToConsole("User profile data loaded successfully.", "success", userProfileData)
 
-    updateUserUI(userData)
+    updateUserUI(userData) // Update UI elements that depend on userProfileData
 
     const { data: settings, error: settingsError } = await supabase
       .from("settings")
       .select("allow_transfers")
-      .eq("id", 1) // Assuming settings table has a single row with id 1
+      .eq("id", 1)
       .single()
 
     if (settingsError) {
       console.warn("Error fetching settings:", settingsError)
-      logToConsole("Error fetching settings: " + settingsError.message, "warn", settingsError)
     } else if (settings) {
       transfersEnabled = settings.allow_transfers
       console.log("Transfers enabled status:", transfersEnabled)
-      logToConsole("Transfers enabled status: " + transfersEnabled, "info")
     }
-    updateTransferStatus()
+    updateTransferStatus() // Update UI for transfer status
 
     setupRealtimeSubscriptions()
-    await loadTransactions()
+    await loadTransactions() // Ensure transactions are loaded after user data
   } catch (error) {
     console.error("Load user data failed:", error)
-    logToConsole("Load user data failed: " + error.message, "error", error)
+    // If loading user data fails, it's a significant issue.
+    // Consider logging out the user or showing a persistent error.
+    // For now, re-throw to be caught by initializeApp, which will show auth container.
     throw error
   }
 }
@@ -181,7 +186,6 @@ function updateUserUI(userData) {
   console.log("Updating UI with user data:", userData)
   if (!currentUser || !userData) {
     console.warn("Cannot update UI: currentUser or userData is missing.")
-    logToConsole("Cannot update UI: currentUser or userData is missing.", "warn")
     return
   }
 
@@ -214,7 +218,6 @@ function updateUserUI(userData) {
     }
   } else {
     console.warn("Avatar elements not found in DOM for UI update.")
-    logToConsole("Avatar elements not found in DOM for UI update.", "warn")
   }
 
   document.getElementById("user-name").textContent = userName
@@ -230,20 +233,18 @@ function updateUserUI(userData) {
 
   document.getElementById("settings-phone").value = userData.phone || ""
   document.getElementById("settings-email").value = currentUser.email || ""
-  logToConsole("User UI updated.", "info")
 }
 
 // Update KYC status in UI
 function updateKycStatus() {
   if (!userProfileData) {
     console.warn("Cannot update KYC status: userProfileData is not set.")
-    logToConsole("Cannot update KYC status: userProfileData is not set.", "warn")
+    // Set to a default "pending" or "unknown" state if needed
     document.getElementById("kyc-status").textContent = "KYC: အခြေအနေမသိပါ"
     document.getElementById("kyc-status-message").textContent = "KYC အချက်အလက်များ ရယူ၍မရပါ"
     return
   }
   console.log("Updating KYC status. Current status:", userKycStatus)
-  logToConsole("Updating KYC status. Current status: " + userKycStatus, "info")
 
   const kycStatusElement = document.getElementById("kyc-status")
   const kycStatusCard = document.getElementById("kyc-status-card")
@@ -261,13 +262,12 @@ function updateKycStatus() {
     !kycDetailsApprovedDiv
   ) {
     console.warn("One or more KYC UI elements not found.")
-    logToConsole("One or more KYC UI elements not found for status update.", "warn")
     return
   }
 
   kycStatusIcon.classList.remove("pending", "approved", "rejected")
   kycDetailsApprovedDiv.style.display = "none"
-  kycForm.style.display = "block" // Default to show form
+  kycForm.style.display = "block"
 
   if (userKycStatus === "approved") {
     kycStatusElement.textContent = "KYC: အတည်ပြုပြီး"
@@ -282,18 +282,12 @@ function updateKycStatus() {
     kycStatusIcon.classList.add("rejected")
     kycStatusIcon.innerHTML = '<i class="fas fa-times-circle"></i>'
   } else {
-    // 'pending' or any other status
     kycStatusElement.textContent = "KYC: စောင့်ဆိုင်းဆဲ"
     kycStatusMessage.textContent = "သင့် KYC စိစစ်နေဆဲဖြစ်ပါသည်။ (သို့မဟုတ်) တင်သွင်းရန်လိုအပ်သည်။"
     kycStatusIcon.classList.add("pending")
     kycStatusIcon.innerHTML = '<i class="fas fa-clock"></i>'
-    // Hide form if KYC data (passport_number AND passport_image) is already submitted and pending
     if (userProfileData && userProfileData.passport_number && userProfileData.passport_image) {
       kycForm.style.display = "none"
-      logToConsole("KYC form hidden as data is already submitted and pending.", "info")
-    } else {
-      kycForm.style.display = "block"
-      logToConsole("KYC form shown for submission.", "info")
     }
   }
 }
@@ -302,11 +296,9 @@ function updateKycStatus() {
 async function displayApprovedKycData() {
   if (!userProfileData) {
     console.warn("Cannot display approved KYC data: userProfileData is null.")
-    logToConsole("Cannot display approved KYC data: userProfileData is null.", "warn")
     return
   }
   console.log("Displaying approved KYC data.")
-  logToConsole("Displaying approved KYC data.", "info")
 
   document.getElementById("approved-kyc-passport").textContent = userProfileData.passport_number || "N/A"
   document.getElementById("approved-kyc-address").textContent = userProfileData.address || "N/A"
@@ -332,11 +324,9 @@ async function displayApprovedKycData() {
 // Update transfer status in UI
 function updateTransferStatus() {
   console.log("Updating transfer status. Enabled:", transfersEnabled)
-  logToConsole("Updating transfer status. Enabled: " + transfersEnabled, "info")
   const transferStatusElement = document.getElementById("transfer-status")
   if (!transferStatusElement) {
     console.warn("Transfer status element not found.")
-    logToConsole("Transfer status element not found.", "warn")
     return
   }
   if (transfersEnabled) {
@@ -354,18 +344,12 @@ function updateTransferStatus() {
 function setupRealtimeSubscriptions() {
   if (!currentUser || !currentUser.user_id) {
     console.warn("Cannot set up realtime subscriptions: currentUser is not set.")
-    logToConsole("Cannot set up realtime subscriptions: currentUser is not set.", "warn")
     return
   }
   console.log("Setting up realtime subscriptions for user:", currentUser.user_id)
-  logToConsole("Setting up realtime subscriptions for user: " + currentUser.user_id, "info")
-
-  // Remove existing channels before subscribing to prevent duplicates if initializeApp is called multiple times
-  supabase.removeAllChannels()
-  logToConsole("Removed all existing Supabase channels.", "info")
 
   const userChannel = supabase
-    .channel(`user-updates-${currentUser.user_id}`)
+    .channel(`user-updates-${currentUser.user_id}`) // Unique channel name per user
     .on(
       "postgres_changes",
       {
@@ -376,34 +360,28 @@ function setupRealtimeSubscriptions() {
       },
       (payload) => {
         console.log("Realtime user update received:", payload)
-        logToConsole("Realtime user update received.", "info", payload)
-        const oldProfileData = { ...userProfileData }
+        const oldProfileData = { ...userProfileData } // Store old data for comparison
         userProfileData = payload.new
         if (payload.new.balance !== oldProfileData.balance) {
           userBalance = payload.new.balance
           document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
           document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
-          logToConsole("Balance updated via realtime: " + userBalance, "info")
         }
         if (payload.new.passport_status !== oldProfileData.passport_status) {
           userKycStatus = payload.new.passport_status
           updateKycStatus()
-          logToConsole("KYC status updated via realtime: " + userKycStatus, "info")
         }
         if (payload.new.avatar_url !== oldProfileData.avatar_url) {
-          updateUserUI(payload.new)
-          logToConsole("Avatar URL updated via realtime.", "info")
+          updateUserUI(payload.new) // This will update avatar
         }
       },
     )
     .subscribe((status, err) => {
       if (status === "SUBSCRIBED") {
         console.log("Successfully subscribed to user updates channel!")
-        logToConsole("Successfully subscribed to user updates channel!", "success")
       }
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         console.error("Realtime user updates channel error:", err)
-        logToConsole("Realtime user updates channel error.", "error", err)
       }
     })
 
@@ -415,26 +393,21 @@ function setupRealtimeSubscriptions() {
         event: "UPDATE",
         schema: "public",
         table: "settings",
-        filter: "id=eq.1", // Assuming settings are in a single row with id=1
       },
       (payload) => {
         console.log("Realtime settings update received:", payload)
-        logToConsole("Realtime settings update received.", "info", payload)
         if (payload.new.allow_transfers !== transfersEnabled) {
           transfersEnabled = payload.new.allow_transfers
           updateTransferStatus()
-          logToConsole("Transfer enabled status updated via realtime: " + transfersEnabled, "info")
         }
       },
     )
     .subscribe((status, err) => {
       if (status === "SUBSCRIBED") {
         console.log("Successfully subscribed to settings updates channel!")
-        logToConsole("Successfully subscribed to settings updates channel!", "success")
       }
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         console.error("Realtime settings updates channel error:", err)
-        logToConsole("Realtime settings updates channel error.", "error", err)
       }
     })
 
@@ -446,28 +419,17 @@ function setupRealtimeSubscriptions() {
         event: "INSERT",
         schema: "public",
         table: "transactions",
-        // Filter for transactions involving the current user's phone
-        // This requires userProfileData.phone to be available
-        filter: userProfileData?.phone
-          ? `or=(from_phone.eq.${userProfileData.phone},to_phone.eq.${userProfileData.phone})`
-          : undefined,
       },
       (payload) => {
         console.log("Realtime transaction insert received:", payload)
-        logToConsole("Realtime transaction insert received.", "info", payload)
-        // Double check if the transaction involves the current user,
-        // though the filter should handle this.
         if (
           currentUser &&
           userProfileData &&
           (payload.new.from_phone === userProfileData.phone || payload.new.to_phone === userProfileData.phone)
         ) {
-          loadTransactions() // Reload all transactions to update the list
+          loadTransactions()
           if (payload.new.to_phone === userProfileData.phone && payload.new.from_phone !== userProfileData.phone) {
-            if (transferReceivedSound) {
-              transferReceivedSound.play().catch((e) => console.warn("Received sound play failed:", e))
-            }
-            logToConsole("Played transfer received sound.", "info")
+            transferReceivedSound.play().catch((e) => console.warn("Received sound play failed:", e))
           }
         }
       },
@@ -475,11 +437,9 @@ function setupRealtimeSubscriptions() {
     .subscribe((status, err) => {
       if (status === "SUBSCRIBED") {
         console.log("Successfully subscribed to transactions updates channel!")
-        logToConsole("Successfully subscribed to transactions updates channel!", "success")
       }
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         console.error("Realtime transactions updates channel error:", err)
-        logToConsole("Realtime transactions updates channel error.", "error", err)
       }
     })
 }
@@ -489,33 +449,29 @@ async function loadTransactions() {
   try {
     if (!userProfileData || !userProfileData.phone) {
       console.warn("Cannot load transactions: user profile or phone not available.")
-      logToConsole("Cannot load transactions: user profile or phone not available.", "warn")
-      updateTransactionsUI([], "")
+      updateTransactionsUI([], "") // Clear UI or show empty state
       return
     }
     const userPhone = userProfileData.phone
     console.log("Loading transactions for phone:", userPhone)
-    logToConsole("Loading transactions for phone: " + userPhone, "info")
 
     const { data: transactionsData, error } = await supabase
       .from("transactions")
       .select("*")
       .or(`from_phone.eq.${userPhone},to_phone.eq.${userPhone}`)
       .order("created_at", { ascending: false })
-      .limit(10)
+      .limit(10) // Consider pagination for full history
 
     if (error) {
       console.error("Error loading transactions:", error)
-      logToConsole("Error loading transactions: " + error.message, "error", error)
       throw error
     }
     transactions = transactionsData || []
     console.log("Transactions loaded:", transactions.length)
-    logToConsole("Transactions loaded: " + transactions.length, "success")
     updateTransactionsUI(transactions, userPhone)
   } catch (error) {
     console.error("Load transactions failed:", error)
-    logToConsole("Load transactions failed: " + error.message, "error", error)
+    // Display an error message in the transaction list UI
     const recentTransactionsList = document.getElementById("recent-transactions-list")
     const historyTransactionsList = document.getElementById("history-transactions-list")
     const errorHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>မှတ်တမ်းများ ရယူ၍မရပါ</p></div>`
@@ -527,13 +483,11 @@ async function loadTransactions() {
 // Update transactions UI
 function updateTransactionsUI(transactionsData, userPhone) {
   console.log("Updating transactions UI.")
-  logToConsole("Updating transactions UI.", "info")
   const recentTransactionsList = document.getElementById("recent-transactions-list")
   const historyTransactionsList = document.getElementById("history-transactions-list")
 
   if (!recentTransactionsList || !historyTransactionsList) {
     console.warn("Transaction list UI elements not found.")
-    logToConsole("Transaction list UI elements not found.", "warn")
     return
   }
 
@@ -590,9 +544,10 @@ function updateTransactionsUI(transactionsData, userPhone) {
         `
 
     if (index < 5) {
+      // Show only recent 5 in dashboard
       recentTransactionsList.innerHTML += transactionItem
     }
-    historyTransactionsList.innerHTML += transactionItem
+    historyTransactionsList.innerHTML += transactionItem // Show all in history page
   })
 
   document.querySelectorAll(".transaction-view-btn").forEach((button) => {
@@ -602,7 +557,6 @@ function updateTransactionsUI(transactionsData, userPhone) {
         showTransactionReceipt(transactionsData[transactionIndex])
       } else {
         console.warn("Transaction data not found for index:", transactionIndex)
-        logToConsole("Transaction data not found for index: " + transactionIndex, "warn")
       }
     })
   })
@@ -611,13 +565,14 @@ function updateTransactionsUI(transactionsData, userPhone) {
 // Initialize UI elements and event listeners
 function initializeUI() {
   console.log("Initializing UI elements and event listeners...")
-  logToConsole("Initializing UI elements and event listeners...", "info")
-  document.body.setAttribute("data-theme", currentTheme)
+  document.body.setAttribute("data-theme", currentTheme) // Apply theme
 
+  // Play click sound for all elements with 'clickable' class
   document.querySelectorAll(".clickable").forEach((el) => {
     el.addEventListener("click", () => {
       if (clickSound && clickSound.readyState >= 2) {
-        clickSound.currentTime = 0
+        // Check if sound is loaded enough
+        clickSound.currentTime = 0 // Rewind to start
         clickSound.play().catch((e) => console.warn("Click sound play failed:", e))
       }
     })
@@ -665,11 +620,12 @@ function initializeUI() {
   })
 
   const sidebarLinks = document.querySelectorAll(".sidebar-nav a")
+  const pages = document.querySelectorAll(".page")
   sidebarLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault()
       const pageName = link.getAttribute("data-page")
-      showPage(pageName)
+      showPage(pageName) // Use centralized showPage function
     })
   })
 
@@ -698,12 +654,7 @@ function initializeUI() {
       profileDropdown.style.right = `${window.innerWidth - rect.right}px`
     })
     document.addEventListener("click", (e) => {
-      if (
-        profileDropdown &&
-        !profileDropdown.contains(e.target) &&
-        profileDropdownTrigger &&
-        !profileDropdownTrigger.contains(e.target)
-      ) {
+      if (!profileDropdown.contains(e.target) && !profileDropdownTrigger.contains(e.target)) {
         profileDropdown.classList.remove("active")
       }
     })
@@ -757,7 +708,7 @@ function initializeUI() {
     }
     option.addEventListener("click", () => {
       const theme = option.getAttribute("data-theme")
-      applyTheme(theme)
+      applyTheme(theme) // Use centralized theme function
       themeOptions.forEach((o) => o.classList.remove("active"))
       option.classList.add("active")
     })
@@ -804,37 +755,38 @@ function initializeUI() {
   document.getElementById("save-profile-picture-btn")?.addEventListener("click", uploadProfilePicture)
   document.getElementById("delete-kyc-btn")?.addEventListener("click", confirmDeleteKyc)
 
+  // Console toggle
   const consoleToggle = document.getElementById("console-toggle")
-  const consoleHeader = document.querySelector(".console-header")
+  const consoleHeader = document.querySelector(".console-header") // Target header for click
   const consoleContainer = document.getElementById("console-container")
 
   if (consoleToggle && consoleHeader && consoleContainer) {
     const toggleConsole = () => consoleContainer.classList.toggle("active")
     consoleToggle.addEventListener("click", toggleConsole)
     consoleHeader.addEventListener("click", (e) => {
+      // Allow clicking header to toggle
       if (e.target === consoleHeader || e.target === consoleHeader.querySelector("span")) {
         toggleConsole()
       }
     })
   }
-  logToConsole("UI Initialized.", "success")
+  logToConsole("UI Initialized.", "info")
 }
 
 function applyTheme(themeName) {
   console.log("Applying theme:", themeName)
-  logToConsole("Applying theme: " + themeName, "info")
   if (themeName === "system") {
     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
     document.body.setAttribute("data-theme", systemPrefersDark ? "dark" : "light")
     console.log("System preference:", systemPrefersDark ? "dark" : "light")
-    logToConsole("System preference: " + (systemPrefersDark ? "dark" : "light"), "info")
   } else {
     document.body.setAttribute("data-theme", themeName)
   }
-  currentTheme = themeName
+  currentTheme = themeName // Update global variable
   localStorage.setItem("theme", themeName)
 }
 
+// Check recipient information
 async function checkRecipientInfo() {
   const phone = document.getElementById("transfer-phone").value
   const recipientInfoDiv = document.getElementById("recipient-info")
@@ -844,12 +796,10 @@ async function checkRecipientInfo() {
 
   if (!recipientInfoDiv || !recipientAvatarImg || !recipientNameP || !recipientIdP) {
     console.warn("Recipient info UI elements not found.")
-    logToConsole("Recipient info UI elements not found.", "warn")
     return
   }
 
   if (!phone || phone.length < 7) {
-    // Basic phone number length check
     recipientInfoDiv.style.display = "none"
     return
   }
@@ -863,8 +813,8 @@ async function checkRecipientInfo() {
       .single()
 
     if (error && error.code !== "PGRST116") {
+      // PGRST116: "Fetched result not found" (expected if no user)
       console.error("Error fetching recipient:", error)
-      logToConsole("Error fetching recipient: " + error.message, "error", error)
       recipientInfoDiv.style.display = "block"
       recipientAvatarImg.src = DEFAULT_AVATAR_URL
       recipientNameP.textContent = "အချက်အလက် ရယူ၍မရပါ"
@@ -892,11 +842,11 @@ async function checkRecipientInfo() {
     recipientInfoDiv.style.display = "block"
   } catch (err) {
     console.error("Exception checking recipient:", err)
-    logToConsole("Exception checking recipient: " + err.message, "error", err)
     recipientInfoDiv.style.display = "none"
   }
 }
 
+// Upload profile picture
 async function uploadProfilePicture() {
   const fileInput = document.getElementById("profile-picture-upload")
   const file = fileInput.files[0]
@@ -915,7 +865,6 @@ async function uploadProfilePicture() {
   if (!currentUser || !currentUser.user_id) {
     errorElement.textContent = "အသုံးပြုသူ အချက်အလက် မတွေ့ရှိပါ"
     errorElement.style.display = "block"
-    logToConsole("Cannot upload profile picture: currentUser is not set.", "error")
     return
   }
   logToConsole("Uploading profile picture...", "info")
@@ -926,20 +875,17 @@ async function uploadProfilePicture() {
     showLoader()
 
     if (userProfileData && userProfileData.avatar_url) {
-      const oldFilePath = userProfileData.avatar_url.split("/avatars/")[1]
+      const oldFilePath = userProfileData.avatar_url.split("/avatars/")[1] // Get path after bucket name
       if (oldFilePath) {
         logToConsole(`Removing old avatar: ${oldFilePath}`, "info")
         const { error: removeError } = await supabase.storage.from("avatars").remove([oldFilePath])
-        if (removeError) {
-          console.warn("Failed to remove old avatar:", removeError.message)
-          logToConsole("Failed to remove old avatar: " + removeError.message, "warn", removeError)
-        }
+        if (removeError) console.warn("Failed to remove old avatar:", removeError.message)
       }
     }
 
     const { data: uploadData, error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, {
       cacheControl: "3600",
-      upsert: false,
+      upsert: false, // Set to false to avoid overwriting if somehow name collides, though unlikely with timestamp
     })
 
     if (uploadError) throw uploadError
@@ -955,16 +901,15 @@ async function uploadProfilePicture() {
 
     if (updateError) throw updateError
 
-    if (userProfileData) userProfileData.avatar_url = avatarUrl
-    updateUserUI(userProfileData)
+    if (userProfileData) userProfileData.avatar_url = avatarUrl // Update local cache
+    updateUserUI(userProfileData) // Refresh UI
 
     successElement.textContent = "ပရိုဖိုင်ပုံ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"
     successElement.style.display = "block"
-    fileInput.value = "" // Clear the file input
-    document.getElementById("profile-picture-preview").innerHTML = "" // Clear preview
+    fileInput.value = ""
+    document.getElementById("profile-picture-preview").innerHTML = ""
   } catch (error) {
     console.error("Profile picture upload error:", error)
-    logToConsole("Profile picture upload error: " + error.message, "error", error)
     errorElement.textContent = "ပရိုဖိုင်ပုံ တင်ရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။ " + (error.message || error)
     errorElement.style.display = "block"
   } finally {
@@ -972,6 +917,7 @@ async function uploadProfilePicture() {
   }
 }
 
+// Confirm KYC Deletion
 function confirmDeleteKyc() {
   const modalTitle = document.getElementById("confirmation-title")
   const modalMessage = document.getElementById("confirmation-message")
@@ -987,19 +933,18 @@ function confirmDeleteKyc() {
 
   confirmationModal.classList.add("active")
 
-  // Re-bind event listener to avoid multiple executions if button is clicked multiple times
   const oldBtn = confirmActionBtn
-  const newBtn = oldBtn.cloneNode(true) // Create a new button
-  oldBtn.parentNode.replaceChild(newBtn, oldBtn) // Replace old with new
-  newBtn.addEventListener("click", handleDeleteKyc) // Add listener to the new button
-  logToConsole("KYC deletion confirmation modal shown.", "info")
+  const newBtn = oldBtn.cloneNode(true)
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn)
+  newBtn.addEventListener("click", handleDeleteKyc) // Add event listener to new button
 }
 
+// Handle KYC Deletion
 async function handleDeleteKyc() {
   const pin = document.getElementById("confirmation-pin").value
   const confirmationError = document.getElementById("confirmation-error")
-  const deleteKycError = document.getElementById("delete-kyc-error") // Error message on KYC page
-  const deleteKycSuccess = document.getElementById("delete-kyc-success") // Success message on KYC page
+  const deleteKycError = document.getElementById("delete-kyc-error")
+  const deleteKycSuccess = document.getElementById("delete-kyc-success")
 
   confirmationError.style.display = "none"
   deleteKycError.style.display = "none"
@@ -1029,22 +974,11 @@ async function handleDeleteKyc() {
     }
 
     if (filesToDelete.length > 0) {
-      logToConsole(
-        "Removing KYC documents from storage:",
-        "info",
-        filesToDelete.filter((f) => f),
-      )
+      logToConsole("Removing KYC documents from storage:", "info", filesToDelete)
       const { error: deleteStorageError } = await supabase.storage
         .from("kyc-documents")
-        .remove(filesToDelete.filter((f) => f)) // Filter out undefined/null paths
-      if (deleteStorageError) {
-        console.warn("Error deleting KYC documents from storage:", deleteStorageError.message)
-        logToConsole(
-          "Error deleting KYC documents from storage: " + deleteStorageError.message,
-          "warn",
-          deleteStorageError,
-        )
-      }
+        .remove(filesToDelete.filter((f) => f)) // Filter out undefined paths
+      if (deleteStorageError) console.warn("Error deleting KYC documents from storage:", deleteStorageError.message)
     }
 
     const { error: updateError } = await supabase
@@ -1054,14 +988,14 @@ async function handleDeleteKyc() {
         address: null,
         passport_image: null,
         selfie_image: null,
-        passport_status: "pending", // Reset status
+        passport_status: "pending",
         submitted_at: null,
       })
       .eq("user_id", currentUser.user_id)
 
     if (updateError) throw updateError
 
-    userKycStatus = "pending"
+    userKycStatus = "pending" // Update local state
     if (userProfileData) {
       userProfileData.passport_number = null
       userProfileData.address = null
@@ -1070,14 +1004,13 @@ async function handleDeleteKyc() {
       userProfileData.passport_status = "pending"
     }
 
-    updateKycStatus() // Refresh UI
+    updateKycStatus()
     confirmationModal.classList.remove("active")
     deleteKycSuccess.textContent = "KYC အချက်အလက်များ အောင်မြင်စွာ ဖျက်သိမ်းပြီးပါပြီ။"
     deleteKycSuccess.style.display = "block"
     logToConsole("KYC information deleted successfully.", "success")
   } catch (error) {
     console.error("KYC deletion error:", error)
-    logToConsole("KYC deletion error: " + error.message, "error", error)
     confirmationModal.classList.remove("active")
     deleteKycError.textContent = "KYC ဖျက်သိမ်းရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။ " + (error.message || error)
     deleteKycError.style.display = "block"
@@ -1086,6 +1019,7 @@ async function handleDeleteKyc() {
   }
 }
 
+// Setup PIN inputs
 function setupPinInputs() {
   const pinInputs = document.querySelectorAll(".pin-input")
   pinInputs.forEach((input, index) => {
@@ -1110,85 +1044,70 @@ function setupPinInputs() {
       return
     }
     pinErrorElement.style.display = "none"
-    processTransferWithPin(pin)
+    processTransferWithPin(pin) // Renamed for clarity
   })
 }
 
+// Setup form submissions
 function setupFormSubmissions() {
   console.log("Setting up form submissions...")
-  logToConsole("Setting up form submissions...", "info")
+  const loginBtn = document.getElementById("login-btn")
+  if (loginBtn)
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("login-email").value
+      const password = document.getElementById("login-password").value
+      const errorElement = document.getElementById("login-error")
+      const successElement = document.getElementById("login-success")
 
-  const loginForm = document.getElementById("login-form")
-  loginForm?.addEventListener("submit", async (e) => {
-    e.preventDefault() // Prevent default form submission
-    const loginBtn = document.getElementById("login-btn") // Get button for potential disabling
-    if (loginBtn) loginBtn.disabled = true
+      errorElement.style.display = "none"
+      successElement.style.display = "none"
 
-    const email = document.getElementById("login-email").value
-    const password = document.getElementById("login-password").value
-    const errorElement = document.getElementById("login-error")
-    const successElement = document.getElementById("login-success")
-
-    errorElement.style.display = "none"
-    successElement.style.display = "none"
-
-    if (!email || !password) {
-      errorElement.textContent = "အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။"
-      errorElement.style.display = "block"
-      if (loginBtn) loginBtn.disabled = false
-      return
-    }
-    logToConsole(`Attempting login for: ${email}`, "info")
-    showLoader()
-    try {
-      const { data: user, error } = await supabase.from("auth_users").select("*").eq("email", email).single()
-
-      if (error && error.code !== "PGRST116") {
-        // PGRST116 means no rows found, which is handled below
-        logToConsole("Login DB error (not PGRST116): " + error.message, "error", error)
-        throw error
-      }
-      if (!user) {
-        errorElement.textContent = "အကောင့်မတွေ့ရှိပါ။"
+      if (!email || !password) {
+        errorElement.textContent = "အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။"
         errorElement.style.display = "block"
-        logToConsole("Login attempt: User not found for email " + email, "warn")
-        hideLoader()
-        if (loginBtn) loginBtn.disabled = false
         return
       }
-      if (user.password !== password) {
-        errorElement.textContent = "စကားဝှက်မှားယွင်းနေပါသည်။"
+      logToConsole(`Attempting login for: ${email}`, "info")
+      showLoader()
+      try {
+        const { data: user, error } = await supabase.from("auth_users").select("*").eq("email", email).single()
+        if (error && error.code !== "PGRST116") throw error // PGRST116 is "not found"
+        if (!user) {
+          errorElement.textContent = "အကောင့်မတွေ့ရှိပါ။"
+          errorElement.style.display = "block"
+          hideLoader()
+          return
+        }
+        if (user.password !== password) {
+          // Plain text password check (as per original logic)
+          errorElement.textContent = "စကားဝှက်မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          hideLoader()
+          return
+        }
+        currentUser = user
+        localStorage.setItem("opperSession", JSON.stringify({ email: user.email, user_id: user.user_id }))
+        successElement.textContent = "အကောင့်ဝင်ရောက်နေပါသည်..."
+        successElement.style.display = "block"
+        await loadUserData()
+        showAppContainer()
+        initializeUI() // Re-initialize UI parts that depend on auth state
+        logToConsole("Login successful.", "success")
+      } catch (error) {
+        console.error("Login error:", error)
+        errorElement.textContent = "အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။ " + (error.message || error)
         errorElement.style.display = "block"
-        logToConsole("Login attempt: Incorrect password for email " + email, "warn")
-        hideLoader()
-        if (loginBtn) loginBtn.disabled = false
-        return
+      } finally {
+        // Hide loader is handled by initializeApp's finally block if login is initial load
+        // If login is after initial load, hide it here.
+        if (
+          !document.getElementById("intro-animation") ||
+          document.getElementById("intro-animation").classList.contains("hidden")
+        ) {
+          hideLoader()
+        }
       }
-      currentUser = user
-      localStorage.setItem("opperSession", JSON.stringify({ email: user.email, user_id: user.user_id }))
-      successElement.textContent = "အကောင့်ဝင်ရောက်နေပါသည်..."
-      successElement.style.display = "block"
-      logToConsole("Login successful. Loading user data...", "success")
-      await loadUserData()
-      showAppContainer()
-      // initializeUI() // UI is already initialized once. Re-calling might duplicate listeners.
-      // Specific UI updates are handled by loadUserData and showAppContainer.
-    } catch (error) {
-      console.error("Login error:", error)
-      logToConsole("Login error: " + error.message, "error", error)
-      errorElement.textContent = "အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။ " + (error.message || "Unknown error")
-      errorElement.style.display = "block"
-    } finally {
-      if (loginBtn) loginBtn.disabled = false
-      // Loader hiding is handled by initializeApp or here if it's not the initial load
-      if (
-        !document.getElementById("intro-animation") ||
-        document.getElementById("intro-animation").classList.contains("hidden")
-      ) {
-        hideLoader()
-      }
-    }
-  })
+    })
 
   const googleLoginBtn = document.getElementById("google-login-btn")
   if (googleLoginBtn)
@@ -1197,99 +1116,80 @@ function setupFormSubmissions() {
       logToConsole("Google Login button clicked (not implemented).", "warn")
     })
 
-  const signupForm = document.getElementById("signup-form")
-  signupForm?.addEventListener("submit", async (e) => {
-    e.preventDefault()
-    const signupBtn = document.getElementById("signup-btn")
-    if (signupBtn) signupBtn.disabled = true
+  const signupBtn = document.getElementById("signup-btn")
+  if (signupBtn)
+    signupBtn.addEventListener("click", async () => {
+      const email = document.getElementById("signup-email").value
+      const phone = document.getElementById("signup-phone").value
+      const password = document.getElementById("signup-password").value
+      const confirmPassword = document.getElementById("signup-confirm-password").value
+      const termsAgree = document.getElementById("terms-agree").checked
+      const errorElement = document.getElementById("signup-error")
+      const successElement = document.getElementById("signup-success")
 
-    const email = document.getElementById("signup-email").value
-    const phone = document.getElementById("signup-phone").value
-    const password = document.getElementById("signup-password").value
-    const confirmPassword = document.getElementById("signup-confirm-password").value
-    const termsAgree = document.getElementById("terms-agree").checked
-    const errorElement = document.getElementById("signup-error")
-    const successElement = document.getElementById("signup-success")
+      errorElement.style.display = "none"
+      successElement.style.display = "none"
 
-    errorElement.style.display = "none"
-    successElement.style.display = "none"
-
-    if (!email || !phone || !password || !confirmPassword) {
-      errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
-      errorElement.style.display = "block"
-      if (signupBtn) signupBtn.disabled = false
-      return
-    }
-    if (password !== confirmPassword) {
-      errorElement.textContent = "စကားဝှက်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။"
-      errorElement.style.display = "block"
-      if (signupBtn) signupBtn.disabled = false
-      return
-    }
-    if (!termsAgree) {
-      errorElement.textContent = "စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။"
-      errorElement.style.display = "block"
-      if (signupBtn) signupBtn.disabled = false
-      return
-    }
-    logToConsole(`Attempting signup for: ${email}, Phone: ${phone}`, "info")
-    showLoader()
-    try {
-      const { data: existingUserByEmail } = await supabase
-        .from("auth_users")
-        .select("email")
-        .eq("email", email)
-        .single() // Expects one or zero. Error if multiple (due to lack of unique constraint before)
-      if (existingUserByEmail) {
-        errorElement.textContent = "ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
+      if (!email || !phone || !password || !confirmPassword) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
         errorElement.style.display = "block"
-        logToConsole("Signup attempt: Email already exists - " + email, "warn")
-        hideLoader()
-        if (signupBtn) signupBtn.disabled = false
         return
       }
-      const { data: existingUserByPhone } = await supabase.from("users").select("phone").eq("phone", phone).single()
-      if (existingUserByPhone) {
-        errorElement.textContent = "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
+      if (password !== confirmPassword) {
+        errorElement.textContent = "စကားဝှက်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။"
         errorElement.style.display = "block"
-        logToConsole("Signup attempt: Phone already exists - " + phone, "warn")
-        hideLoader()
-        if (signupBtn) signupBtn.disabled = false
         return
       }
-
-      const userId = generateUserId(email)
-      const { error: authError } = await supabase.from("auth_users").insert([{ user_id: userId, email, password }])
-      if (authError) throw authError
-
-      const defaultName = email.split("@")[0]
-      const { error: profileError } = await supabase
-        .from("users")
-        .insert([{ user_id: userId, phone, name: defaultName, balance: 0, passport_status: "pending" }])
-      if (profileError) {
-        // Attempt to rollback auth_user creation if profile creation fails
-        logToConsole("Profile creation failed, attempting to rollback auth_user: " + userId, "error", profileError)
-        await supabase.from("auth_users").delete().eq("user_id", userId)
-        throw profileError
+      if (!termsAgree) {
+        errorElement.textContent = "စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။"
+        errorElement.style.display = "block"
+        return
       }
+      logToConsole(`Attempting signup for: ${email}, Phone: ${phone}`, "info")
+      showLoader()
+      try {
+        const { data: existingUserByEmail } = await supabase
+          .from("auth_users")
+          .select("email")
+          .eq("email", email)
+          .single()
+        if (existingUserByEmail) {
+          errorElement.textContent = "ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
+          errorElement.style.display = "block"
+          hideLoader()
+          return
+        }
+        const { data: existingUserByPhone } = await supabase.from("users").select("phone").eq("phone", phone).single()
+        if (existingUserByPhone) {
+          errorElement.textContent = "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
+          errorElement.style.display = "block"
+          hideLoader()
+          return
+        }
 
-      successElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။"
-      successElement.style.display = "block"
-      if (signupForm && typeof signupForm.reset === "function") {
-        signupForm.reset()
+        const userId = generateUserId(email)
+        const { error: authError } = await supabase.from("auth_users").insert([{ user_id: userId, email, password }]) // Plain text password
+        if (authError) throw authError
+
+        const defaultName = email.split("@")[0] // Use part of email as default name
+        const { error: profileError } = await supabase
+          .from("users")
+          .insert([{ user_id: userId, phone, name: defaultName, balance: 0, passport_status: "pending" }])
+        if (profileError) throw profileError
+
+        successElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။"
+        successElement.style.display = "block"
+        document.getElementById("signup-form").reset() // Reset form
+        logToConsole("Signup successful.", "success")
+        setTimeout(() => document.querySelector('.auth-tab[data-tab="login"]')?.click(), 2000)
+      } catch (error) {
+        console.error("Signup error:", error)
+        errorElement.textContent = "အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။ " + (error.message || error)
+        errorElement.style.display = "block"
+      } finally {
+        hideLoader()
       }
-      logToConsole("Signup successful for: " + email, "success")
-      setTimeout(() => document.querySelector('.auth-tab[data-tab="login"]')?.click(), 2000)
-    } catch (error) {
-      console.error("Signup error:", error)
-      logToConsole("Signup error: " + error.message, "error", error)
-      errorElement.textContent = "အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။ " + (error.message || "Unknown error")
-      errorElement.style.display = "block"
-    } finally {
-      if (signupBtn) signupBtn.disabled = false
-      hideLoader()
-    }
-  })
+    })
 
   const googleSignupBtn = document.getElementById("google-signup-btn")
   if (googleSignupBtn)
@@ -1298,106 +1198,9 @@ function setupFormSubmissions() {
       logToConsole("Google Signup button clicked (not implemented).", "warn")
     })
 
-  const transferForm = document.getElementById("transfer-page")?.querySelector(".transfer-form")
-  transferForm?.addEventListener("submit", async (e) => {
-    e.preventDefault() // This is already handled by onsubmit="return false;" on the form, but good for explicitness
-    const transferBtn = document.getElementById("transfer-btn")
-    if (transferBtn) transferBtn.disabled = true
-
-    // ... rest of the transfer logic from the click event ...
-    const phone = document.getElementById("transfer-phone").value
-    const amountInput = document.getElementById("transfer-amount").value
-    const errorElement = document.getElementById("transfer-error")
-    const successElement = document.getElementById("transfer-success")
-
-    errorElement.style.display = "none"
-    successElement.style.display = "none"
-
-    const amount = Number.parseInt(amountInput)
-
-    if (!phone || !amountInput || isNaN(amount)) {
-      errorElement.textContent = "ဖုန်းနံပါတ်နှင့် ငွေပမာဏ မှန်ကန်စွာ ထည့်ပါ။"
-      errorElement.style.display = "block"
-      if (transferBtn) transferBtn.disabled = false
-      return
-    }
-    // ... (all other validations) ...
-    if (amount < 1000) {
-      errorElement.textContent = "ငွေပမာဏ အနည်းဆုံး 1,000 Ks ဖြစ်ရပါမည်။"
-      errorElement.style.display = "block"
-      if (transferBtn) transferBtn.disabled = false
-      return
-    }
-    if (!transfersEnabled) {
-      errorElement.textContent = "ငွေလွှဲခြင်းကို ယာယီပိတ်ထားပါသည်။ နောက်မှ ပြန်လည်ကြိုးစားပါ။"
-      errorElement.style.display = "block"
-      if (transferBtn) transferBtn.disabled = false
-      return
-    }
-    if (userKycStatus !== "approved") {
-      errorElement.textContent = "ငွေလွှဲရန် KYC အတည်ပြုရန် လိုအပ်ပါသည်။"
-      errorElement.style.display = "block"
-      if (transferBtn) transferBtn.disabled = false
-      return
-    }
-    if (userBalance < amount) {
-      errorElement.textContent = "လက်ကျန်ငွေ မလုံလောက်ပါ။"
-      errorElement.style.display = "block"
-      if (transferBtn) transferBtn.disabled = false
-      return
-    }
-    if (userProfileData && userProfileData.phone === phone) {
-      errorElement.textContent = "ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။"
-      errorElement.style.display = "block"
-      if (transferBtn) transferBtn.disabled = false
-      return
-    }
-
-    try {
-      const { data: recipient, error: recipientError } = await supabase
-        .from("users")
-        .select("user_id, phone")
-        .eq("phone", phone)
-        .single()
-
-      if (recipientError && recipientError.code !== "PGRST116") {
-        console.error("Error fetching recipient for transfer:", recipientError)
-        logToConsole("Error fetching recipient for transfer: " + recipientError.message, "error", recipientError)
-        errorElement.textContent = "လက်ခံမည့်သူ အချက်အလက် ရယူရာတွင် အမှားရှိနေပါသည်။"
-        errorElement.style.display = "block"
-        if (transferBtn) transferBtn.disabled = false
-        return
-      }
-      if (!recipient) {
-        errorElement.textContent = "လက်ခံမည့်သူ မတွေ့ရှိပါ။"
-        errorElement.style.display = "block"
-        logToConsole("Transfer attempt: Recipient not found for phone " + phone, "warn")
-        if (transferBtn) transferBtn.disabled = false
-        return
-      }
-      showPinEntryModal()
-    } catch (err) {
-      console.error("Error during transfer pre-check:", err)
-      logToConsole("Error during transfer pre-check: " + err.message, "error", err)
-      errorElement.textContent = "ငွေလွှဲရန် ပြင်ဆင်ရာတွင် အမှားရှိနေပါသည်။"
-      errorElement.style.display = "block"
-    } finally {
-      if (transferBtn) transferBtn.disabled = false // Re-enable button if PIN modal isn't shown
-    }
-  })
-  // Note: The actual transfer logic is in processTransferWithPin, called after PIN entry.
-  // The transfer button itself (transfer-btn) should trigger the pre-checks and PIN modal.
-  // So, the above event listener should be on the transfer-btn's click, not form submit,
-  // unless the form submit is explicitly triggered by the button.
-  // The original code had a click listener on transfer-btn, which is better.
-  // I'll revert to that structure for clarity.
-
   const transferBtn = document.getElementById("transfer-btn")
-  if (transferBtn) {
+  if (transferBtn)
     transferBtn.addEventListener("click", async () => {
-      // Logic from the transferForm.addEventListener('submit', ...) should be here
-      if (transferBtn) transferBtn.disabled = true
-
       const phone = document.getElementById("transfer-phone").value
       const amountInput = document.getElementById("transfer-amount").value
       const errorElement = document.getElementById("transfer-error")
@@ -1411,181 +1214,142 @@ function setupFormSubmissions() {
       if (!phone || !amountInput || isNaN(amount)) {
         errorElement.textContent = "ဖုန်းနံပါတ်နှင့် ငွေပမာဏ မှန်ကန်စွာ ထည့်ပါ။"
         errorElement.style.display = "block"
-        if (transferBtn) transferBtn.disabled = false
         return
       }
       if (amount < 1000) {
         errorElement.textContent = "ငွေပမာဏ အနည်းဆုံး 1,000 Ks ဖြစ်ရပါမည်။"
         errorElement.style.display = "block"
-        if (transferBtn) transferBtn.disabled = false
         return
       }
       if (!transfersEnabled) {
         errorElement.textContent = "ငွေလွှဲခြင်းကို ယာယီပိတ်ထားပါသည်။ နောက်မှ ပြန်လည်ကြိုးစားပါ။"
         errorElement.style.display = "block"
-        if (transferBtn) transferBtn.disabled = false
         return
       }
       if (userKycStatus !== "approved") {
         errorElement.textContent = "ငွေလွှဲရန် KYC အတည်ပြုရန် လိုအပ်ပါသည်။"
         errorElement.style.display = "block"
-        if (transferBtn) transferBtn.disabled = false
         return
       }
       if (userBalance < amount) {
         errorElement.textContent = "လက်ကျန်ငွေ မလုံလောက်ပါ။"
         errorElement.style.display = "block"
-        if (transferBtn) transferBtn.disabled = false
         return
       }
       if (userProfileData && userProfileData.phone === phone) {
         errorElement.textContent = "ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။"
         errorElement.style.display = "block"
-        if (transferBtn) transferBtn.disabled = false
         return
       }
 
-      try {
-        const { data: recipient, error: recipientError } = await supabase
-          .from("users")
-          .select("user_id, phone")
-          .eq("phone", phone)
-          .single()
+      const { data: recipient, error: recipientError } = await supabase
+        .from("users")
+        .select("user_id, phone") // Only select necessary fields
+        .eq("phone", phone)
+        .single()
 
-        if (recipientError && recipientError.code !== "PGRST116") {
-          console.error("Error fetching recipient for transfer:", recipientError)
-          logToConsole("Error fetching recipient for transfer: " + recipientError.message, "error", recipientError)
-          errorElement.textContent = "လက်ခံမည့်သူ အချက်အလက် ရယူရာတွင် အမှားရှိနေပါသည်။"
-          errorElement.style.display = "block"
-          if (transferBtn) transferBtn.disabled = false
-          return
+      if (recipientError && recipientError.code !== "PGRST116") {
+        console.error("Error fetching recipient for transfer:", recipientError)
+        errorElement.textContent = "လက်ခံမည့်သူ အချက်အလက် ရယူရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        return
+      }
+      if (!recipient) {
+        errorElement.textContent = "လက်ခံမည့်သူ မတွေ့ရှိပါ။"
+        errorElement.style.display = "block"
+        return
+      }
+      showPinEntryModal()
+    })
+
+  const kycSubmitBtn = document.getElementById("kyc-submit-btn")
+  if (kycSubmitBtn)
+    kycSubmitBtn.addEventListener("click", async () => {
+      const passportNumber = document.getElementById("kyc-passport-input").value
+      const address = document.getElementById("kyc-address-input").value
+      const pin = document.getElementById("kyc-pin-input").value
+      const confirmPin = document.getElementById("kyc-confirm-pin-input").value
+      const passportFile = document.getElementById("passport-upload").files[0]
+      const selfieFile = document.getElementById("selfie-upload").files[0]
+      const errorElement = document.getElementById("kyc-error")
+      const successElement = document.getElementById("kyc-success")
+
+      errorElement.style.display = "none"
+      successElement.style.display = "none"
+
+      if (!passportNumber || !address || !pin || !confirmPin || !passportFile || !selfieFile) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
+        errorElement.style.display = "block"
+        return
+      }
+      if (pin !== confirmPin) {
+        errorElement.textContent = "PIN နှင့် အတည်ပြု PIN မတူညီပါ။"
+        errorElement.style.display = "block"
+        return
+      }
+      if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+        errorElement.textContent = "PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။"
+        errorElement.style.display = "block"
+        return
+      }
+      logToConsole("Submitting KYC information...", "info")
+      showLoader()
+      try {
+        const passportFileName = `passport_${currentUser.user_id}_${Date.now()}.${passportFile.name.split(".").pop()}`
+        const { error: passportError } = await supabase.storage
+          .from("kyc-documents")
+          .upload(passportFileName, passportFile)
+        if (passportError) throw passportError
+        const { data: passportUrlData } = supabase.storage.from("kyc-documents").getPublicUrl(passportFileName)
+
+        const selfieFileName = `selfie_${currentUser.user_id}_${Date.now()}.${selfieFile.name.split(".").pop()}`
+        const { error: selfieError } = await supabase.storage.from("kyc-documents").upload(selfieFileName, selfieFile)
+        if (selfieError) throw selfieError
+        const { data: selfieUrlData } = supabase.storage.from("kyc-documents").getPublicUrl(selfieFileName)
+
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({
+            passport_number: passportNumber,
+            address,
+            payment_pin: pin, // Store/Update payment PIN
+            passport_image: passportUrlData.publicUrl,
+            selfie_image: selfieUrlData.publicUrl,
+            passport_status: "pending",
+            submitted_at: new Date().toISOString(),
+          })
+          .eq("user_id", currentUser.user_id)
+        if (updateError) throw updateError
+
+        userKycStatus = "pending" // Update local state
+        if (userProfileData) {
+          userProfileData.passport_number = passportNumber
+          userProfileData.address = address
+          userProfileData.payment_pin = pin
+          userProfileData.passport_image = passportUrlData.publicUrl
+          userProfileData.selfie_image = selfieUrlData.publicUrl
+          userProfileData.passport_status = "pending"
         }
-        if (!recipient) {
-          errorElement.textContent = "လက်ခံမည့်သူ မတွေ့ရှိပါ။"
-          errorElement.style.display = "block"
-          logToConsole("Transfer attempt: Recipient not found for phone " + phone, "warn")
-          if (transferBtn) transferBtn.disabled = false
-          return
-        }
-        showPinEntryModal() // This will eventually call processTransferWithPin
-      } catch (err) {
-        console.error("Error during transfer pre-check:", err)
-        logToConsole("Error during transfer pre-check: " + err.message, "error", err)
-        errorElement.textContent = "ငွေလွှဲရန် ပြင်ဆင်ရာတွင် အမှားရှိနေပါသည်။"
+        updateKycStatus() // Refresh UI
+
+        successElement.textContent = "KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။"
+        successElement.style.display = "block"
+        document.getElementById("kyc-form").reset()
+        document.getElementById("passport-preview").innerHTML = ""
+        document.getElementById("selfie-preview").innerHTML = ""
+        logToConsole("KYC submitted successfully.", "success")
+      } catch (error) {
+        console.error("KYC submission error:", error)
+        errorElement.textContent = "KYC တင်သွင်းရာတွင် အမှားရှိနေပါသည်။ " + (error.message || error)
         errorElement.style.display = "block"
       } finally {
-        // Only re-enable if PIN modal isn't shown or an error occurred before it.
-        // The PIN modal flow will handle button state.
-        if (!pinEntryModal.classList.contains("active")) {
-          if (transferBtn) transferBtn.disabled = false
-        }
+        hideLoader()
       }
     })
-  }
-
-  const kycFormElement = document.getElementById("kyc-form")
-  kycFormElement?.addEventListener("submit", async (e) => {
-    e.preventDefault()
-    const kycSubmitBtn = document.getElementById("kyc-submit-btn")
-    if (kycSubmitBtn) kycSubmitBtn.disabled = true
-
-    const passportNumber = document.getElementById("kyc-passport-input").value
-    const address = document.getElementById("kyc-address-input").value
-    const pin = document.getElementById("kyc-pin-input").value
-    const confirmPin = document.getElementById("kyc-confirm-pin-input").value
-    const passportFile = document.getElementById("passport-upload").files[0]
-    const selfieFile = document.getElementById("selfie-upload").files[0]
-    const errorElement = document.getElementById("kyc-error")
-    const successElement = document.getElementById("kyc-success")
-
-    errorElement.style.display = "none"
-    successElement.style.display = "none"
-
-    if (!passportNumber || !address || !pin || !confirmPin || !passportFile || !selfieFile) {
-      errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
-      errorElement.style.display = "block"
-      if (kycSubmitBtn) kycSubmitBtn.disabled = false
-      return
-    }
-    // ... (other validations for KYC form) ...
-    if (pin !== confirmPin) {
-      errorElement.textContent = "PIN နှင့် အတည်ပြု PIN မတူညီပါ။"
-      errorElement.style.display = "block"
-      if (kycSubmitBtn) kycSubmitBtn.disabled = false
-      return
-    }
-    if (pin.length !== 6 || !/^\d+$/.test(pin)) {
-      errorElement.textContent = "PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။"
-      errorElement.style.display = "block"
-      if (kycSubmitBtn) kycSubmitBtn.disabled = false
-      return
-    }
-
-    logToConsole("Submitting KYC information...", "info")
-    showLoader()
-    try {
-      const passportFileName = `passport_${currentUser.user_id}_${Date.now()}.${passportFile.name.split(".").pop()}`
-      const { error: passportError } = await supabase.storage
-        .from("kyc-documents")
-        .upload(passportFileName, passportFile)
-      if (passportError) throw passportError
-      const { data: passportUrlData } = supabase.storage.from("kyc-documents").getPublicUrl(passportFileName)
-
-      const selfieFileName = `selfie_${currentUser.user_id}_${Date.now()}.${selfieFile.name.split(".").pop()}`
-      const { error: selfieError } = await supabase.storage.from("kyc-documents").upload(selfieFileName, selfieFile)
-      if (selfieError) throw selfieError
-      const { data: selfieUrlData } = supabase.storage.from("kyc-documents").getPublicUrl(selfieFileName)
-
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({
-          passport_number: passportNumber,
-          address,
-          payment_pin: pin,
-          passport_image: passportUrlData.publicUrl,
-          selfie_image: selfieUrlData.publicUrl,
-          passport_status: "pending",
-          submitted_at: new Date().toISOString(),
-        })
-        .eq("user_id", currentUser.user_id)
-      if (updateError) throw updateError
-
-      userKycStatus = "pending"
-      if (userProfileData) {
-        userProfileData.passport_number = passportNumber
-        userProfileData.address = address
-        userProfileData.payment_pin = pin
-        userProfileData.passport_image = passportUrlData.publicUrl
-        userProfileData.selfie_image = selfieUrlData.publicUrl
-        userProfileData.passport_status = "pending"
-      }
-      updateKycStatus()
-
-      successElement.textContent = "KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။"
-      successElement.style.display = "block"
-      if (kycFormElement && typeof kycFormElement.reset === "function") {
-        kycFormElement.reset()
-      }
-      document.getElementById("passport-preview").innerHTML = ""
-      document.getElementById("selfie-preview").innerHTML = ""
-      logToConsole("KYC submitted successfully.", "success")
-    } catch (error) {
-      console.error("KYC submission error:", error)
-      logToConsole("KYC submission error: " + error.message, "error", error)
-      errorElement.textContent = "KYC တင်သွင်းရာတွင် အမှားရှိနေပါသည်။ " + (error.message || "Unknown error")
-      errorElement.style.display = "block"
-    } finally {
-      if (kycSubmitBtn) kycSubmitBtn.disabled = false
-      hideLoader()
-    }
-  })
 
   const savePasswordBtn = document.getElementById("save-password-btn")
   if (savePasswordBtn)
     savePasswordBtn.addEventListener("click", async () => {
-      // Changed from form submit to button click
-      if (savePasswordBtn) savePasswordBtn.disabled = true
-
       const currentPassword = document.getElementById("current-password").value
       const newPassword = document.getElementById("new-password").value
       const confirmNewPassword = document.getElementById("confirm-new-password").value
@@ -1598,20 +1362,19 @@ function setupFormSubmissions() {
       if (!currentPassword || !newPassword || !confirmNewPassword) {
         errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
         errorElement.style.display = "block"
-        if (savePasswordBtn) savePasswordBtn.disabled = false
         return
       }
-      // ... (other validations) ...
       if (newPassword !== confirmNewPassword) {
         errorElement.textContent = "စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။"
         errorElement.style.display = "block"
-        if (savePasswordBtn) savePasswordBtn.disabled = false
         return
       }
-
       logToConsole("Changing password...", "info")
       showLoader()
       try {
+        // In a real app, you'd use supabase.auth.updateUser({ password: newPassword })
+        // and verify currentPassword on the server or via a dedicated function.
+        // This example continues with the direct table update as per original logic.
         const { data: user, error: fetchError } = await supabase
           .from("auth_users")
           .select("password")
@@ -1623,7 +1386,6 @@ function setupFormSubmissions() {
           errorElement.textContent = "လက်ရှိစကားဝှက် မှားယွင်းနေပါသည်။"
           errorElement.style.display = "block"
           hideLoader()
-          if (savePasswordBtn) savePasswordBtn.disabled = false
           return
         }
         const { error: updateError } = await supabase
@@ -1634,29 +1396,22 @@ function setupFormSubmissions() {
 
         successElement.textContent = "စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
         successElement.style.display = "block"
-        const changePasswordForm = document.getElementById("change-password-modal")?.querySelector("form")
-        if (changePasswordForm && typeof changePasswordForm.reset === "function") {
-          changePasswordForm.reset()
-        }
+        document.getElementById("change-password-modal").querySelector("form")?.reset()
         logToConsole("Password changed successfully.", "success")
         setTimeout(() => document.getElementById("change-password-modal")?.classList.remove("active"), 2000)
       } catch (error) {
         console.error("Change password error:", error)
-        logToConsole("Change password error: " + error.message, "error", error)
-        errorElement.textContent = "စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။ " + (error.message || "Unknown error")
+        errorElement.textContent = "စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။ " + (error.message || error)
         errorElement.style.display = "block"
       } finally {
-        if (savePasswordBtn) savePasswordBtn.disabled = false
         hideLoader()
       }
     })
 
+  // Add event listener for change PIN button
   const savePinBtn = document.getElementById("save-pin-btn")
   if (savePinBtn)
     savePinBtn.addEventListener("click", async () => {
-      // Changed from form submit to button click
-      if (savePinBtn) savePinBtn.disabled = true
-
       const currentPin = document.getElementById("current-pin").value
       const newPin = document.getElementById("new-pin").value
       const confirmNewPin = document.getElementById("confirm-new-pin").value
@@ -1669,26 +1424,21 @@ function setupFormSubmissions() {
       if (!currentPin || !newPin || !confirmNewPin) {
         errorElement.textContent = "အကွက်အားလုံးကို ဖြည့်ပါ။"
         errorElement.style.display = "block"
-        if (savePinBtn) savePinBtn.disabled = false
         return
       }
-      // ... (other validations) ...
       if (newPin.length !== 6 || !/^\d+$/.test(newPin)) {
         errorElement.textContent = "PIN နံပါတ်အသစ်သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။"
         errorElement.style.display = "block"
-        if (savePinBtn) savePinBtn.disabled = false
         return
       }
       if (newPin !== confirmNewPin) {
         errorElement.textContent = "PIN နံပါတ်အသစ်နှင့် အတည်ပြု PIN နံပါတ် မတူညီပါ။"
         errorElement.style.display = "block"
-        if (savePinBtn) savePinBtn.disabled = false
         return
       }
       if (!userProfileData || userProfileData.payment_pin !== currentPin) {
         errorElement.textContent = "လက်ရှိ PIN နံပါတ် မှားယွင်းနေပါသည်။"
         errorElement.style.display = "block"
-        if (savePinBtn) savePinBtn.disabled = false
         return
       }
 
@@ -1701,33 +1451,26 @@ function setupFormSubmissions() {
           .eq("user_id", currentUser.user_id)
         if (updateError) throw updateError
 
-        if (userProfileData) userProfileData.payment_pin = newPin
+        if (userProfileData) userProfileData.payment_pin = newPin // Update local cache
 
         successElement.textContent = "PIN နံပါတ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
         successElement.style.display = "block"
-        const changePinForm = document.getElementById("change-pin-modal")?.querySelector("form")
-        if (changePinForm && typeof changePinForm.reset === "function") {
-          changePinForm.reset()
-        }
+        document.getElementById("change-pin-modal").querySelector("form")?.reset() // Assuming form tag wraps inputs
         logToConsole("Payment PIN changed successfully.", "success")
         setTimeout(() => document.getElementById("change-pin-modal")?.classList.remove("active"), 2000)
       } catch (error) {
         console.error("Change PIN error:", error)
-        logToConsole("Change PIN error: " + error.message, "error", error)
-        errorElement.textContent = "PIN နံပါတ်ပြောင်းရာတွင် အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်။ " + (error.message || "Unknown error")
+        errorElement.textContent = "PIN နံပါတ်ပြောင်းရာတွင် အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်။ " + (error.message || error)
         errorElement.style.display = "block"
       } finally {
-        if (savePinBtn) savePinBtn.disabled = false
         hideLoader()
       }
     })
 
+  // Add event listener for delete account button
   const confirmDeleteAccountBtn = document.getElementById("confirm-delete-btn")
   if (confirmDeleteAccountBtn)
     confirmDeleteAccountBtn.addEventListener("click", async () => {
-      // Changed from form submit to button click
-      if (confirmDeleteAccountBtn) confirmDeleteAccountBtn.disabled = false
-
       const password = document.getElementById("delete-password").value
       const confirmCheckbox = document.getElementById("confirm-delete").checked
       const errorElement = document.getElementById("delete-account-error")
@@ -1736,32 +1479,42 @@ function setupFormSubmissions() {
       if (!password) {
         errorElement.textContent = "စကားဝှက်ထည့်သွင်းပါ။"
         errorElement.style.display = "block"
-        if (confirmDeleteAccountBtn) confirmDeleteAccountBtn.disabled = false
         return
       }
-      // ... (other validations) ...
       if (!confirmCheckbox) {
         errorElement.textContent = "အကောင့်ဖျက်သိမ်းရန် အတည်ပြုပေးပါ။"
         errorElement.style.display = "block"
-        if (confirmDeleteAccountBtn) confirmDeleteAccountBtn.disabled = false
         return
       }
+
+      // Verify password (using auth_users table as per current logic)
       if (!currentUser || currentUser.password !== password) {
         errorElement.textContent = "စကားဝှက် မှားယွင်းနေပါသည်။"
         errorElement.style.display = "block"
-        if (confirmDeleteAccountBtn) confirmDeleteAccountBtn.disabled = false
         return
       }
 
       logToConsole("Deleting account...", "warn")
       showLoader()
       try {
-        // Ensure RLS allows user to delete their own records or use a service role / edge function for this.
-        // The current setup relies on CASCADE delete from users to auth_users.
+        // This is a simplified deletion. A real app would handle this more carefully,
+        // possibly with server-side logic, archiving, or soft deletes.
+        // Deleting from 'users' will cascade to 'auth_users' due to FOREIGN KEY ON DELETE CASCADE.
+        // However, Supabase Auth users (if using supabase.auth.admin.deleteUser) are separate.
+        // Here, we are deleting from our custom tables.
+
+        // 1. Delete from 'users' table (will cascade to auth_users if FK is set up correctly)
         const { error: deleteUserError } = await supabase.from("users").delete().eq("user_id", currentUser.user_id)
         if (deleteUserError) throw deleteUserError
 
-        // Delete associated storage files
+        // 2. If FK ON DELETE CASCADE is not on auth_users, delete manually
+        // const { error: deleteAuthUserError } = await supabase
+        //     .from("auth_users")
+        //     .delete()
+        //     .eq("user_id", currentUser.user_id);
+        // if (deleteAuthUserError) throw deleteAuthUserError;
+
+        // 3. Delete associated storage files (avatars, kyc-documents)
         if (userProfileData) {
           if (userProfileData.avatar_url) {
             const avatarPath = userProfileData.avatar_url.split("/avatars/")[1]
@@ -1778,21 +1531,20 @@ function setupFormSubmissions() {
         }
 
         logToConsole("Account deleted successfully.", "success")
-        logout()
+        logout() // Clear session and show auth screen
         alert("သင့်အကောင့်ကို အောင်မြင်စွာ ဖျက်သိမ်းပြီးပါပြီ။")
         document.getElementById("delete-account-modal")?.classList.remove("active")
       } catch (error) {
         console.error("Delete account error:", error)
-        logToConsole("Delete account error: " + error.message, "error", error)
-        errorElement.textContent = "အကောင့်ဖျက်သိမ်းရာတွင် အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်။ " + (error.message || "Unknown error")
+        errorElement.textContent = "အကောင့်ဖျက်သိမ်းရာတွင် အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်။ " + (error.message || error)
         errorElement.style.display = "block"
       } finally {
-        if (confirmDeleteAccountBtn) confirmDeleteAccountBtn.disabled = false
         hideLoader()
       }
     })
 }
 
+// Show PIN entry modal
 function showPinEntryModal() {
   document.querySelectorAll(".pin-input").forEach((input) => (input.value = ""))
   const pinErrorElement = document.getElementById("pin-error")
@@ -1801,53 +1553,49 @@ function showPinEntryModal() {
     pinEntryModal.classList.add("active")
     const firstPinInput = pinEntryModal.querySelector(".pin-input")
     if (firstPinInput) firstPinInput.focus()
-    logToConsole("PIN entry modal shown.", "info")
-  } else {
-    logToConsole("PIN entry modal element not found.", "error")
   }
 }
 
+// Process transfer with PIN
 async function processTransferWithPin(pin) {
+  // Renamed from processTransfer
   const phone = document.getElementById("transfer-phone").value
   const amount = Number.parseInt(document.getElementById("transfer-amount").value)
   const note = document.getElementById("transfer-note").value
-  const errorElement = document.getElementById("transfer-error") // Error on transfer page
-  const successElement = document.getElementById("transfer-success") // Success on transfer page
+  const errorElement = document.getElementById("transfer-error")
+  const successElement = document.getElementById("transfer-success")
 
   if (pinEntryModal) pinEntryModal.classList.remove("active")
   if (processingOverlay) processingOverlay.classList.add("active")
   logToConsole(`Processing transfer to ${phone} for amount ${amount} with PIN.`, "info")
 
   try {
+    // Use the Supabase Edge Function for transfer
     const { data: transferResult, error: functionError } = await supabase.functions.invoke("process-transfer", {
       body: {
+        // from_user_id is implicit from the authenticated user calling the function
         to_phone: phone,
         amount: amount,
         note: note,
-        payment_pin: pin,
+        payment_pin: pin, // Send PIN to the function for verification
       },
     })
 
     if (functionError) {
       console.error("Supabase function invocation error:", functionError)
-      logToConsole("Supabase function 'process-transfer' error: " + functionError.message, "error", functionError)
       throw new Error(functionError.message || "Function invocation failed")
     }
 
     if (!transferResult || !transferResult.success) {
       console.warn("Transfer function returned failure:", transferResult)
-      logToConsole("Transfer function returned failure.", "warn", transferResult)
       throw new Error(transferResult.message || "ငွေလွှဲခြင်း မအောင်မြင်ပါ (function error)")
     }
 
+    // If function handles balance updates and transaction logging, client-side updates might only be for UI refresh
     logToConsole("Transfer successful via function:", "success", transferResult)
-    // Balance update should ideally come from realtime subscription or be re-fetched.
-    // Optimistic update:
-    // userBalance -= amount;
-    // document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`;
-    // document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`;
-    // Forcing a reload of user data to get the latest balance from the server
-    await loadUserData()
+    userBalance -= amount // Optimistically update, or rely on realtime update
+    document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
+    document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
 
     if (transferSentSound) transferSentSound.play().catch((e) => console.warn("Sent sound play failed:", e))
 
@@ -1859,16 +1607,16 @@ async function processTransferWithPin(pin) {
         successElement.style.display = "block"
       }
       if (transferResult.transaction) {
+        // If function returns transaction details
         showTransactionReceipt(transferResult.transaction)
       } else {
-        // If function doesn't return full transaction, create a mock one for receipt
-        // This might be less accurate if the function generates the ID or timestamp differently.
+        // Fallback if function doesn't return full transaction, create a mock one for receipt
         const mockTransaction = {
           id: transferResult.transaction_id || `TEMP-${Date.now()}`,
           from_phone: userProfileData.phone,
           from_name: userProfileData.name || userProfileData.phone,
           to_phone: phone,
-          to_name: document.getElementById("recipient-name").textContent || phone,
+          to_name: document.getElementById("recipient-name").textContent || phone, // Get from UI if available
           amount: amount,
           note: note,
           created_at: new Date().toISOString(),
@@ -1880,32 +1628,31 @@ async function processTransferWithPin(pin) {
       document.getElementById("transfer-note").value = ""
       const recipientInfoDiv = document.getElementById("recipient-info")
       if (recipientInfoDiv) recipientInfoDiv.style.display = "none"
-      // loadTransactions() // Transactions will be reloaded by realtime or loadUserData
-    }, 1500)
+      loadTransactions() // Refresh transaction list
+    }, 1500) // Reduced delay as function should be faster
   } catch (error) {
     console.error("Transfer processing error:", error)
-    logToConsole("Transfer processing error: " + error.message, "error", error)
     if (processingOverlay) processingOverlay.classList.remove("active")
     if (errorElement) {
-      errorElement.textContent = "ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။ " + (error.message || "Unknown error")
+      errorElement.textContent = "ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။ " + (error.message || error)
       errorElement.style.display = "block"
     }
     if (successElement) successElement.style.display = "none"
   }
 }
 
+// Mask phone number
 function maskPhoneNumber(phone) {
   if (!phone || phone.length <= 4) return phone
-  return "••••" + phone.slice(-4)
+  return "••••" + phone.slice(-4) // Show last 4, mask more
 }
 
+// Show transaction receipt
 function showTransactionReceipt(transaction) {
   if (!userProfileData || !transaction) {
     console.warn("Cannot show receipt: missing userProfileData or transaction data.")
-    logToConsole("Cannot show receipt: missing userProfileData or transaction data.", "warn")
     return
   }
-  currentReceiptTransaction = transaction
   logToConsole("Showing transaction receipt for ID: " + transaction.id, "info")
   const userPhone = userProfileData.phone
   const isSender = transaction.from_phone === userPhone
@@ -1917,7 +1664,7 @@ function showTransactionReceipt(transaction) {
   const receiptHTML = `
         <div class="receipt" id="printable-receipt">
             <div class="receipt-logo-area">
-                <img src="${LOGO_URL}" alt="OPPER Logo" crossOrigin="anonymous">
+                <img src="${LOGO_URL}" alt="OPPER Logo">
                 <span>OPPER Pay</span>
             </div>
             <div class="receipt-status">
@@ -1979,36 +1726,26 @@ function showTransactionReceipt(transaction) {
   if (receiptModal) receiptModal.classList.add("active")
 }
 
+// Download receipt as PNG
 function downloadReceipt() {
   logToConsole("Attempting to download receipt...", "info")
   const receiptElement = document.getElementById("printable-receipt")
   if (!receiptElement) {
     console.warn("Printable receipt element not found.")
-    logToConsole("Printable receipt element not found for download.", "warn")
     return
-  }
-  if (!currentReceiptTransaction || !currentReceiptTransaction.id) {
-    console.warn("No current transaction data available for naming receipt.")
-    logToConsole("No current transaction data for naming receipt.", "warn")
-    alert("ပြေစာဒေတာ မတွေ့ရှိပါ၊ ဖိုင်အမည်ကို ယေဘုယျအမည်ဖြင့် သတ်မှတ်ပါမည်။")
   }
 
   const images = receiptElement.getElementsByTagName("img")
   const promises = []
   for (let i = 0; i < images.length; i++) {
-    const img = images[i]
-    // Ensure crossOrigin is set for external images if not already
-    if (img.src.startsWith("http") && !img.crossOrigin) {
-      img.crossOrigin = "anonymous"
-    }
-    if (!img.complete || img.naturalWidth === 0) {
+    if (!images[i].complete || images[i].naturalWidth === 0) {
+      // Check if image is loaded
       promises.push(
         new Promise((resolve, reject) => {
-          img.onload = resolve
-          img.onerror = () => {
-            console.warn("Image failed to load for receipt:", img.src)
-            logToConsole("Image failed to load for receipt: " + img.src, "warn")
-            resolve()
+          images[i].onload = resolve
+          images[i].onerror = () => {
+            console.warn("Image failed to load for receipt:", images[i].src)
+            resolve() // Resolve anyway to not block download, placeholder might be used
           }
         }),
       )
@@ -2018,14 +1755,15 @@ function downloadReceipt() {
   Promise.all(promises)
     .then(() => {
       html2canvas(receiptElement, {
-        useCORS: true, // Important for external images
-        allowTaint: true, // May help with some CORS issues but can taint canvas
-        backgroundColor: getComputedStyle(document.body).getPropertyValue("--bg-secondary").trim() || "#ffffff",
-        scale: 2,
-        logging: true,
+        useCORS: true,
+        backgroundColor: getComputedStyle(document.body).getPropertyValue("--bg-secondary").trim() || "#ffffff", // Use theme background
+        scale: 2, // Increase scale for better quality
+        logging: true, // Enable html2canvas logging
         onclone: (clonedDoc) => {
+          // Ensure styles are applied in cloned document
           const clonedReceipt = clonedDoc.getElementById("printable-receipt")
           if (clonedReceipt) {
+            // Re-apply some critical styles if needed, or ensure they are inherited
             clonedReceipt.style.fontFamily = getComputedStyle(receiptElement).fontFamily
             clonedReceipt.style.color = getComputedStyle(receiptElement).color
           }
@@ -2033,24 +1771,23 @@ function downloadReceipt() {
       })
         .then((canvas) => {
           const link = document.createElement("a")
-          link.download = `OPPER-Receipt-${currentReceiptTransaction?.id || Date.now()}.png`
+          link.download = `OPPER-Receipt-${transaction.id || Date.now()}.png`
           link.href = canvas.toDataURL("image/png")
           link.click()
           logToConsole("Receipt downloaded successfully.", "success")
         })
         .catch((err) => {
           console.error("Error generating receipt image with html2canvas:", err)
-          logToConsole("Error generating receipt image with html2canvas: " + err.message, "error", err)
           alert("ပြေစာပုံထုတ်ရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။ Console ကိုစစ်ဆေးပါ။")
         })
     })
     .catch((err) => {
       console.error("Error loading images for receipt:", err)
-      logToConsole("Error loading images for receipt: " + err.message, "error", err)
       alert("ပြေစာအတွက် ပုံများတင်ရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။")
     })
 }
 
+// Generate user ID (simple version)
 function generateUserId(email) {
   const username = email
     .split("@")[0]
@@ -2062,9 +1799,9 @@ function generateUserId(email) {
   return `${username}${randomNum}`.toUpperCase()
 }
 
+// Show specific page
 function showPage(pageName) {
   console.log("Showing page:", pageName)
-  logToConsole("Showing page: " + pageName, "info")
   const sidebarLinks = document.querySelectorAll(".sidebar-nav a")
   sidebarLinks.forEach((link) => {
     link.parentElement.classList.remove("active")
@@ -2083,34 +1820,25 @@ function showPage(pageName) {
   if (profileDropdown) profileDropdown.classList.remove("active")
   const sidebar = document.getElementById("sidebar")
   if (window.innerWidth < 992 && sidebar) {
-    // Only close sidebar on mobile
     sidebar.classList.remove("active")
   }
 }
 
+// Logout function
 function logout() {
   logToConsole("Logging out...", "info")
   localStorage.removeItem("opperSession")
   currentUser = null
   userProfileData = null
+  // Clear any active Supabase subscriptions if necessary
   supabase.removeAllChannels()
-  logToConsole("All Supabase channels removed on logout.", "info")
   showAuthContainer()
-
-  const loginForm = document.getElementById("login-form")
-  if (loginForm && typeof loginForm.reset === "function") {
-    loginForm.reset()
-  }
-  const signupForm = document.getElementById("signup-form")
-  if (signupForm && typeof signupForm.reset === "function") {
-    signupForm.reset()
-  }
-  // Clear sensitive UI fields if any are still populated
-  document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: 0 Ks`
-  document.getElementById("balance-amount").textContent = `0 Ks`
-  // etc.
+  // Optionally reset parts of the UI to default state
+  document.getElementById("login-form")?.reset()
+  document.getElementById("signup-form")?.reset()
 }
 
+// Loader visibility functions
 function showLoader() {
   if (loader) loader.classList.add("active")
 }
@@ -2118,27 +1846,26 @@ function hideLoader() {
   if (loader) loader.classList.remove("active")
 }
 
+// Container visibility functions
 function showAuthContainer() {
   console.log("Showing Auth Container")
-  logToConsole("Showing Auth Container", "info")
   if (authContainer) authContainer.classList.remove("hidden")
   if (appContainer) appContainer.classList.add("hidden")
 }
 function showAppContainer() {
   console.log("Showing App Container")
-  logToConsole("Showing App Container", "info")
   if (authContainer) authContainer.classList.add("hidden")
   if (appContainer) appContainer.classList.remove("hidden")
-  showPage("dashboard") // Default to dashboard page when app container is shown
 }
 
+// Custom console logging function
 function logToConsole(message, type = "info", data = null) {
   const consoleOutput = document.getElementById("console-output")
   if (!consoleOutput) return
 
   const line = document.createElement("div")
   line.classList.add("console-line", `console-${type}`)
-  const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+  const timestamp = new Date().toLocaleTimeString()
   line.textContent = `[${timestamp}] [${type.toUpperCase()}] ${message}`
   if (data) {
     try {
@@ -2151,18 +1878,18 @@ function logToConsole(message, type = "info", data = null) {
     }
   }
   consoleOutput.appendChild(line)
-  consoleOutput.scrollTop = consoleOutput.scrollHeight
+  consoleOutput.scrollTop = consoleOutput.scrollHeight // Auto-scroll
 
-  // Also log to browser console for better debugging
+  // Also log to browser console
   switch (type) {
     case "error":
-      console.error(`[OPPER] ${message}`, data || "")
+      console.error(message, data || "")
       break
     case "warn":
-      console.warn(`[OPPER] ${message}`, data || "")
+      console.warn(message, data || "")
       break
     default:
-      console.log(`[OPPER] ${message}`, data || "")
+      console.log(message, data || "")
       break
   }
 }
