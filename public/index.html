@@ -92,7 +92,7 @@
             </div>
 
             <!-- Login Form -->
-            <form class="auth-form active" id="login-form" onsubmit="return false;">
+            <div class="auth-form active" id="login-form">
                 <div class="form-group">
                     <label for="login-email">အီးမေးလ်</label>
                     <div class="input-with-icon">
@@ -133,10 +133,10 @@
                 </button>
                 <div class="auth-message error" id="login-error"></div>
                 <div class="auth-message success" id="login-success"></div>
-            </form>
+            </div>
 
             <!-- Signup Form -->
-            <form class="auth-form" id="signup-form" onsubmit="return false;">
+            <div class="auth-form" id="signup-form">
                 <div class="form-group">
                     <label for="signup-email">အီးမေးလ်</label>
                     <div class="input-with-icon">
@@ -193,7 +193,7 @@
                 </button>
                 <div class="auth-message error" id="signup-error"></div>
                 <div class="auth-message success" id="signup-success"></div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -220,7 +220,7 @@
                 </div>
                 <div class="user-profile clickable" id="profile-dropdown-trigger">
                     <div class="user-avatar">
-                        <img id="user-avatar-img" src="/placeholder.svg?height=40&width=40" alt="User Avatar" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        <img id="user-avatar-img" src="/placeholder.svg" alt="User Avatar" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                         <span id="user-initial">A</span>
                         <div class="avatar-status"></div>
                     </div>
@@ -246,7 +246,7 @@
             </div>
             <div class="user-profile-sidebar">
                 <div class="user-avatar large">
-                    <img id="user-avatar-img-sidebar" src="/placeholder.svg?height=80&width=80" alt="User Avatar" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                    <img id="user-avatar-img-sidebar" src="/placeholder.svg" alt="User Avatar" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                     <span id="user-initial-sidebar">A</span>
                     <div class="avatar-status"></div>
                 </div>
@@ -403,7 +403,7 @@
                     <p>အခြားသူထံသို့ ငွေလွှဲပြောင်းပါ</p>
                 </div>
                 
-                <form class="transfer-form" onsubmit="return false;">
+                <div class="transfer-form">
                     <div class="form-group">
                         <label for="transfer-phone">လက်ခံမည့်သူ၏ ဖုန်းနံပါတ်</label>
                         <div class="input-with-icon">
@@ -413,8 +413,9 @@
                         </div>
                     </div>
                     <div id="recipient-info" style="display: none; margin-bottom: 15px; padding: 10px; background-color: var(--bg-glass); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                        <!-- Recipient info will be populated here -->
                         <div style="display: flex; align-items: center;">
-                            <img id="recipient-avatar" src="/placeholder.svg?height=40&width=40" alt="Recipient Avatar" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover; background-color: var(--bg-glass-dark);">
+                            <img id="recipient-avatar" src="/placeholder.svg" alt="Recipient Avatar" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover; background-color: var(--bg-glass-dark);">
                             <div>
                                 <p id="recipient-name" style="font-weight: bold; margin: 0; color: var(--text-primary);"></p>
                                 <p id="recipient-id" style="font-size: 0.9em; margin: 0; color: var(--text-secondary);"></p>
@@ -433,7 +434,7 @@
                         <label for="transfer-note">မှတ်ချက် (ထည့်လိုက ထည့်နိုင်သည်)</label>
                         <div class="input-with-icon">
                             <i class="fas fa-sticky-note"></i>
-                            <input type="text" id="transfer-note" placeholder="မှတ်ချက်ထည့်ပါ">
+                            <input type="text" id="transfer-note" placeholder="မှတ်ချက်ထည��်ပါ">
                             <div class="input-focus-line"></div>
                         </div>
                     </div>
@@ -444,7 +445,7 @@
                     </button>
                     <div class="auth-message error" id="transfer-error"></div>
                     <div class="auth-message success" id="transfer-success"></div>
-                </form>
+                </div>
             </section>
 
             <!-- History Page -->
@@ -506,11 +507,11 @@
                     <p><strong>နေရပ်လိပ်စာ:</strong> <span id="approved-kyc-address"></span></p>
                     <div style="margin-top: 10px;">
                         <p><strong>နိုင်ငံကူးလက်မှတ်ဓာတ်ပုံ:</strong></p>
-                        <img id="approved-kyc-passport-img" src="/placeholder.svg?height=150&width=200" alt="Passport Image" style="max-width: 100%; height: auto; border-radius: var(--radius-md); margin-top: 5px; border: 1px solid var(--border-color);">
+                        <img id="approved-kyc-passport-img" src="/placeholder.svg" alt="Passport Image" style="max-width: 100%; height: auto; border-radius: var(--radius-md); margin-top: 5px; border: 1px solid var(--border-color);">
                     </div>
                     <div style="margin-top: 10px;">
                         <p><strong>ကိုယ်တိုင်ဓာတ်ပုံ:</strong></p>
-                        <img id="approved-kyc-selfie-img" src="/placeholder.svg?height=150&width=150" alt="Selfie Image" style="max-width: 100%; height: auto; border-radius: var(--radius-md); margin-top: 5px; border: 1px solid var(--border-color);">
+                        <img id="approved-kyc-selfie-img" src="/placeholder.svg" alt="Selfie Image" style="max-width: 100%; height: auto; border-radius: var(--radius-md); margin-top: 5px; border: 1px solid var(--border-color);">
                     </div>
                     <button class="btn btn-danger btn-block clickable" id="delete-kyc-btn" style="margin-top: 20px;">
                       <i class="fas fa-trash-alt"></i>
@@ -520,9 +521,9 @@
                     <div class="auth-message success" id="delete-kyc-success" style="margin-top: 10px;"></div>
                 </div>
 
-                <form class="kyc-form" id="kyc-form" onsubmit="return false;">
+                <div class="kyc-form" id="kyc-form">
                     <div class="form-group">
-                        <label for="kyc-passport-input">နိုင်ငံကူးလက်မှတ်နံပါတ်</label>
+                        <label for="kyc-passport">နိုင်ငံကူးလက်မှတ်နံပါတ်</label>
                         <div class="input-with-icon">
                             <i class="fas fa-passport"></i>
                             <input type="text" id="kyc-passport-input" placeholder="နိုင်ငံကူးလက်မှတ်နံပါတ်ထည့်ပါ" required>
@@ -530,7 +531,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="kyc-address-input">နေရပ်လိပ်စာ</label>
+                        <label for="kyc-address">နေရပ်လိပ်စာ</label>
                         <div class="input-with-icon">
                             <i class="fas fa-home"></i>
                             <input type="text" id="kyc-address-input" placeholder="နေရပ်လိပ်စာထည့်ပါ" required>
@@ -538,7 +539,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="kyc-pin-input">ငွေပေးချေမှု PIN (ဂဏန်း ၆ လုံး)</label>
+                        <label for="kyc-pin">ငွေပေးချေမှု PIN (ဂဏန်း ၆ လုံး)</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="kyc-pin-input" placeholder="PIN ထည့်ပါ" maxlength="6" required>
@@ -547,7 +548,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="kyc-confirm-pin-input">PIN အတည်ပြုပါ</label>
+                        <label for="kyc-confirm-pin">PIN အတည်ပြုပါ</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="kyc-confirm-pin-input" placeholder="PIN ပြန်ထည့်ပါ" maxlength="6" required>
@@ -586,7 +587,7 @@
                     </button>
                     <div class="auth-message error" id="kyc-error"></div>
                     <div class="auth-message success" id="kyc-success"></div>
-                </form>
+                </div>
             </section>
 
             <!-- Settings Page -->
@@ -598,7 +599,7 @@
                   
                 <div class="settings-card">
                     <h3>ပရိုဖိုင်ပုံ</h3>
-                    <form class="form-group" onsubmit="return false;">
+                    <div class="form-group">
                         <label>ပရိုဖိုင်ပုံ တင်ရန်</label>
                         <div class="file-upload">
                             <input type="file" id="profile-picture-upload" accept="image/*">
@@ -613,12 +614,12 @@
                         </button>
                         <div class="auth-message error" id="profile-picture-error" style="margin-top:10px;"></div>
                         <div class="auth-message success" id="profile-picture-success" style="margin-top:10px;"></div>
-                    </form>
+                    </div>
                 </div>
 
                 <div class="settings-card">
                     <h3>အကောင့်ဆက်တင်များ</h3>
-                    <form class="settings-form" onsubmit="return false;">
+                    <div class="settings-form">
                         <div class="form-group">
                             <label for="settings-phone">ဖုန်းနံပါတ်</label>
                             <div class="input-with-icon">
@@ -645,7 +646,7 @@
                             <span>PIN ပြောင်းရန်</span>
                             <div class="btn-ripple"></div>
                         </button>
-                    </form>
+                    </div>
                 </div>
 
                 <div class="settings-card">
@@ -689,7 +690,7 @@
                 <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
-                        <p>OPPER Payment v2.4.4</p>
+                        <p>OPPER Payment v2.2</p> <!-- Version updated for new features -->
                         <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
@@ -725,10 +726,10 @@
 
     <!-- Change Password Modal -->
     <div class="modal" id="change-password-modal">
-        <form class="modal-content" onsubmit="return false;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>စကားဝှက်ပြောင်းရန်</h3>
-                <button type="button" class="modal-close clickable">&times;</button>
+                <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -762,18 +763,18 @@
                 <div class="auth-message success" id="change-password-success"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
-                <button type="button" class="btn btn-primary clickable" id="save-password-btn">သိမ်းမည်</button>
+                <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+                <button class="btn btn-primary clickable" id="save-password-btn">သိမ်းမည်</button>
             </div>
-        </form>
+        </div>
     </div>
 
     <!-- Change PIN Modal -->
     <div class="modal" id="change-pin-modal">
-        <form class="modal-content" onsubmit="return false;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>PIN ပြောင်းရန်</h3>
-                <button type="button" class="modal-close clickable">&times;</button>
+                <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -807,18 +808,18 @@
                 <div class="auth-message success" id="change-pin-success"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
-                <button type="button" class="btn btn-primary clickable" id="save-pin-btn">သိမ်းမည်</button>
+                <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+                <button class="btn btn-primary clickable" id="save-pin-btn">သိမ်းမည်</button>
             </div>
-        </form>
+        </div>
     </div>
     
     <!-- Delete Account Modal -->
     <div class="modal" id="delete-account-modal">
-        <form class="modal-content" onsubmit="return false;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>အကောင့်ဖျက်ရန်</h3>
-                <button type="button" class="modal-close clickable">&times;</button>
+                <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="warning-message">
@@ -844,10 +845,10 @@
                 <div class="auth-message error" id="delete-account-error"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
-                <button type="button" class="btn btn-danger clickable" id="confirm-delete-btn">အကောင့်ဖျက်မည်</button>
+                <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+                <button class="btn btn-danger clickable" id="confirm-delete-btn">အကောင့်ဖျက်မည်</button>
             </div>
-        </form>
+        </div>
     </div>
 
     <!-- Confirmation Modal (Generic) -->
@@ -855,7 +856,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="confirmation-title">အတည်ပြုပါ</h3>
-                <button type="button" class="modal-close clickable">&times;</button>
+                <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
                 <p id="confirmation-message">သေချာပါသလား?</p>
@@ -870,8 +871,8 @@
                 <div class="auth-message error" id="confirmation-error" style="margin-top: 10px;"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline modal-cancel clickable" id="cancel-confirmation-btn">မလုပ်တော့ပါ</button>
-                <button type="button" class="btn btn-primary clickable" id="confirm-action-btn">အတည်ပြုသည်</button>
+                <button class="btn btn-outline modal-cancel clickable" id="cancel-confirmation-btn">မလုပ်တော့ပါ</button>
+                <button class="btn btn-primary clickable" id="confirm-action-btn">အတည်ပြုသည်</button>
             </div>
         </div>
     </div>
@@ -881,7 +882,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>ငွေပေးချေမှု PIN</h3>
-                <button type="button" class="modal-close clickable">&times;</button>
+                <button class="modal-close clickable">&times;</button>
             </div>
             <div class="modal-body">
                 <p class="text-center mb-4">ငွေလွှဲရန် သင့် PIN ကုဒ်ထည့်ပါ</p>
@@ -898,22 +899,22 @@
                 <div class="auth-message error" id="pin-error"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
-                <button type="button" class="btn btn-primary clickable" id="confirm-pin-btn">အတည်ပြုသည်</button>
+                <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+                <button class="btn btn-primary clickable" id="confirm-pin-btn">အတည်ပြုသည်</button>
             </div>
         </div>
     </div>
 
     <!-- Receipt Modal -->
-    <div class="modal receipt-modal-animated" id="receipt-modal">
+    <div class="modal receipt-modal-animated" id="receipt-modal"> <!-- Added receipt-modal-animated class -->
         <div class="modal-content receipt-modal-content">
             <div class="modal-header receipt-header">
                 <h3>ငွေလွှဲပြေစာ</h3>
                 <div class="receipt-actions">
-                    <button type="button" class="btn-icon clickable" id="download-receipt">
+                    <button class="btn-icon clickable" id="download-receipt">
                         <i class="fas fa-download"></i>
                     </button>
-                    <button type="button" class="modal-close clickable">&times;</button>
+                    <button class="modal-close clickable">&times;</button>
                 </div>
             </div>
             <div class="modal-body receipt-body" id="receipt-container">
