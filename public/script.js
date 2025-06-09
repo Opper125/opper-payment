@@ -14,6 +14,7 @@ let userKycStatus = "pending"
 let transfersEnabled = true
 let currentTheme = localStorage.getItem("theme") || "light"
 let transactions = []
+let currentReceiptTransaction = null // For storing current transaction details for receipt download
 
 // Asset URLs
 const LOGO_URL = "https://github.com/Opper125/opper-payment/raw/main/logo.png"
@@ -81,17 +82,6 @@ async function checkSession() {
       const sessionData = JSON.parse(session)
       console.log("Found session in localStorage:", sessionData)
 
-      // Validate session with Supabase (optional but good practice)
-      // This example assumes localStorage session is trusted if present.
-      // For higher security, you'd re-verify with Supabase auth.
-      // const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      // if (authError || !authUser || authUser.id !== sessionData.user_id) {
-      //   console.warn("Session mismatch or Supabase auth error. Clearing local session.", authError);
-      //   localStorage.removeItem("opperSession");
-      //   return false;
-      // }
-
-      // Fetch user from our custom auth_users table
       const { data: user, error } = await supabase
         .from("auth_users")
         .select("*")
@@ -136,16 +126,11 @@ async function loadUserData() {
 
     if (userError) {
       console.error("Error fetching user profile data:", userError)
-      // Potentially handle this by logging out the user or showing an error message
-      // For now, we'll let the UI show default/empty states.
-      throw userError // Re-throw to be caught by initializeApp
+      throw userError
     }
 
     if (!userData) {
       console.warn("User profile data not found for user_id:", currentUser.user_id)
-      // This could happen if a user exists in auth_users but not in users table.
-      // Handle appropriately, e.g., prompt to create profile or logout.
-      // For now, treat as an error state.
       throw new Error("User profile not found.")
     }
 
@@ -154,7 +139,7 @@ async function loadUserData() {
     userKycStatus = userData.passport_status || "pending"
     console.log("User profile data loaded:", userProfileData)
 
-    updateUserUI(userData) // Update UI elements that depend on userProfileData
+    updateUserUI(userData)
 
     const { data: settings, error: settingsError } = await supabase
       .from("settings")
@@ -168,15 +153,12 @@ async function loadUserData() {
       transfersEnabled = settings.allow_transfers
       console.log("Transfers enabled status:", transfersEnabled)
     }
-    updateTransferStatus() // Update UI for transfer status
+    updateTransferStatus()
 
     setupRealtimeSubscriptions()
-    await loadTransactions() // Ensure transactions are loaded after user data
+    await loadTransactions()
   } catch (error) {
     console.error("Load user data failed:", error)
-    // If loading user data fails, it's a significant issue.
-    // Consider logging out the user or showing a persistent error.
-    // For now, re-throw to be caught by initializeApp, which will show auth container.
     throw error
   }
 }
@@ -239,7 +221,6 @@ function updateUserUI(userData) {
 function updateKycStatus() {
   if (!userProfileData) {
     console.warn("Cannot update KYC status: userProfileData is not set.")
-    // Set to a default "pending" or "unknown" state if needed
     document.getElementById("kyc-status").textContent = "KYC: အခြေအနေမသိပါ"
     document.getElementById("kyc-status-message").textContent = "KYC အချက်အလက်များ ရယူ၍မရပါ"
     return
@@ -349,7 +330,7 @@ function setupRealtimeSubscriptions() {
   console.log("Setting up realtime subscriptions for user:", currentUser.user_id)
 
   const userChannel = supabase
-    .channel(`user-updates-${currentUser.user_id}`) // Unique channel name per user
+    .channel(`user-updates-${currentUser.user_id}`)
     .on(
       "postgres_changes",
       {
@@ -360,7 +341,7 @@ function setupRealtimeSubscriptions() {
       },
       (payload) => {
         console.log("Realtime user update received:", payload)
-        const oldProfileData = { ...userProfileData } // Store old data for comparison
+        const oldProfileData = { ...userProfileData }
         userProfileData = payload.new
         if (payload.new.balance !== oldProfileData.balance) {
           userBalance = payload.new.balance
@@ -372,7 +353,7 @@ function setupRealtimeSubscriptions() {
           updateKycStatus()
         }
         if (payload.new.avatar_url !== oldProfileData.avatar_url) {
-          updateUserUI(payload.new) // This will update avatar
+          updateUserUI(payload.new)
         }
       },
     )
@@ -449,7 +430,7 @@ async function loadTransactions() {
   try {
     if (!userProfileData || !userProfileData.phone) {
       console.warn("Cannot load transactions: user profile or phone not available.")
-      updateTransactionsUI([], "") // Clear UI or show empty state
+      updateTransactionsUI([], "")
       return
     }
     const userPhone = userProfileData.phone
@@ -460,7 +441,7 @@ async function loadTransactions() {
       .select("*")
       .or(`from_phone.eq.${userPhone},to_phone.eq.${userPhone}`)
       .order("created_at", { ascending: false })
-      .limit(10) // Consider pagination for full history
+      .limit(10)
 
     if (error) {
       console.error("Error loading transactions:", error)
@@ -471,7 +452,6 @@ async function loadTransactions() {
     updateTransactionsUI(transactions, userPhone)
   } catch (error) {
     console.error("Load transactions failed:", error)
-    // Display an error message in the transaction list UI
     const recentTransactionsList = document.getElementById("recent-transactions-list")
     const historyTransactionsList = document.getElementById("history-transactions-list")
     const errorHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>မှတ်တမ်းများ ရယူ၍မရပါ</p></div>`
@@ -544,10 +524,9 @@ function updateTransactionsUI(transactionsData, userPhone) {
         `
 
     if (index < 5) {
-      // Show only recent 5 in dashboard
       recentTransactionsList.innerHTML += transactionItem
     }
-    historyTransactionsList.innerHTML += transactionItem // Show all in history page
+    historyTransactionsList.innerHTML += transactionItem
   })
 
   document.querySelectorAll(".transaction-view-btn").forEach((button) => {
@@ -565,14 +544,12 @@ function updateTransactionsUI(transactionsData, userPhone) {
 // Initialize UI elements and event listeners
 function initializeUI() {
   console.log("Initializing UI elements and event listeners...")
-  document.body.setAttribute("data-theme", currentTheme) // Apply theme
+  document.body.setAttribute("data-theme", currentTheme)
 
-  // Play click sound for all elements with 'clickable' class
   document.querySelectorAll(".clickable").forEach((el) => {
     el.addEventListener("click", () => {
       if (clickSound && clickSound.readyState >= 2) {
-        // Check if sound is loaded enough
-        clickSound.currentTime = 0 // Rewind to start
+        clickSound.currentTime = 0
         clickSound.play().catch((e) => console.warn("Click sound play failed:", e))
       }
     })
@@ -620,12 +597,11 @@ function initializeUI() {
   })
 
   const sidebarLinks = document.querySelectorAll(".sidebar-nav a")
-  const pages = document.querySelectorAll(".page")
   sidebarLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault()
       const pageName = link.getAttribute("data-page")
-      showPage(pageName) // Use centralized showPage function
+      showPage(pageName)
     })
   })
 
@@ -708,7 +684,7 @@ function initializeUI() {
     }
     option.addEventListener("click", () => {
       const theme = option.getAttribute("data-theme")
-      applyTheme(theme) // Use centralized theme function
+      applyTheme(theme)
       themeOptions.forEach((o) => o.classList.remove("active"))
       option.classList.add("active")
     })
@@ -755,16 +731,14 @@ function initializeUI() {
   document.getElementById("save-profile-picture-btn")?.addEventListener("click", uploadProfilePicture)
   document.getElementById("delete-kyc-btn")?.addEventListener("click", confirmDeleteKyc)
 
-  // Console toggle
   const consoleToggle = document.getElementById("console-toggle")
-  const consoleHeader = document.querySelector(".console-header") // Target header for click
+  const consoleHeader = document.querySelector(".console-header")
   const consoleContainer = document.getElementById("console-container")
 
   if (consoleToggle && consoleHeader && consoleContainer) {
     const toggleConsole = () => consoleContainer.classList.toggle("active")
     consoleToggle.addEventListener("click", toggleConsole)
     consoleHeader.addEventListener("click", (e) => {
-      // Allow clicking header to toggle
       if (e.target === consoleHeader || e.target === consoleHeader.querySelector("span")) {
         toggleConsole()
       }
@@ -782,11 +756,10 @@ function applyTheme(themeName) {
   } else {
     document.body.setAttribute("data-theme", themeName)
   }
-  currentTheme = themeName // Update global variable
+  currentTheme = themeName
   localStorage.setItem("theme", themeName)
 }
 
-// Check recipient information
 async function checkRecipientInfo() {
   const phone = document.getElementById("transfer-phone").value
   const recipientInfoDiv = document.getElementById("recipient-info")
@@ -813,7 +786,6 @@ async function checkRecipientInfo() {
       .single()
 
     if (error && error.code !== "PGRST116") {
-      // PGRST116: "Fetched result not found" (expected if no user)
       console.error("Error fetching recipient:", error)
       recipientInfoDiv.style.display = "block"
       recipientAvatarImg.src = DEFAULT_AVATAR_URL
@@ -846,7 +818,6 @@ async function checkRecipientInfo() {
   }
 }
 
-// Upload profile picture
 async function uploadProfilePicture() {
   const fileInput = document.getElementById("profile-picture-upload")
   const file = fileInput.files[0]
@@ -875,7 +846,7 @@ async function uploadProfilePicture() {
     showLoader()
 
     if (userProfileData && userProfileData.avatar_url) {
-      const oldFilePath = userProfileData.avatar_url.split("/avatars/")[1] // Get path after bucket name
+      const oldFilePath = userProfileData.avatar_url.split("/avatars/")[1]
       if (oldFilePath) {
         logToConsole(`Removing old avatar: ${oldFilePath}`, "info")
         const { error: removeError } = await supabase.storage.from("avatars").remove([oldFilePath])
@@ -885,7 +856,7 @@ async function uploadProfilePicture() {
 
     const { data: uploadData, error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, {
       cacheControl: "3600",
-      upsert: false, // Set to false to avoid overwriting if somehow name collides, though unlikely with timestamp
+      upsert: false,
     })
 
     if (uploadError) throw uploadError
@@ -901,8 +872,8 @@ async function uploadProfilePicture() {
 
     if (updateError) throw updateError
 
-    if (userProfileData) userProfileData.avatar_url = avatarUrl // Update local cache
-    updateUserUI(userProfileData) // Refresh UI
+    if (userProfileData) userProfileData.avatar_url = avatarUrl
+    updateUserUI(userProfileData)
 
     successElement.textContent = "ပရိုဖိုင်ပုံ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"
     successElement.style.display = "block"
@@ -917,7 +888,6 @@ async function uploadProfilePicture() {
   }
 }
 
-// Confirm KYC Deletion
 function confirmDeleteKyc() {
   const modalTitle = document.getElementById("confirmation-title")
   const modalMessage = document.getElementById("confirmation-message")
@@ -936,10 +906,9 @@ function confirmDeleteKyc() {
   const oldBtn = confirmActionBtn
   const newBtn = oldBtn.cloneNode(true)
   oldBtn.parentNode.replaceChild(newBtn, oldBtn)
-  newBtn.addEventListener("click", handleDeleteKyc) // Add event listener to new button
+  newBtn.addEventListener("click", handleDeleteKyc)
 }
 
-// Handle KYC Deletion
 async function handleDeleteKyc() {
   const pin = document.getElementById("confirmation-pin").value
   const confirmationError = document.getElementById("confirmation-error")
@@ -977,7 +946,7 @@ async function handleDeleteKyc() {
       logToConsole("Removing KYC documents from storage:", "info", filesToDelete)
       const { error: deleteStorageError } = await supabase.storage
         .from("kyc-documents")
-        .remove(filesToDelete.filter((f) => f)) // Filter out undefined paths
+        .remove(filesToDelete.filter((f) => f))
       if (deleteStorageError) console.warn("Error deleting KYC documents from storage:", deleteStorageError.message)
     }
 
@@ -995,7 +964,7 @@ async function handleDeleteKyc() {
 
     if (updateError) throw updateError
 
-    userKycStatus = "pending" // Update local state
+    userKycStatus = "pending"
     if (userProfileData) {
       userProfileData.passport_number = null
       userProfileData.address = null
@@ -1019,7 +988,6 @@ async function handleDeleteKyc() {
   }
 }
 
-// Setup PIN inputs
 function setupPinInputs() {
   const pinInputs = document.querySelectorAll(".pin-input")
   pinInputs.forEach((input, index) => {
@@ -1044,11 +1012,10 @@ function setupPinInputs() {
       return
     }
     pinErrorElement.style.display = "none"
-    processTransferWithPin(pin) // Renamed for clarity
+    processTransferWithPin(pin)
   })
 }
 
-// Setup form submissions
 function setupFormSubmissions() {
   console.log("Setting up form submissions...")
   const loginBtn = document.getElementById("login-btn")
@@ -1071,7 +1038,7 @@ function setupFormSubmissions() {
       showLoader()
       try {
         const { data: user, error } = await supabase.from("auth_users").select("*").eq("email", email).single()
-        if (error && error.code !== "PGRST116") throw error // PGRST116 is "not found"
+        if (error && error.code !== "PGRST116") throw error
         if (!user) {
           errorElement.textContent = "အကောင့်မတွေ့ရှိပါ။"
           errorElement.style.display = "block"
@@ -1079,7 +1046,6 @@ function setupFormSubmissions() {
           return
         }
         if (user.password !== password) {
-          // Plain text password check (as per original logic)
           errorElement.textContent = "စကားဝှက်မှားယွင်းနေပါသည်။"
           errorElement.style.display = "block"
           hideLoader()
@@ -1091,15 +1057,13 @@ function setupFormSubmissions() {
         successElement.style.display = "block"
         await loadUserData()
         showAppContainer()
-        initializeUI() // Re-initialize UI parts that depend on auth state
+        initializeUI()
         logToConsole("Login successful.", "success")
       } catch (error) {
         console.error("Login error:", error)
         errorElement.textContent = "အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။ " + (error.message || error)
         errorElement.style.display = "block"
       } finally {
-        // Hide loader is handled by initializeApp's finally block if login is initial load
-        // If login is after initial load, hide it here.
         if (
           !document.getElementById("intro-animation") ||
           document.getElementById("intro-animation").classList.contains("hidden")
@@ -1168,10 +1132,10 @@ function setupFormSubmissions() {
         }
 
         const userId = generateUserId(email)
-        const { error: authError } = await supabase.from("auth_users").insert([{ user_id: userId, email, password }]) // Plain text password
+        const { error: authError } = await supabase.from("auth_users").insert([{ user_id: userId, email, password }])
         if (authError) throw authError
 
-        const defaultName = email.split("@")[0] // Use part of email as default name
+        const defaultName = email.split("@")[0]
         const { error: profileError } = await supabase
           .from("users")
           .insert([{ user_id: userId, phone, name: defaultName, balance: 0, passport_status: "pending" }])
@@ -1179,7 +1143,12 @@ function setupFormSubmissions() {
 
         successElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။"
         successElement.style.display = "block"
-        document.getElementById("signup-form").reset() // Reset form
+        const signupForm = document.getElementById("signup-form")
+        if (signupForm && typeof signupForm.reset === "function") {
+          signupForm.reset()
+        } else {
+          console.warn("Signup form element not found or .reset is not a function")
+        }
         logToConsole("Signup successful.", "success")
         setTimeout(() => document.querySelector('.auth-tab[data-tab="login"]')?.click(), 2000)
       } catch (error) {
@@ -1244,7 +1213,7 @@ function setupFormSubmissions() {
 
       const { data: recipient, error: recipientError } = await supabase
         .from("users")
-        .select("user_id, phone") // Only select necessary fields
+        .select("user_id, phone")
         .eq("phone", phone)
         .single()
 
@@ -1312,7 +1281,7 @@ function setupFormSubmissions() {
           .update({
             passport_number: passportNumber,
             address,
-            payment_pin: pin, // Store/Update payment PIN
+            payment_pin: pin,
             passport_image: passportUrlData.publicUrl,
             selfie_image: selfieUrlData.publicUrl,
             passport_status: "pending",
@@ -1321,7 +1290,7 @@ function setupFormSubmissions() {
           .eq("user_id", currentUser.user_id)
         if (updateError) throw updateError
 
-        userKycStatus = "pending" // Update local state
+        userKycStatus = "pending"
         if (userProfileData) {
           userProfileData.passport_number = passportNumber
           userProfileData.address = address
@@ -1330,11 +1299,14 @@ function setupFormSubmissions() {
           userProfileData.selfie_image = selfieUrlData.publicUrl
           userProfileData.passport_status = "pending"
         }
-        updateKycStatus() // Refresh UI
+        updateKycStatus()
 
         successElement.textContent = "KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။"
         successElement.style.display = "block"
-        document.getElementById("kyc-form").reset()
+        const kycForm = document.getElementById("kyc-form")
+        if (kycForm && typeof kycForm.reset === "function") {
+          kycForm.reset()
+        }
         document.getElementById("passport-preview").innerHTML = ""
         document.getElementById("selfie-preview").innerHTML = ""
         logToConsole("KYC submitted successfully.", "success")
@@ -1372,9 +1344,6 @@ function setupFormSubmissions() {
       logToConsole("Changing password...", "info")
       showLoader()
       try {
-        // In a real app, you'd use supabase.auth.updateUser({ password: newPassword })
-        // and verify currentPassword on the server or via a dedicated function.
-        // This example continues with the direct table update as per original logic.
         const { data: user, error: fetchError } = await supabase
           .from("auth_users")
           .select("password")
@@ -1396,7 +1365,10 @@ function setupFormSubmissions() {
 
         successElement.textContent = "စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
         successElement.style.display = "block"
-        document.getElementById("change-password-modal").querySelector("form")?.reset()
+        const changePasswordForm = document.getElementById("change-password-modal")?.querySelector("form")
+        if (changePasswordForm && typeof changePasswordForm.reset === "function") {
+          changePasswordForm.reset()
+        }
         logToConsole("Password changed successfully.", "success")
         setTimeout(() => document.getElementById("change-password-modal")?.classList.remove("active"), 2000)
       } catch (error) {
@@ -1408,7 +1380,6 @@ function setupFormSubmissions() {
       }
     })
 
-  // Add event listener for change PIN button
   const savePinBtn = document.getElementById("save-pin-btn")
   if (savePinBtn)
     savePinBtn.addEventListener("click", async () => {
@@ -1451,11 +1422,14 @@ function setupFormSubmissions() {
           .eq("user_id", currentUser.user_id)
         if (updateError) throw updateError
 
-        if (userProfileData) userProfileData.payment_pin = newPin // Update local cache
+        if (userProfileData) userProfileData.payment_pin = newPin
 
         successElement.textContent = "PIN နံပါတ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
         successElement.style.display = "block"
-        document.getElementById("change-pin-modal").querySelector("form")?.reset() // Assuming form tag wraps inputs
+        const changePinForm = document.getElementById("change-pin-modal")?.querySelector("form")
+        if (changePinForm && typeof changePinForm.reset === "function") {
+          changePinForm.reset()
+        }
         logToConsole("Payment PIN changed successfully.", "success")
         setTimeout(() => document.getElementById("change-pin-modal")?.classList.remove("active"), 2000)
       } catch (error) {
@@ -1467,7 +1441,6 @@ function setupFormSubmissions() {
       }
     })
 
-  // Add event listener for delete account button
   const confirmDeleteAccountBtn = document.getElementById("confirm-delete-btn")
   if (confirmDeleteAccountBtn)
     confirmDeleteAccountBtn.addEventListener("click", async () => {
@@ -1487,7 +1460,6 @@ function setupFormSubmissions() {
         return
       }
 
-      // Verify password (using auth_users table as per current logic)
       if (!currentUser || currentUser.password !== password) {
         errorElement.textContent = "စကားဝှက် မှားယွင်းနေပါသည်။"
         errorElement.style.display = "block"
@@ -1497,24 +1469,9 @@ function setupFormSubmissions() {
       logToConsole("Deleting account...", "warn")
       showLoader()
       try {
-        // This is a simplified deletion. A real app would handle this more carefully,
-        // possibly with server-side logic, archiving, or soft deletes.
-        // Deleting from 'users' will cascade to 'auth_users' due to FOREIGN KEY ON DELETE CASCADE.
-        // However, Supabase Auth users (if using supabase.auth.admin.deleteUser) are separate.
-        // Here, we are deleting from our custom tables.
-
-        // 1. Delete from 'users' table (will cascade to auth_users if FK is set up correctly)
         const { error: deleteUserError } = await supabase.from("users").delete().eq("user_id", currentUser.user_id)
         if (deleteUserError) throw deleteUserError
 
-        // 2. If FK ON DELETE CASCADE is not on auth_users, delete manually
-        // const { error: deleteAuthUserError } = await supabase
-        //     .from("auth_users")
-        //     .delete()
-        //     .eq("user_id", currentUser.user_id);
-        // if (deleteAuthUserError) throw deleteAuthUserError;
-
-        // 3. Delete associated storage files (avatars, kyc-documents)
         if (userProfileData) {
           if (userProfileData.avatar_url) {
             const avatarPath = userProfileData.avatar_url.split("/avatars/")[1]
@@ -1531,7 +1488,7 @@ function setupFormSubmissions() {
         }
 
         logToConsole("Account deleted successfully.", "success")
-        logout() // Clear session and show auth screen
+        logout()
         alert("သင့်အကောင့်ကို အောင်မြင်စွာ ဖျက်သိမ်းပြီးပါပြီ။")
         document.getElementById("delete-account-modal")?.classList.remove("active")
       } catch (error) {
@@ -1544,7 +1501,6 @@ function setupFormSubmissions() {
     })
 }
 
-// Show PIN entry modal
 function showPinEntryModal() {
   document.querySelectorAll(".pin-input").forEach((input) => (input.value = ""))
   const pinErrorElement = document.getElementById("pin-error")
@@ -1556,9 +1512,7 @@ function showPinEntryModal() {
   }
 }
 
-// Process transfer with PIN
 async function processTransferWithPin(pin) {
-  // Renamed from processTransfer
   const phone = document.getElementById("transfer-phone").value
   const amount = Number.parseInt(document.getElementById("transfer-amount").value)
   const note = document.getElementById("transfer-note").value
@@ -1570,14 +1524,12 @@ async function processTransferWithPin(pin) {
   logToConsole(`Processing transfer to ${phone} for amount ${amount} with PIN.`, "info")
 
   try {
-    // Use the Supabase Edge Function for transfer
     const { data: transferResult, error: functionError } = await supabase.functions.invoke("process-transfer", {
       body: {
-        // from_user_id is implicit from the authenticated user calling the function
         to_phone: phone,
         amount: amount,
         note: note,
-        payment_pin: pin, // Send PIN to the function for verification
+        payment_pin: pin,
       },
     })
 
@@ -1591,9 +1543,8 @@ async function processTransferWithPin(pin) {
       throw new Error(transferResult.message || "ငွေလွှဲခြင်း မအောင်မြင်ပါ (function error)")
     }
 
-    // If function handles balance updates and transaction logging, client-side updates might only be for UI refresh
     logToConsole("Transfer successful via function:", "success", transferResult)
-    userBalance -= amount // Optimistically update, or rely on realtime update
+    userBalance -= amount
     document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
     document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
 
@@ -1607,16 +1558,14 @@ async function processTransferWithPin(pin) {
         successElement.style.display = "block"
       }
       if (transferResult.transaction) {
-        // If function returns transaction details
         showTransactionReceipt(transferResult.transaction)
       } else {
-        // Fallback if function doesn't return full transaction, create a mock one for receipt
         const mockTransaction = {
           id: transferResult.transaction_id || `TEMP-${Date.now()}`,
           from_phone: userProfileData.phone,
           from_name: userProfileData.name || userProfileData.phone,
           to_phone: phone,
-          to_name: document.getElementById("recipient-name").textContent || phone, // Get from UI if available
+          to_name: document.getElementById("recipient-name").textContent || phone,
           amount: amount,
           note: note,
           created_at: new Date().toISOString(),
@@ -1628,8 +1577,8 @@ async function processTransferWithPin(pin) {
       document.getElementById("transfer-note").value = ""
       const recipientInfoDiv = document.getElementById("recipient-info")
       if (recipientInfoDiv) recipientInfoDiv.style.display = "none"
-      loadTransactions() // Refresh transaction list
-    }, 1500) // Reduced delay as function should be faster
+      loadTransactions()
+    }, 1500)
   } catch (error) {
     console.error("Transfer processing error:", error)
     if (processingOverlay) processingOverlay.classList.remove("active")
@@ -1641,18 +1590,17 @@ async function processTransferWithPin(pin) {
   }
 }
 
-// Mask phone number
 function maskPhoneNumber(phone) {
   if (!phone || phone.length <= 4) return phone
-  return "••••" + phone.slice(-4) // Show last 4, mask more
+  return "••••" + phone.slice(-4)
 }
 
-// Show transaction receipt
 function showTransactionReceipt(transaction) {
   if (!userProfileData || !transaction) {
     console.warn("Cannot show receipt: missing userProfileData or transaction data.")
     return
   }
+  currentReceiptTransaction = transaction // Store for download function
   logToConsole("Showing transaction receipt for ID: " + transaction.id, "info")
   const userPhone = userProfileData.phone
   const isSender = transaction.from_phone === userPhone
@@ -1726,7 +1674,6 @@ function showTransactionReceipt(transaction) {
   if (receiptModal) receiptModal.classList.add("active")
 }
 
-// Download receipt as PNG
 function downloadReceipt() {
   logToConsole("Attempting to download receipt...", "info")
   const receiptElement = document.getElementById("printable-receipt")
@@ -1734,18 +1681,21 @@ function downloadReceipt() {
     console.warn("Printable receipt element not found.")
     return
   }
+  if (!currentReceiptTransaction || !currentReceiptTransaction.id) {
+    console.warn("No current transaction data available for naming receipt.")
+    alert("ပြေစာဒေတာ မတွေ့ရှိပါ၊ ဖိုင်အမည်ကို ယေဘုယျအမည်ဖြင့် သတ်မှတ်ပါမည်။")
+  }
 
   const images = receiptElement.getElementsByTagName("img")
   const promises = []
   for (let i = 0; i < images.length; i++) {
     if (!images[i].complete || images[i].naturalWidth === 0) {
-      // Check if image is loaded
       promises.push(
         new Promise((resolve, reject) => {
           images[i].onload = resolve
           images[i].onerror = () => {
             console.warn("Image failed to load for receipt:", images[i].src)
-            resolve() // Resolve anyway to not block download, placeholder might be used
+            resolve()
           }
         }),
       )
@@ -1756,14 +1706,12 @@ function downloadReceipt() {
     .then(() => {
       html2canvas(receiptElement, {
         useCORS: true,
-        backgroundColor: getComputedStyle(document.body).getPropertyValue("--bg-secondary").trim() || "#ffffff", // Use theme background
-        scale: 2, // Increase scale for better quality
-        logging: true, // Enable html2canvas logging
+        backgroundColor: getComputedStyle(document.body).getPropertyValue("--bg-secondary").trim() || "#ffffff",
+        scale: 2,
+        logging: true,
         onclone: (clonedDoc) => {
-          // Ensure styles are applied in cloned document
           const clonedReceipt = clonedDoc.getElementById("printable-receipt")
           if (clonedReceipt) {
-            // Re-apply some critical styles if needed, or ensure they are inherited
             clonedReceipt.style.fontFamily = getComputedStyle(receiptElement).fontFamily
             clonedReceipt.style.color = getComputedStyle(receiptElement).color
           }
@@ -1771,7 +1719,7 @@ function downloadReceipt() {
       })
         .then((canvas) => {
           const link = document.createElement("a")
-          link.download = `OPPER-Receipt-${transaction.id || Date.now()}.png`
+          link.download = `OPPER-Receipt-${currentReceiptTransaction?.id || Date.now()}.png`
           link.href = canvas.toDataURL("image/png")
           link.click()
           logToConsole("Receipt downloaded successfully.", "success")
@@ -1787,7 +1735,6 @@ function downloadReceipt() {
     })
 }
 
-// Generate user ID (simple version)
 function generateUserId(email) {
   const username = email
     .split("@")[0]
@@ -1799,7 +1746,6 @@ function generateUserId(email) {
   return `${username}${randomNum}`.toUpperCase()
 }
 
-// Show specific page
 function showPage(pageName) {
   console.log("Showing page:", pageName)
   const sidebarLinks = document.querySelectorAll(".sidebar-nav a")
@@ -1824,21 +1770,23 @@ function showPage(pageName) {
   }
 }
 
-// Logout function
 function logout() {
   logToConsole("Logging out...", "info")
   localStorage.removeItem("opperSession")
   currentUser = null
   userProfileData = null
-  // Clear any active Supabase subscriptions if necessary
   supabase.removeAllChannels()
   showAuthContainer()
-  // Optionally reset parts of the UI to default state
-  document.getElementById("login-form")?.reset()
-  document.getElementById("signup-form")?.reset()
+  const loginForm = document.getElementById("login-form")
+  if (loginForm && typeof loginForm.reset === "function") {
+    loginForm.reset()
+  }
+  const signupForm = document.getElementById("signup-form")
+  if (signupForm && typeof signupForm.reset === "function") {
+    signupForm.reset()
+  }
 }
 
-// Loader visibility functions
 function showLoader() {
   if (loader) loader.classList.add("active")
 }
@@ -1846,7 +1794,6 @@ function hideLoader() {
   if (loader) loader.classList.remove("active")
 }
 
-// Container visibility functions
 function showAuthContainer() {
   console.log("Showing Auth Container")
   if (authContainer) authContainer.classList.remove("hidden")
@@ -1858,7 +1805,6 @@ function showAppContainer() {
   if (appContainer) appContainer.classList.remove("hidden")
 }
 
-// Custom console logging function
 function logToConsole(message, type = "info", data = null) {
   const consoleOutput = document.getElementById("console-output")
   if (!consoleOutput) return
@@ -1878,9 +1824,8 @@ function logToConsole(message, type = "info", data = null) {
     }
   }
   consoleOutput.appendChild(line)
-  consoleOutput.scrollTop = consoleOutput.scrollHeight // Auto-scroll
+  consoleOutput.scrollTop = consoleOutput.scrollHeight
 
-  // Also log to browser console
   switch (type) {
     case "error":
       console.error(message, data || "")
