@@ -2,21 +2,16 @@
 const supabaseUrl = "https://vtsczzlnhsrgnbkfyizi.supabase.co"
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0c2N6emxuaHNyZ25ia2Z5aXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2ODYwODMsImV4cCI6MjA1ODI2MjA4M30.LjP2g0WXgg6FVTM5gPIkf_qlXakkj8Hf5xzXVsx7y68"
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, { fetch: (...args) => fetch(...args) })
 
 // Global Variables
 let currentUser = null
-let userProfileData = null // To store name, phone etc.
 let userBalance = 0
 let userKycStatus = "pending"
 let transfersEnabled = true
-let currentTheme =
-  localStorage.getItem("theme") ||
-  (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+let currentTheme = localStorage.getItem("theme") || "dark" // Default to dark
 let transactions = []
-let announcements = []
-let notifications = []
-let myQRCode = null
+let autoSaveReceipt = localStorage.getItem("autoSaveReceipt") === "true"
 
 // DOM Elements
 const loader = document.getElementById("loader")
@@ -25,169 +20,113 @@ const appContainer = document.getElementById("app-container")
 const pinEntryModal = document.getElementById("pin-entry-modal")
 const receiptModal = document.getElementById("receipt-modal")
 const processingOverlay = document.getElementById("processing-overlay")
-const consoleOutput = document.getElementById("console-output")
-const consoleContainer = document.getElementById("console-container")
-const toastNotification = document.getElementById("toast-notification")
+
+// Audio Elements
+const transferSentSound = document.getElementById("transfer-sent-sound")
+const transferReceivedSound = document.getElementById("transfer-received-sound")
+const clickSound = document.getElementById("click-sound")
+
+// Import html2canvas
+const html2canvas = window.html2canvas
 
 // Initialize App
 document.addEventListener("DOMContentLoaded", async () => {
+  // Apply saved theme
   document.body.setAttribute("data-theme", currentTheme)
-  showLoader()
-  initConsole() // Initialize custom console early
-  logToConsole("App initializing...")
 
+  // Show loader
+  showLoader()
+
+  // Check if user is logged in
   await checkSession()
+
+  // Initialize UI elements
   initializeUI()
 
-  if (currentUser) {
-    await loadInitialData()
-    showAppContainer()
-  } else {
-    showAuthContainer()
-  }
-
-  setTimeout(hideLoader, 1500)
-  logToConsole("App initialized.")
-  document.getElementById("current-year").textContent = new Date().getFullYear()
+  // Hide loader after initialization
+  setTimeout(hideLoader, 1500) // Keep intro for a bit
 })
 
-// Custom Console Logging
-function initConsole() {
-  const consoleToggleBtn = document.getElementById("console-toggle-btn")
-  if (consoleToggleBtn) {
-    consoleToggleBtn.addEventListener("click", () => {
-      consoleContainer.classList.toggle("active")
-    })
+// Play click sound
+function playClickSound() {
+  if (clickSound) {
+    clickSound.currentTime = 0 // Rewind to start
+    clickSound.play().catch((error) => console.warn("Click sound play failed:", error))
   }
 }
 
-function logToConsole(message, type = "info") {
-  if (!consoleOutput) return
-  const line = document.createElement("div")
-  line.classList.add("console-line", `console-${type}`)
-  line.textContent = typeof message === "object" ? JSON.stringify(message, null, 2) : message
-  consoleOutput.appendChild(line)
-  consoleOutput.scrollTop = consoleOutput.scrollHeight
-}
-
-// Toast Notification
-function showToast(message, type = "info", duration = 3000) {
-  toastNotification.textContent = message
-  toastNotification.className = "toast" // Reset classes
-  toastNotification.classList.add(`toast-${type}`, "show")
-  setTimeout(() => {
-    toastNotification.classList.remove("show")
-  }, duration)
-}
-
+// Check if user is logged in
 async function checkSession() {
-  logToConsole("Checking session...")
   try {
     const session = localStorage.getItem("opperSession")
+
     if (session) {
       const sessionData = JSON.parse(session)
-      logToConsole(`Found session for user_id: ${sessionData.user_id}`)
-
       const { data: user, error } = await supabase
         .from("auth_users")
         .select("*")
+        .eq("email", sessionData.email)
         .eq("user_id", sessionData.user_id)
         .single()
 
       if (error || !user) {
-        logToConsole("Session invalid or user not found in auth_users.", "error")
         localStorage.removeItem("opperSession")
-        currentUser = null
+        showAuthContainer()
         return
       }
+
       currentUser = user
-      logToConsole(`Session valid for user: ${currentUser.email}`)
+      await loadUserData()
+      showAppContainer()
     } else {
-      logToConsole("No active session found.")
-      currentUser = null
+      showAuthContainer()
     }
   } catch (error) {
-    logToConsole(`Session check error: ${error.message}`, "error")
-    currentUser = null
+    console.error("Session check error:", error)
+    showAuthContainer()
   }
 }
 
-async function loadInitialData() {
-  if (!currentUser) return
-  logToConsole("Loading initial data for user...")
-  showProcessingOverlay("အချက်အလက်များရယူနေသည်...")
-  try {
-    await Promise.all([loadUserData(), loadTransactions(), loadAnnouncements(), loadNotifications()])
-    updateUserUI()
-    setupRealtimeSubscriptions()
-    generateUserQRCode()
-    logToConsole("Initial data loaded successfully.")
-  } catch (error) {
-    logToConsole(`Error loading initial data: ${error.message}`, "error")
-    showToast("အချက်အလက်များ ရယူရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။", "error")
-    logout() // Logout if initial data fails to load
-  } finally {
-    hideProcessingOverlay()
-  }
-}
-
+// Load user data
 async function loadUserData() {
-  if (!currentUser) return
-  logToConsole(`Fetching user profile for ${currentUser.user_id}`)
-  const { data, error } = await supabase.from("users").select("*").eq("user_id", currentUser.user_id).single()
+  try {
+    if (!currentUser) return
 
-  if (error) {
-    logToConsole(`Error fetching user profile: ${error.message}`, "error")
-    if (error.code === "PGRST116") {
-      // "PGRST116: Single row not found"
-      logToConsole("User profile not found. Creating one.")
-      const { data: newProfile, error: createError } = await supabase
-        .from("users")
-        .insert([
-          {
-            user_id: currentUser.user_id,
-            name: currentUser.email.split("@")[0],
-            balance: 0,
-            passport_status: "pending",
-          },
-        ])
-        .select()
-        .single()
-      if (createError) {
-        logToConsole(`Error creating user profile: ${createError.message}`, "error")
-        throw createError
-      }
-      userProfileData = newProfile
-    } else {
-      throw error
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", currentUser.user_id)
+      .single()
+
+    if (userError) throw userError
+
+    userBalance = userData.balance || 0
+    userKycStatus = userData.passport_status || "pending"
+
+    updateUserUI(userData)
+
+    const { data: settings, error: settingsError } = await supabase
+      .from("settings")
+      .select("allow_transfers")
+      .eq("id", 1)
+      .single()
+
+    if (!settingsError && settings) {
+      transfersEnabled = settings.allow_transfers
+      updateTransferStatus()
     }
-  } else {
-    userProfileData = data
-  }
 
-  userBalance = userProfileData.balance || 0
-  userKycStatus = userProfileData.passport_status || "pending"
-
-  const { data: settings, error: settingsError } = await supabase
-    .from("settings")
-    .select("allow_transfers")
-    .eq("id", 1)
-    .single()
-  if (!settingsError && settings) {
-    transfersEnabled = settings.allow_transfers
+    setupRealtimeSubscriptions()
+    loadTransactions()
+  } catch (error) {
+    console.error("Load user data error:", error)
   }
-  logToConsole("User data and settings loaded.", userProfileData)
 }
 
-function updateUserUI() {
-  if (!currentUser || !userProfileData) {
-    logToConsole("Cannot update UI: currentUser or userProfileData is missing.", "warning")
-    return
-  }
-  logToConsole("Updating UI with user data.")
-
-  const userName = userProfileData.name || currentUser.email.split("@")[0]
-  const userInitial = userName.charAt(0).toUpperCase()
+// Update UI with user data
+function updateUserUI(userData) {
+  const userInitial = currentUser.email.charAt(0).toUpperCase()
+  const userName = currentUser.email.split("@")[0]
 
   document.getElementById("user-initial").textContent = userInitial
   document.getElementById("user-initial-sidebar").textContent = userInitial
@@ -200,1241 +139,1428 @@ function updateUserUI() {
   document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
   document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
 
-  updateKycStatusDisplay()
-  updateTransferStatusDisplay()
+  updateKycStatus()
 
-  document.getElementById("settings-name").value = userName
-  document.getElementById("settings-phone").value = userProfileData.phone || ""
+  document.getElementById("settings-phone").value = userData.phone || ""
   document.getElementById("settings-email").value = currentUser.email || ""
 
-  const qrUserPhoneEl = document.getElementById("qr-user-phone")
-  if (qrUserPhoneEl) {
-    qrUserPhoneEl.textContent = userProfileData.phone ? `ဖုန်း: ${userProfileData.phone}` : "ဖုန်းနံပါတ်မရှိသေးပါ"
+  // Update auto-save receipt toggle
+  const autoSaveToggle = document.getElementById("auto-save-receipt")
+  if (autoSaveToggle) {
+    autoSaveToggle.checked = autoSaveReceipt
   }
 }
 
-function updateKycStatusDisplay() {
-  const kycStatusEl = document.getElementById("kyc-status-display")
-  const kycStatusTextEl = document.getElementById("kyc-status-text")
-  const kycPageStatusCard = document.getElementById("kyc-status-card")
-  const kycPageStatusMessage = document.getElementById("kyc-status-message")
-  const kycPageStatusIcon = kycPageStatusCard ? kycPageStatusCard.querySelector(".kyc-status-icon") : null
+// Update KYC status in UI
+function updateKycStatus() {
+  const kycStatusElement = document.getElementById("kyc-status")
+  const kycStatusCard = document.getElementById("kyc-status-card")
   const kycForm = document.getElementById("kyc-form")
+  const kycStatusMessage = document.getElementById("kyc-status-message")
+  const kycStatusIcon = document.querySelector("#kyc-status-card .kyc-status-icon")
 
-  let statusText = "KYC: စောင့်ဆိုင်းဆဲ"
-  let statusClass = "pending"
-  let iconClass = "fa-clock"
-  let showForm = true
+  if (!kycStatusElement || !kycStatusCard || !kycStatusMessage || !kycStatusIcon) return
+
+  kycStatusIcon.classList.remove("pending", "approved", "rejected")
 
   if (userKycStatus === "approved") {
-    statusText = "KYC: အတည်ပြုပြီး"
-    statusClass = "approved"
-    iconClass = "fa-check-circle"
-    showForm = false
+    kycStatusElement.textContent = "KYC: အတည်ပြုပြီး"
+    kycStatusMessage.textContent = "သင့် KYC အတည်ပြုပြီးဖြစ်ပါသည်။"
+    kycStatusIcon.classList.add("approved")
+    kycStatusIcon.innerHTML = '<i class="fas fa-check-circle"></i><div class="status-pulse"></div>'
+    if (kycForm) kycForm.style.display = "none"
   } else if (userKycStatus === "rejected") {
-    statusText = "KYC: ငြင်းပယ်ခံရသည်"
-    statusClass = "rejected"
-    iconClass = "fa-times-circle"
-  }
+    kycStatusElement.textContent = "KYC: ငြင်းပယ်ခံရသည်"
+    kycStatusMessage.textContent = "သင့် KYC ငြင်းပယ်ခံရပါသည်။ ပြန်လည်တင်သွင်းပါ။"
+    kycStatusIcon.classList.add("rejected")
+    kycStatusIcon.innerHTML = '<i class="fas fa-times-circle"></i><div class="status-pulse"></div>'
+    if (kycForm) kycForm.style.display = "block"
+  } else {
+    // 'pending' or any other status
+    kycStatusElement.textContent = "KYC: စောင့်ဆိုင်းဆဲ"
+    kycStatusMessage.textContent = "သင့် KYC စိစစ်နေဆဲဖြစ်ပါသည်။"
+    kycStatusIcon.classList.add("pending")
+    kycStatusIcon.innerHTML = '<i class="fas fa-clock"></i><div class="status-pulse"></div>'
 
-  if (kycStatusTextEl) kycStatusTextEl.textContent = statusText
-  if (kycStatusEl) kycStatusEl.className = `status-item ${statusClass}`
-
-  if (kycPageStatusMessage) kycPageStatusMessage.textContent = statusText.replace("KYC: ", "")
-  if (kycPageStatusIcon) {
-    kycPageStatusIcon.className = `kyc-status-icon ${statusClass}`
-    kycPageStatusIcon.innerHTML = `<i class="fas ${iconClass}"></i><div class="status-pulse"></div>`
-  }
-  if (kycForm) {
-    kycForm.style.display = showForm ? "block" : "none"
-    if (!showForm && userProfileData.passport_number) {
-      document.getElementById("kyc-passport").value = userProfileData.passport_number
-      document.getElementById("kyc-address").value = userProfileData.address
+    if (currentUser && kycForm) {
+      supabase
+        .from("users")
+        .select("passport_number, passport_image")
+        .eq("user_id", currentUser.user_id)
+        .single()
+        .then(({ data, error }) => {
+          if (error && error.code !== "PGRST116") {
+            // PGRST116 means no rows found, which is fine here
+            console.error("Error fetching KYC submission status:", error)
+            return
+          }
+          if (data && data.passport_number && data.passport_image) {
+            kycForm.style.display = "none"
+          } else {
+            kycForm.style.display = "block"
+          }
+        })
     }
   }
 }
 
-function updateTransferStatusDisplay() {
-  const transferStatusEl = document.getElementById("transfer-status-display")
-  const transferStatusTextEl = document.getElementById("transfer-status-text")
-  if (!transferStatusEl || !transferStatusTextEl) return
+// Update transfer status in UI
+function updateTransferStatus() {
+  const transferStatusElement = document.getElementById("transfer-status")
+  if (!transferStatusElement || !transferStatusElement.parentElement) return
 
   if (transfersEnabled) {
-    transferStatusTextEl.textContent = "ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်"
-    transferStatusEl.className = "status-item enabled"
+    transferStatusElement.textContent = "ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်"
+    transferStatusElement.parentElement.classList.remove("disabled")
+    transferStatusElement.parentElement.classList.add("enabled")
   } else {
-    transferStatusTextEl.textContent = "ငွေလွှဲခြင်း: ပိတ်ထားသည်"
-    transferStatusEl.className = "status-item disabled"
+    transferStatusElement.textContent = "ငွေလွှဲခြင်း: ပိတ်ထားသည်"
+    transferStatusElement.parentElement.classList.remove("enabled")
+    transferStatusElement.parentElement.classList.add("disabled")
   }
 }
 
+// Set up realtime subscriptions
 function setupRealtimeSubscriptions() {
-  logToConsole("Setting up realtime subscriptions...")
-  supabase
-    .channel("public-changes")
+  if (!currentUser || !currentUser.user_id) return
+
+  const userChannel = supabase
+    .channel(`user-updates-${currentUser.user_id}`)
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "users", filter: `user_id=eq.${currentUser.user_id}` },
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "users",
+        filter: `user_id=eq.${currentUser.user_id}`,
+      },
       (payload) => {
-        logToConsole("Realtime user update received:", payload.new)
-        userProfileData = payload.new
-        userBalance = payload.new.balance
-        userKycStatus = payload.new.passport_status
-        updateUserUI()
+        if (payload.new.balance !== userBalance) {
+          const isCredit = payload.new.balance > userBalance
+          const amountChanged = Math.abs(payload.new.balance - userBalance)
+          userBalance = payload.new.balance
+          document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
+          document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
+          if (isCredit && amountChanged > 0) {
+            if (transferReceivedSound)
+              transferReceivedSound.play().catch((e) => console.warn("Received sound failed", e))
+            speakAmountReceived(amountChanged)
+          }
+        }
+
+        if (payload.new.passport_status !== userKycStatus) {
+          userKycStatus = payload.new.passport_status
+          updateKycStatus()
+        }
       },
     )
-    .on("postgres_changes", { event: "*", schema: "public", table: "settings", filter: `id=eq.1` }, (payload) => {
-      logToConsole("Realtime settings update received:", payload.new)
-      transfersEnabled = payload.new.allow_transfers
-      updateTransferStatusDisplay()
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        console.log(`Subscribed to user updates for ${currentUser.user_id}`)
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        console.error(`Subscription error for user updates: ${status}`)
+      }
     })
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "transactions" }, (payload) => {
-      if (payload.new.from_phone === userProfileData.phone || payload.new.to_phone === userProfileData.phone) {
-        logToConsole("Realtime transaction update received:", payload.new)
-        loadTransactions()
-        const message =
-          payload.new.to_phone === userProfileData.phone
-            ? `${payload.new.from_name || payload.new.from_phone} ဆီမှ ${payload.new.amount} Ks လက်ခံရရှိသည်`
-            : `${payload.new.to_name || payload.new.to_phone} သို့ ${payload.new.amount} Ks ပေးပို့ပြီးပါပြီ`
-        showToast(message, "info")
-        addNotification(message, "transaction")
 
-        if (payload.new.to_phone === userProfileData.phone) {
-          speak(`ငွေ ${payload.new.amount} ကျပ် လက်ခံရရှိပါသည်။`)
+  const settingsChannel = supabase
+    .channel("settings-updates")
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "settings",
+      },
+      (payload) => {
+        if (payload.new.allow_transfers !== transfersEnabled) {
+          transfersEnabled = payload.new.allow_transfers
+          updateTransferStatus()
         }
+      },
+    )
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        console.log(`Subscribed to settings updates`)
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        console.error(`Subscription error for settings updates: ${status}`)
       }
     })
-    .on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, (payload) => {
-      logToConsole("Realtime announcement update received:", payload)
-      loadAnnouncements()
-      if (payload.eventType === "INSERT") {
-        showToast("ကြေညာချက်အသစ်တစ်ခုရှိပါသည်!", "info")
-        addNotification(`ကြေညာချက်အသစ်: ${payload.new.title}`, "announcement", payload.new.id)
+
+  const transactionsChannel = supabase
+    .channel(`transactions-updates-${currentUser.user_id}`) // Make channel name unique per user
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "transactions",
+        // Filter on server-side if possible, or client-side as below
+      },
+      (payload) => {
+        // Client-side check if the transaction involves the current user
+        if (
+          currentUser &&
+          currentUser.phone && // Ensure currentUser.phone is available
+          (payload.new.from_phone === currentUser.phone || payload.new.to_phone === currentUser.phone)
+        ) {
+          loadTransactions()
+        }
+      },
+    )
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        console.log(`Subscribed to transactions updates for ${currentUser.user_id}`)
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        console.error(`Subscription error for transactions updates: ${status}`)
       }
     })
-    .subscribe()
 }
 
-async function loadTransactions() {
-  if (!currentUser || !userProfileData || !userProfileData.phone) return
-  logToConsole("Loading transactions...")
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("*")
-    .or(`from_phone.eq.${userProfileData.phone},to_phone.eq.${userProfileData.phone}`)
-    .order("created_at", { ascending: false })
-    .limit(50)
-
-  if (error) {
-    logToConsole(`Error loading transactions: ${error.message}`, "error")
-    return
+// AI Voice for Received Amount
+function speakAmountReceived(amount) {
+  if ("speechSynthesis" in window) {
+    const utterance = new SpeechSynthesisUtterance(`Kyats ${amount.toLocaleString()} received.`)
+    // utterance.lang = 'my-MM'; // Try to set Burmese language if supported
+    // speechSynthesis.getVoices().forEach(voice => { // Optional: find a Burmese voice
+    //   if (voice.lang === 'my-MM') utterance.voice = voice;
+    // });
+    speechSynthesis.speak(utterance)
+  } else {
+    console.warn("Speech synthesis not supported in this browser.")
   }
-  transactions = data || []
-  updateTransactionsUI()
-  logToConsole(`${transactions.length} transactions loaded.`)
 }
 
-function updateTransactionsUI() {
-  const recentList = document.getElementById("recent-transactions-list")
-  const historyList = document.getElementById("history-transactions-list")
-  const typeFilter = document.getElementById("history-type").value
-  const dateFilter = document.getElementById("history-date").value
+// Load transactions
+async function loadTransactions() {
+  try {
+    if (!currentUser || !currentUser.user_id) return
 
-  const renderList = (listElement, items) => {
-    if (!listElement) return
-    listElement.innerHTML = ""
-    if (items.length === 0) {
-      listElement.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p></div>`
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("phone")
+      .eq("user_id", currentUser.user_id)
+      .single()
+
+    if (userError || !userData || !userData.phone) {
+      if (userError) console.error("Error fetching user phone for transactions:", userError)
+      else console.warn("User phone not available for loading transactions.")
       return
     }
-    items.forEach((tx) => {
-      const isSender = tx.from_phone === userProfileData.phone
-      const otherParty = isSender ? tx.to_name || tx.to_phone : tx.from_name || tx.from_phone
-      const txDate = new Date(tx.created_at)
+    currentUser.phone = userData.phone // Store phone on currentUser for realtime filter
 
-      const itemHTML = `
-                <div class="transaction-item ${isSender ? "sent" : "received"}">
-                    <div class="transaction-icon">
-                        <i class="fas ${isSender ? "fa-arrow-up" : "fa-arrow-down"}"></i>
-                    </div>
-                    <div class="transaction-details">
-                        <div class="transaction-title">
-                            ${isSender ? "ပို့ထားသော" : "လက်ခံရရှိသော"} - ${otherParty}
-                        </div>
-                        <div class="transaction-subtitle">
-                            ${tx.note || "မှတ်ချက်မရှိပါ"}
-                        </div>
-                        <div class="transaction-date">${txDate.toLocaleString("my-MM", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
-                    </div>
-                    <div class="transaction-actions">
-                        <div class="transaction-amount ${isSender ? "negative" : "positive"}">
-                            ${isSender ? "-" : "+"} ${tx.amount.toLocaleString()} Ks
-                        </div>
-                        <button class="transaction-view-btn" data-transaction-id="${tx.id}" aria-label="View Receipt">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>`
-      listElement.innerHTML += itemHTML
-    })
+    const userPhone = userData.phone
 
-    listElement.querySelectorAll(".transaction-view-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const txId = e.currentTarget.dataset.transactionId
-        const transaction = transactions.find((t) => t.id === txId)
-        if (transaction) showTransactionReceipt(transaction)
-      })
-    })
+    const { data: transactionsData, error } = await supabase
+      .from("transactions")
+      .select("*")
+      .or(`from_phone.eq.${userPhone},to_phone.eq.${userPhone}`)
+      .order("created_at", { ascending: false })
+      .limit(10)
+
+    if (error) throw error
+
+    transactions = transactionsData || []
+    updateTransactionsUI(transactions, userPhone)
+  } catch (error) {
+    console.error("Load transactions error:", error)
   }
-
-  renderList(recentList, transactions.slice(0, 5))
-
-  const filteredTransactions = transactions.filter((tx) => {
-    const isSender = tx.from_phone === userProfileData.phone
-    if (typeFilter === "sent" && !isSender) return false
-    if (typeFilter === "received" && isSender) return false
-
-    const txDate = new Date(tx.created_at)
-    const today = new Date()
-    if (dateFilter === "today" && txDate.toDateString() !== today.toDateString()) return false
-    if (dateFilter === "week") {
-      const oneWeekAgo = new Date()
-      oneWeekAgo.setDate(today.getDate() - 7)
-      if (txDate < oneWeekAgo) return false
-    }
-    if (
-      dateFilter === "month" &&
-      (txDate.getMonth() !== today.getMonth() || txDate.getFullYear() !== today.getFullYear())
-    )
-      return false
-
-    return true
-  })
-  renderList(historyList, filteredTransactions)
 }
 
-async function loadAnnouncements() {
-  logToConsole("Loading announcements...")
-  const { data, error } = await supabase.from("announcements").select("*").order("created_at", { ascending: false })
+// Update transactions UI
+function updateTransactionsUI(transactionsData, userPhone) {
+  const recentTransactionsList = document.getElementById("recent-transactions-list")
+  const historyTransactionsList = document.getElementById("history-transactions-list")
 
-  if (error) {
-    logToConsole(`Error loading announcements: ${error.message}`, "error")
-    return
-  }
-  announcements = data || []
-  displayAnnouncements(announcements.slice(0, 3), "dashboard-announcements-list")
-  displayAnnouncements(announcements, "full-announcements-list")
-  logToConsole(`${announcements.length} announcements loaded.`)
-}
+  if (!recentTransactionsList || !historyTransactionsList) return
 
-function displayAnnouncements(itemsToDisplay, containerId) {
-  const container = document.getElementById(containerId)
-  if (!container) return
+  recentTransactionsList.innerHTML = ""
+  historyTransactionsList.innerHTML = ""
 
-  container.innerHTML = ""
-  if (itemsToDisplay.length === 0) {
-    container.innerHTML = `<div class="empty-state"><i class="fas fa-bullhorn"></i><p>ကြေညာချက်များမရှိသေးပါ</p></div>`
-    return
-  }
-
-  itemsToDisplay.forEach((ann) => {
-    const item = document.createElement("div")
-    item.classList.add("announcement-item")
-    item.innerHTML = `
-            <h4>${ann.title}</h4>
-            ${ann.image_url ? `<div class="announcement-image-container"><img src="${ann.image_url}" alt="${ann.title}"></div>` : ""}
-            <div class="announcement-content"><p>${ann.content.replace(/\n/g, "<br>")}</p></div>
-            <div class="announcement-footer">
-                <div class="announcement-actions">
-                    <button class="like-btn" data-id="${ann.id}" aria-label="Like">
-                        <i class="far fa-thumbs-up"></i> <span class="likes-count">${ann.likes || 0}</span>
-                    </button>
-                    <button class="comment-btn" data-id="${ann.id}" aria-label="Comment">
-                        <i class="far fa-comment"></i> <span class="comments-count">${ann.comments_count || 0}</span>
-                    </button>
-                </div>
-                <span class="timestamp">${new Date(ann.created_at).toLocaleDateString("my-MM")}</span>
+  if (!transactionsData || transactionsData.length === 0) {
+    const emptyState = `
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
             </div>
-            <div class="announcement-comments-section hidden" id="comments-for-${ann.id}">
-                <h5>မှတ်ချက်များ</h5>
-                <div class="comments-list"></div>
-                <div class="comment-input">
-                    <input type="text" placeholder="မှတ်ချက်ရေးပါ..." class="comment-text-input">
-                    <button class="btn btn-sm btn-primary submit-comment-btn">ပို့စ်တင်ရန်</button>
+        `
+    recentTransactionsList.innerHTML = emptyState
+    historyTransactionsList.innerHTML = emptyState
+    return
+  }
+
+  transactionsData.forEach((transaction, index) => {
+    const isSender = transaction.from_phone === userPhone
+    const otherParty = isSender ? transaction.to_phone : transaction.from_phone
+    const transactionDate = new Date(transaction.created_at).toLocaleString("my-MM", {
+      // Burmese locale
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+
+    const transactionItem = `
+            <div class="transaction-item ${isSender ? "sent" : "received"} clickable">
+                <div class="transaction-icon">
+                    <i class="fas ${isSender ? "fa-paper-plane" : "fa-check-circle"}"></i>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-title">
+                        ${isSender ? "ပို့ထားသော" : "လက်ခံရရှိသော"}
+                    </div>
+                    <div class="transaction-subtitle">
+                        ${otherParty} ${transaction.note ? `- ${transaction.note}` : ""}
+                    </div>
+                    <div class="transaction-date">${transactionDate}</div>
+                </div>
+                <div class="transaction-actions">
+                    <div class="transaction-amount ${isSender ? "negative" : "positive"}">
+                        ${isSender ? "-" : "+"} ${transaction.amount.toLocaleString()} Ks
+                    </div>
+                    <button class="transaction-view-btn clickable" data-transaction-index="${index}">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
             </div>
         `
-    container.appendChild(item)
+
+    if (index < 5) {
+      recentTransactionsList.innerHTML += transactionItem
+    }
+    historyTransactionsList.innerHTML += transactionItem
   })
 
-  container.querySelectorAll(".like-btn").forEach((btn) => {
-    btn.addEventListener("click", () => handleLike(btn.dataset.id, btn))
-  })
-  container.querySelectorAll(".comment-btn").forEach((btn) => {
-    btn.addEventListener("click", () => toggleCommentsSection(btn.dataset.id))
-  })
-  container.querySelectorAll(".submit-comment-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const announcementId = e.target.closest(".announcement-item").querySelector(".like-btn").dataset.id
-      const commentInput = e.target.previousElementSibling
-      handleComment(announcementId, commentInput.value, commentInput)
+  document.querySelectorAll(".transaction-view-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation()
+      playClickSound()
+      const transactionIndex = button.getAttribute("data-transaction-index")
+      showTransactionReceipt(transactionsData[transactionIndex])
     })
   })
-}
-
-async function handleLike(announcementId, buttonElement) {
-  if (!currentUser) {
-    showToast("Like လုပ်ရန် အကောင့်ဝင်ပါ။", "warning")
-    return
-  }
-  const { data, error } = await supabase.rpc("increment_like", { ann_id: Number.parseInt(announcementId) })
-
-  if (error) {
-    logToConsole(`Error liking announcement: ${error.message}`, "error")
-    showToast("Like လုပ်ရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။", "error")
-  } else {
-    const likesCountEl = buttonElement.querySelector(".likes-count")
-    likesCountEl.textContent = Number.parseInt(likesCountEl.textContent) + 1
-    buttonElement.classList.add("liked")
-    buttonElement.querySelector("i").classList.replace("far", "fas")
-  }
-}
-
-function toggleCommentsSection(announcementId) {
-  const commentsSection = document.getElementById(`comments-for-${announcementId}`)
-  if (commentsSection) {
-    commentsSection.classList.toggle("hidden")
-    if (!commentsSection.classList.contains("hidden")) {
-      loadComments(announcementId)
-    }
-  }
-}
-
-async function loadComments(announcementId) {
-  const commentsListEl = document.querySelector(`#comments-for-${announcementId} .comments-list`)
-  if (!commentsListEl) return
-
-  const { data: comments, error } = await supabase
-    .from("announcement_comments")
-    .select("*, users(name)")
-    .eq("announcement_id", announcementId)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    logToConsole(`Error loading comments: ${error.message}`, "error")
-    commentsListEl.innerHTML = "<p>မှတ်ချက်များ ရယူ၍မရပါ</p>"
-    return
-  }
-
-  if (comments.length === 0) {
-    commentsListEl.innerHTML = "<p>မှတ်ချက်များမရှိသေးပါ</p>"
-  } else {
-    commentsListEl.innerHTML = comments
-      .map(
-        (comment) => `
-            <div class="comment-item">
-                <strong>${comment.users ? comment.users.name : "အမည်မသိ"}:</strong> ${comment.comment_text}
-            </div>
-        `,
-      )
-      .join("")
-  }
-}
-
-async function handleComment(announcementId, commentText, inputElement) {
-  if (!currentUser) {
-    showToast("မှတ်ချက်ရေးရန် အကောင့်ဝင်ပါ။", "warning")
-    return
-  }
-  if (!commentText.trim()) {
-    showToast("မှတ်ချက်အလွတ်မဖြစ်ရပါ။", "warning")
-    return
-  }
-
-  const { data, error } = await supabase
-    .from("announcement_comments")
-    .insert([{ announcement_id: announcementId, user_id: currentUser.user_id, comment_text: commentText }])
-    .select()
-
-  if (error) {
-    logToConsole(`Error posting comment: ${error.message}`, "error")
-    showToast("မှတ်ချက်ရေးရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။", "error")
-  } else {
-    showToast("မှတ်ချက်ရေးသားပြီးပါပြီ။", "success")
-    if (inputElement) inputElement.value = ""
-    loadComments(announcementId)
-    const commentBtn = document.querySelector(`.comment-btn[data-id="${announcementId}"] .comments-count`)
-    if (commentBtn) commentBtn.textContent = Number.parseInt(commentBtn.textContent) + 1
-  }
-}
-
-async function loadNotifications() {
-  if (!currentUser) return
-  logToConsole("Loading notifications...")
-  const { data, error } = await supabase
-    .from("notifications")
-    .select("*")
-    .eq("user_id", currentUser.user_id)
-    .order("created_at", { ascending: false })
-    .limit(20)
-
-  if (error) {
-    logToConsole(`Error fetching notifications: ${error.message}`, "error")
-  } else {
-    notifications = data.map((n) => ({ ...n, unread: !n.is_read }))
-  }
-
-  updateNotificationUI()
-}
-
-async function addNotification(content, type, related_id = null) {
-  if (!currentUser) return
-  const newNotification = {
-    user_id: currentUser.user_id,
-    content: content,
-    type: type,
-    related_id: related_id,
-    is_read: false,
-  }
-
-  const { error } = await supabase.from("notifications").insert(newNotification)
-  if (error) {
-    logToConsole(`Error adding notification: ${error.message}`, "error")
-  } else {
-    logToConsole("Notification added to DB")
-    loadNotifications() // Reload to get the new notification
-  }
-}
-
-function updateNotificationUI() {
-  const listEl = document.getElementById("notification-list-items")
-  const badgeEl = document.getElementById("notification-badge")
-  if (!listEl || !badgeEl) return
-
-  const unreadCount = notifications.filter((n) => n.unread).length
-  badgeEl.textContent = unreadCount > 9 ? "9+" : unreadCount.toString()
-  badgeEl.style.display = unreadCount > 0 ? "flex" : "none"
-
-  if (notifications.length === 0) {
-    listEl.innerHTML = `<div class="notification-empty-state"><i class="fas fa-bell-slash"></i><p>အသိပေးချက်များ မရှိသေးပါ</p></div>`
-    return
-  }
-
-  listEl.innerHTML = notifications
-    .map(
-      (n) => `
-        <div class="notification-item ${n.unread ? "unread" : ""}" data-id="${n.id}">
-            <div class="notification-item-content">${n.content}</div>
-            <div class="notification-item-timestamp">${new Date(n.created_at).toLocaleString("my-MM", { dateStyle: "short", timeStyle: "short" })}</div>
-        </div>
-    `,
-    )
-    .join("")
-
-  listEl.querySelectorAll(".notification-item").forEach((item) => {
-    item.addEventListener("click", () => handleNotificationClick(item.dataset.id))
-  })
-}
-
-async function handleNotificationClick(notificationId) {
-  const notification = notifications.find((n) => n.id.toString() === notificationId.toString())
-  if (notification && notification.unread) {
-    notification.unread = false
-    await supabase.from("notifications").update({ is_read: true }).eq("id", notification.id)
-    updateNotificationUI()
-  }
-  if (notification.type === "announcement" && notification.related_id) {
-    showPage("announcements")
-    const announcementEl = document.querySelector(`.announcement-item .like-btn[data-id="${notification.related_id}"]`)
-    if (announcementEl) announcementEl.closest(".announcement-item").scrollIntoView({ behavior: "smooth" })
-  }
-  document.getElementById("notification-dropdown").classList.remove("active")
-}
-
-async function markAllNotificationsRead() {
-  if (!currentUser) return
-  await supabase.from("notifications").update({ is_read: true }).eq("user_id", currentUser.user_id).eq("is_read", false)
-  notifications.forEach((n) => (n.unread = false))
-  updateNotificationUI()
-}
-
-function speak(text) {
-  if ("speechSynthesis" in window) {
-    logToConsole(`Attempting to speak: "${text}"`)
-    const utterance = new SpeechSynthesisUtterance(text)
-    speechSynthesis.speak(utterance)
-  } else {
-    logToConsole("Speech synthesis not supported in this browser.", "warning")
-  }
-}
-
-async function checkRecipientAccount() {
-  const phoneInput = document.getElementById("transfer-phone")
-  const messageEl = document.getElementById("recipient-check-message")
-  const phone = phoneInput.value.trim()
-
-  if (phone.length < 7) {
-    messageEl.textContent = ""
-    messageEl.className = "recipient-status-message"
-    return
-  }
-
-  messageEl.textContent = "အကောင့်စစ်ဆေးနေသည်..."
-  messageEl.className = "recipient-status-message checking"
-
-  try {
-    const { data, error } = await supabase.from("users").select("name, user_id").eq("phone", phone).single()
-
-    if (error && error.code !== "PGRST116") throw error
-
-    if (data) {
-      if (data.user_id === currentUser.user_id) {
-        messageEl.textContent = "ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။"
-        messageEl.className = "recipient-status-message not-found"
-      } else {
-        messageEl.textContent = `အကောင့်တွေ့ရှိသည်: ${data.name || data.user_id}`
-        messageEl.className = "recipient-status-message found"
+  document.querySelectorAll(".transaction-item").forEach((item) => {
+    item.addEventListener("click", function () {
+      playClickSound()
+      const viewBtn = this.querySelector(".transaction-view-btn")
+      if (viewBtn) {
+        viewBtn.click()
       }
-    } else {
-      messageEl.textContent = "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်မရှိပါ။"
-      messageEl.className = "recipient-status-message not-found"
-    }
-  } catch (err) {
-    logToConsole(`Error checking recipient account: ${err.message}`, "error")
-    messageEl.textContent = "အကောင့်စစ်ဆေးရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။"
-    messageEl.className = "recipient-status-message not-found"
-  }
+    })
+  })
 }
 
-function generateUserQRCode() {
-  if (!currentUser || !userProfileData || !userProfileData.phone) {
-    logToConsole("Cannot generate QR code: User data or phone missing.", "warning")
-    return
-  }
-  const qrData = `OPPERPAYMENT://USER?phone=${userProfileData.phone}&id=${currentUser.user_id}`
-  const qrDisplay = document.getElementById("my-qr-code-display")
-
-  if (qrDisplay) {
-    qrDisplay.innerHTML = ""
-  } else {
-    return
-  }
-
-  qrDisplay.innerHTML =
-    '<img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="qr-logo-overlay">'
-
-  try {
-    myQRCode = new QRCode(qrDisplay, {
-      text: qrData,
-      width: 246,
-      height: 246,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H,
-    })
-    logToConsole("User QR code generated.")
-  } catch (e) {
-    logToConsole(`Error generating QR code: ${e.message}`, "error")
-  }
-}
-
-function saveQRCode() {
-  const qrDisplay = document.getElementById("my-qr-code-display")
-  if (!qrDisplay) return
-
-  html2canvas(qrDisplay, { backgroundColor: null, scale: 3 })
-    .then((canvas) => {
-      const link = document.createElement("a")
-      link.download = `opper-payment-qr-${currentUser.user_id}.png`
-      link.href = canvas.toDataURL("image/png")
-      link.click()
-      logToConsole("QR code download initiated.")
-      showToast("QR Code ကို ဒေါင်းလုဒ်လုပ်ပြီးပါပြီ။", "success")
-    })
-    .catch((err) => {
-      logToConsole(`Error saving QR code: ${err.message}`, "error")
-      showToast("QR Code သိမ်းဆည်းရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။", "error")
-    })
-}
-
-// Initialize UI elements (event listeners, etc.)
+// Initialize UI elements
 function initializeUI() {
-  logToConsole("Initializing UI elements...")
   const authTabs = document.querySelectorAll(".auth-tab")
   const authForms = document.querySelectorAll(".auth-form")
-  const tabIndicator = document.querySelector(".tab-indicator")
 
   authTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      const tabName = tab.dataset.tab
+      playClickSound()
+      const tabName = tab.getAttribute("data-tab")
       authTabs.forEach((t) => t.classList.remove("active"))
       tab.classList.add("active")
-      authForms.forEach((form) => form.classList.remove("active"))
-      document.getElementById(`${tabName}-form`).classList.add("active")
-      if (tabIndicator) {
-        tabIndicator.style.transform = tabName === "signup" ? "translateX(calc(100% + 4px))" : "translateX(0)"
+      authForms.forEach((form) => {
+        form.classList.remove("active")
+        if (form.id === `${tabName}-form`) {
+          form.classList.add("active")
+        }
+      })
+      const indicator = document.querySelector(".tab-indicator")
+      if (indicator) {
+        if (tabName === "signup") {
+          indicator.style.transform = `translateX(calc(100% + 4px))` // Adjust based on gap/padding
+        } else {
+          indicator.style.transform = `translateX(0%)`
+        }
       }
     })
   })
 
-  document.querySelectorAll(".toggle-password").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const input = e.currentTarget.previousElementSibling
+  const togglePasswordButtons = document.querySelectorAll(".toggle-password")
+  togglePasswordButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      playClickSound()
+      const input = button.previousElementSibling
       if (input.type === "password") {
         input.type = "text"
-        e.currentTarget.classList.remove("fa-eye-slash")
-        e.currentTarget.classList.add("fa-eye")
+        button.classList.remove("fa-eye-slash")
+        button.classList.add("fa-eye")
       } else {
         input.type = "password"
-        e.currentTarget.classList.remove("fa-eye")
-        e.currentTarget.classList.add("fa-eye-slash")
+        button.classList.remove("fa-eye")
+        button.classList.add("fa-eye-slash")
       }
     })
   })
 
-  document.querySelectorAll(".sidebar-nav a").forEach((link) => {
+  const sidebarLinks = document.querySelectorAll(".sidebar-nav a")
+  const pages = document.querySelectorAll(".page")
+
+  sidebarLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault()
-      showPage(link.dataset.page)
+      playClickSound()
+      const pageName = link.getAttribute("data-page")
+      sidebarLinks.forEach((l) => l.parentElement.classList.remove("active"))
+      link.parentElement.classList.add("active")
+      pages.forEach((page) => {
+        page.classList.remove("active")
+        if (page.id === `${pageName}-page`) {
+          page.classList.add("active")
+        }
+      })
+      if (window.innerWidth < 992) {
+        document.getElementById("sidebar").classList.remove("active")
+      }
     })
   })
 
-  document.querySelectorAll(".action-card").forEach((card) => {
-    card.addEventListener("click", () => showPage(card.dataset.page))
+  const actionCards = document.querySelectorAll(".action-card")
+  actionCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      playClickSound()
+      const pageName = card.getAttribute("data-page")
+      sidebarLinks.forEach((link) => {
+        link.parentElement.classList.remove("active")
+        if (link.getAttribute("data-page") === pageName) {
+          link.parentElement.classList.add("active")
+        }
+      })
+      pages.forEach((page) => {
+        page.classList.remove("active")
+        if (page.id === `${pageName}-page`) {
+          page.classList.add("active")
+        }
+      })
+    })
   })
 
   const menuToggle = document.getElementById("menu-toggle")
-  const closeSidebarBtn = document.getElementById("close-sidebar")
+  const closeSidebar = document.getElementById("close-sidebar")
   const sidebar = document.getElementById("sidebar")
-  menuToggle.addEventListener("click", () => sidebar.classList.add("active"))
-  closeSidebarBtn.addEventListener("click", () => sidebar.classList.remove("active"))
+
+  if (menuToggle)
+    menuToggle.addEventListener("click", () => {
+      playClickSound()
+      sidebar.classList.add("active")
+    })
+  if (closeSidebar)
+    closeSidebar.addEventListener("click", () => {
+      playClickSound()
+      sidebar.classList.remove("active")
+    })
 
   const profileDropdownTrigger = document.getElementById("profile-dropdown-trigger")
   const profileDropdown = document.getElementById("profile-dropdown")
-  profileDropdownTrigger.addEventListener("click", (e) => {
-    e.stopPropagation()
-    const isActive = profileDropdown.classList.toggle("active")
-    if (isActive) {
+
+  if (profileDropdownTrigger && profileDropdown) {
+    profileDropdownTrigger.addEventListener("click", (e) => {
+      e.stopPropagation()
+      playClickSound()
+      profileDropdown.classList.toggle("active")
       const rect = profileDropdownTrigger.getBoundingClientRect()
       profileDropdown.style.top = `${rect.bottom + 10}px`
       profileDropdown.style.right = `${window.innerWidth - rect.right}px`
-    }
-  })
+    })
+  }
+
   document.addEventListener("click", (e) => {
-    if (!profileDropdown.contains(e.target) && !profileDropdownTrigger.contains(e.target)) {
+    if (
+      profileDropdown &&
+      profileDropdown.classList.contains("active") &&
+      profileDropdownTrigger &&
+      !profileDropdownTrigger.contains(e.target) &&
+      !profileDropdown.contains(e.target)
+    ) {
       profileDropdown.classList.remove("active")
     }
   })
-  document.getElementById("view-profile").addEventListener("click", () => showPage("settings"))
-  document.getElementById("go-to-settings").addEventListener("click", () => showPage("settings"))
-  document.getElementById("dropdown-logout").addEventListener("click", logout)
-  document.getElementById("logout-btn").addEventListener("click", logout)
 
-  const notificationBellTrigger = document.getElementById("notification-bell-trigger")
-  const notificationDropdown = document.getElementById("notification-dropdown")
-  notificationBellTrigger.addEventListener("click", (e) => {
-    e.stopPropagation()
-    const isActive = notificationDropdown.classList.toggle("active")
-    if (isActive) {
-      const rect = notificationBellTrigger.getBoundingClientRect()
-      notificationDropdown.style.top = `${rect.bottom + 10}px`
-      notificationDropdown.style.right = `${window.innerWidth - rect.right}px`
-    }
+  document.getElementById("view-profile")?.addEventListener("click", () => {
+    playClickSound()
+    showPage("settings")
   })
-  document.addEventListener("click", (e) => {
-    if (!notificationDropdown.contains(e.target) && !notificationBellTrigger.contains(e.target)) {
-      notificationDropdown.classList.remove("active")
-    }
+  document.getElementById("go-to-settings")?.addEventListener("click", () => {
+    playClickSound()
+    showPage("settings")
   })
-  document.getElementById("mark-all-read-btn").addEventListener("click", markAllNotificationsRead)
+  document.getElementById("dropdown-logout")?.addEventListener("click", () => {
+    playClickSound()
+    logout()
+  })
+  document.getElementById("logout-btn")?.addEventListener("click", () => {
+    playClickSound()
+    logout()
+  })
 
-  document.getElementById("refresh-balance").addEventListener("click", loadUserData)
-  document.getElementById("hide-balance").addEventListener("click", () => {
+  document.getElementById("refresh-balance")?.addEventListener("click", async () => {
+    playClickSound()
+    await loadUserData()
+  })
+  document.getElementById("hide-balance")?.addEventListener("click", () => {
+    playClickSound()
     const balanceAmount = document.getElementById("balance-amount")
-    const icon = document.querySelector("#hide-balance i")
-    if (balanceAmount.classList.toggle("hidden-balance")) {
-      balanceAmount.textContent = "•••••• Ks"
-      icon.classList.replace("fa-eye-slash", "fa-eye")
-    } else {
+    const eyeIcon = document.querySelector("#hide-balance i")
+    if (balanceAmount.classList.contains("hidden-balance")) {
       balanceAmount.textContent = `${userBalance.toLocaleString()} Ks`
-      icon.classList.replace("fa-eye", "fa-eye-slash")
+      balanceAmount.classList.remove("hidden-balance")
+      if (eyeIcon) eyeIcon.classList.replace("fa-eye", "fa-eye-slash")
+    } else {
+      balanceAmount.textContent = "•••••• Ks"
+      balanceAmount.classList.add("hidden-balance")
+      if (eyeIcon) eyeIcon.classList.replace("fa-eye-slash", "fa-eye")
     }
   })
 
-  document.querySelectorAll('input[type="file"]').forEach((input) => {
+  const fileInputs = document.querySelectorAll('input[type="file"]')
+  fileInputs.forEach((input) => {
     input.addEventListener("change", (e) => {
       const file = e.target.files[0]
       if (!file) return
-      const previewEl = document.getElementById(input.id.replace("-upload", "-preview"))
-      if (previewEl) {
-        const reader = new FileReader()
-        reader.onload = (re) => {
-          previewEl.innerHTML = `<img src="${re.target.result}" alt="Preview">`
-        }
-        reader.readAsDataURL(file)
+      const previewId = input.id.replace("-upload", "-preview")
+      const preview = document.getElementById(previewId)
+      if (!preview) return
+      const reader = new FileReader()
+      reader.onload = (e_reader) => {
+        preview.innerHTML = `<img src="${e_reader.target.result}" alt="Preview">`
       }
+      reader.readAsDataURL(file)
     })
   })
 
   const themeOptions = document.querySelectorAll(".theme-option")
   themeOptions.forEach((option) => {
-    if (option.dataset.theme === currentTheme) option.classList.add("active")
+    if (option.getAttribute("data-theme") === currentTheme) {
+      option.classList.add("active")
+    }
     option.addEventListener("click", () => {
-      currentTheme = option.dataset.theme
-      document.body.setAttribute("data-theme", currentTheme)
-      localStorage.setItem("theme", currentTheme)
+      playClickSound()
+      const theme = option.getAttribute("data-theme")
       themeOptions.forEach((o) => o.classList.remove("active"))
       option.classList.add("active")
+      document.body.setAttribute("data-theme", theme)
+      localStorage.setItem("theme", theme)
+      currentTheme = theme
     })
   })
 
+  const modals = document.querySelectorAll(".modal")
   const modalTriggers = {
     "change-password-btn": "change-password-modal",
     "change-pin-btn": "change-pin-modal",
     "delete-account-btn": "delete-account-modal",
   }
-  Object.entries(modalTriggers).forEach(([triggerId, modalId]) => {
+
+  Object.keys(modalTriggers).forEach((triggerId) => {
     const trigger = document.getElementById(triggerId)
-    if (trigger) trigger.addEventListener("click", () => document.getElementById(modalId).classList.add("active"))
+    const modalId = modalTriggers[triggerId]
+    if (trigger) {
+      trigger.addEventListener("click", () => {
+        playClickSound()
+        const modal = document.getElementById(modalId)
+        if (modal) modal.classList.add("active")
+      })
+    }
   })
-  document.querySelectorAll(".modal-close, .modal-cancel").forEach((button) => {
-    button.addEventListener("click", () => button.closest(".modal").classList.remove("active"))
+
+  const modalCloseButtons = document.querySelectorAll(".modal-close, .modal-cancel")
+  modalCloseButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      playClickSound()
+      const modal = button.closest(".modal")
+      if (modal) modal.classList.remove("active")
+    })
   })
-  document.querySelectorAll(".modal").forEach((modal) => {
+
+  modals.forEach((modal) => {
     modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.classList.remove("active")
+      if (e.target === modal) {
+        modal.classList.remove("active")
+      }
     })
   })
 
   setupPinInputs()
-  document.getElementById("download-receipt").addEventListener("click", downloadReceipt)
-  document.getElementById("save-qr-btn").addEventListener("click", saveQRCode)
+  document.getElementById("download-receipt")?.addEventListener("click", () => {
+    playClickSound()
+    downloadReceipt()
+  })
 
-  const transferPhoneInput = document.getElementById("transfer-phone")
-  if (transferPhoneInput) {
-    let debounceTimer
-    transferPhoneInput.addEventListener("input", () => {
-      clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(checkRecipientAccount, 500)
+  // Auto-save receipt toggle
+  const autoSaveToggle = document.getElementById("auto-save-receipt")
+  if (autoSaveToggle) {
+    autoSaveToggle.checked = autoSaveReceipt
+    autoSaveToggle.addEventListener("change", (e) => {
+      playClickSound()
+      autoSaveReceipt = e.target.checked
+      localStorage.setItem("autoSaveReceipt", autoSaveReceipt.toString())
     })
   }
 
-  document.getElementById("history-type")?.addEventListener("change", updateTransactionsUI)
-  document.getElementById("history-date")?.addEventListener("change", updateTransactionsUI)
+  // Add click sound to all clickable elements
+  document
+    .querySelectorAll(
+      ".clickable, .btn, .auth-tab, .sidebar-nav a, .action-card, .toggle-password, .modal-close, .modal-cancel, .theme-option, .transaction-view-btn, #refresh-balance, #hide-balance, #download-receipt, #profile-dropdown-trigger, .dropdown-item, #menu-toggle, #close-sidebar",
+    )
+    .forEach((element) => {
+      // Avoid double-binding if already handled by specific listeners
+      if (!element.getAttribute("data-click-sound-bound")) {
+        element.addEventListener("click", (e) => {
+          // Some elements might have their own click sound logic, so check
+          if (
+            e.target.closest(".auth-tab") ||
+            e.target.closest(".sidebar-nav a") ||
+            e.target.closest(".action-card") ||
+            e.target.closest(".toggle-password") ||
+            e.target.closest(".modal-close") ||
+            e.target.closest(".modal-cancel") ||
+            e.target.closest(".theme-option") ||
+            e.target.closest(".transaction-view-btn")
+          ) {
+            // These have specific handlers that call playClickSound
+          } else {
+            playClickSound()
+          }
+        })
+        element.setAttribute("data-click-sound-bound", "true")
+      }
+    })
 
   setupFormSubmissions()
-  logToConsole("UI initialized.")
 }
 
+// Setup PIN inputs
 function setupPinInputs() {
   const pinInputs = document.querySelectorAll(".pin-input")
   pinInputs.forEach((input, index) => {
     input.addEventListener("input", (e) => {
-      if (e.target.value && index < pinInputs.length - 1) {
+      if (e.target.value && pinInputs[index + 1]) {
         pinInputs[index + 1].focus()
       }
     })
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Backspace" && !e.target.value && index > 0) {
+      if (e.key === "Backspace" && !e.target.value && pinInputs[index - 1]) {
         pinInputs[index - 1].focus()
       }
     })
   })
-  document.getElementById("confirm-pin-btn").addEventListener("click", () => {
-    const pin = Array.from(pinInputs)
-      .map((input) => input.value)
-      .join("")
-    const pinErrorEl = document.getElementById("pin-error")
+
+  document.getElementById("confirm-pin-btn")?.addEventListener("click", () => {
+    playClickSound()
+    let pin = ""
+    pinInputs.forEach((input) => (pin += input.value))
+    const pinError = document.getElementById("pin-error")
     if (pin.length !== 6) {
-      pinErrorEl.textContent = "PIN ၆ လုံး ထည့်ပါ"
-      pinErrorEl.style.display = "block"
+      pinError.textContent = "PIN ၆ လုံး ထည့်ပါ"
+      pinError.style.display = "block"
       return
     }
-    pinErrorEl.style.display = "none"
+    pinError.style.display = "none"
     processTransfer(pin)
   })
 }
 
+// Setup form submissions
 function setupFormSubmissions() {
-  document.getElementById("login-btn").addEventListener("click", handleLogin)
-  document.getElementById("google-login-btn").addEventListener("click", () => simulateGoogleAuth("login"))
-  document.getElementById("signup-btn").addEventListener("click", handleSignup)
-  document.getElementById("google-signup-btn").addEventListener("click", () => simulateGoogleAuth("signup"))
-  document.getElementById("transfer-btn").addEventListener("click", handleTransferInitiation)
-  document.getElementById("kyc-submit-btn").addEventListener("click", handleKycSubmit)
-  document.getElementById("save-password-btn").addEventListener("click", handleChangePassword)
-  document.getElementById("save-pin-btn").addEventListener("click", handleChangePin)
-  document.getElementById("confirm-delete-btn").addEventListener("click", handleDeleteAccount)
-}
+  const loginBtn = document.getElementById("login-btn")
+  if (loginBtn)
+    loginBtn.addEventListener("click", async () => {
+      playClickSound()
+      const email = document.getElementById("login-email").value
+      const password = document.getElementById("login-password").value
+      const errorElement = document.getElementById("login-error")
+      const successElement = document.getElementById("login-success")
 
-async function handleLogin() {
-  const email = document.getElementById("login-email").value
-  const password = document.getElementById("login-password").value
-  const errorEl = document.getElementById("login-error")
-  const successEl = document.getElementById("login-success")
+      if (!email || !password) {
+        errorElement.textContent = "အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
 
-  if (!email || !password) {
-    errorEl.textContent = "အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။"
-    errorEl.style.display = "block"
-    successEl.style.display = "none"
-    return
-  }
-  showProcessingOverlay("အကောင့်ဝင်နေသည်...")
-  try {
-    const { data: user, error } = await supabase.from("auth_users").select("*").eq("email", email).single()
+      try {
+        const { data: user, error } = await supabase.from("auth_users").select("*").eq("email", email).single()
 
-    if (error || !user || user.password !== password) {
-      errorEl.textContent = "အီးမေးလ် သို့မဟုတ် စကားဝှက် မှားယွင်းနေပါသည်။"
-      errorEl.style.display = "block"
-      successEl.style.display = "none"
-      hideProcessingOverlay()
-      return
-    }
+        if (error || !user) {
+          errorElement.textContent = "အကောင့်မတွေ့ရှိပါ။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
 
-    currentUser = user
-    localStorage.setItem("opperSession", JSON.stringify({ user_id: user.user_id, email: user.email }))
-    errorEl.style.display = "none"
-    successEl.textContent = "အကောင့်ဝင်ရောက်ပြီးပါပြီ။"
-    successEl.style.display = "block"
+        if (user.password !== password) {
+          errorElement.textContent = "စကားဝှက်မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
 
-    await loadInitialData()
-    showAppContainer()
-  } catch (err) {
-    logToConsole(`Login error: ${err.message}`, "error")
-    errorEl.textContent = "အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။"
-    errorEl.style.display = "block"
-    successEl.style.display = "none"
-  } finally {
-    hideProcessingOverlay()
-  }
-}
+        currentUser = user
+        localStorage.setItem("opperSession", JSON.stringify({ email: user.email, user_id: user.user_id }))
+        errorElement.style.display = "none"
+        successElement.textContent = "အကောင့်ဝင်ရောက်နေပါသည်..."
+        successElement.style.display = "block"
 
-async function handleSignup() {
-  const name = document.getElementById("signup-name").value
-  const email = document.getElementById("signup-email").value
-  const phone = document.getElementById("signup-phone").value
-  const password = document.getElementById("signup-password").value
-  const confirmPassword = document.getElementById("signup-confirm-password").value
-  const termsAgree = document.getElementById("terms-agree").checked
-  const errorEl = document.getElementById("signup-error")
-  const successEl = document.getElementById("signup-success")
-
-  if (!name || !email || !phone || !password || !confirmPassword) {
-    errorEl.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
-    errorEl.style.display = "block"
-    successEl.style.display = "none"
-    return
-  }
-  if (password !== confirmPassword) {
-    errorEl.textContent = "စကားဝှက်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။"
-    errorEl.style.display = "block"
-    successEl.style.display = "none"
-    return
-  }
-  if (!termsAgree) {
-    errorEl.textContent = "စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။"
-    errorEl.style.display = "block"
-    successEl.style.display = "none"
-    return
-  }
-  showProcessingOverlay("အကောင့်ဖွင့်နေသည်...")
-  try {
-    const { data: existingUser } = await supabase.from("auth_users").select("email").eq("email", email).maybeSingle()
-    if (existingUser) {
-      errorEl.textContent = "ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
-      errorEl.style.display = "block"
-      hideProcessingOverlay()
-      return
-    }
-
-    const { data: existingPhoneUser } = await supabase.from("users").select("phone").eq("phone", phone).maybeSingle()
-    if (existingPhoneUser) {
-      errorEl.textContent = "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
-      errorEl.style.display = "block"
-      hideProcessingOverlay()
-      return
-    }
-
-    const userId = generateUserId(email)
-    const { data: authUser, error: authError } = await supabase
-      .from("auth_users")
-      .insert([{ email, password, user_id: userId }])
-      .select()
-      .single()
-    if (authError) throw authError
-
-    const { error: profileError } = await supabase
-      .from("users")
-      .insert([{ user_id: userId, name, phone, balance: 0, passport_status: "pending" }])
-    if (profileError) throw profileError
-
-    errorEl.style.display = "none"
-    successEl.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။"
-    successEl.style.display = "block"
-    document.getElementById("signup-form").reset()
-    setTimeout(() => {
-      document.querySelector('.auth-tab[data-tab="login"]').click()
-      successEl.style.display = "none"
-    }, 2000)
-  } catch (err) {
-    logToConsole(`Signup error: ${err.message}`, "error")
-    errorEl.textContent = "အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။"
-    errorEl.style.display = "block"
-    successEl.style.display = "none"
-  } finally {
-    hideProcessingOverlay()
-  }
-}
-
-async function handleTransferInitiation() {
-  const phone = document.getElementById("transfer-phone").value
-  const amount = Number.parseInt(document.getElementById("transfer-amount").value)
-  const errorEl = document.getElementById("transfer-error")
-  const successEl = document.getElementById("transfer-success")
-  errorEl.style.display = "none"
-  successEl.style.display = "none"
-
-  if (!phone || !amount) {
-    errorEl.textContent = "ဖုန်းနံပါတ်နှင့် ငွေပမာဏ ထည့်ပါ။"
-    errorEl.style.display = "block"
-    return
-  }
-  if (amount < 1000) {
-    errorEl.textContent = "ငွေပမာဏ အနည်းဆုံး 1,000 Ks ဖြစ်ရပါမည်။"
-    errorEl.style.display = "block"
-    return
-  }
-  if (!transfersEnabled) {
-    errorEl.textContent = "ငွေလွှဲခြင်းကို ယာယီပိတ်ထားပါသည်။"
-    errorEl.style.display = "block"
-    return
-  }
-  if (userKycStatus !== "approved") {
-    errorEl.textContent = "ငွေလွှဲရန် KYC အတည်ပြုရန် လိုအပ်ပါသည်။"
-    errorEl.style.display = "block"
-    return
-  }
-  if (userBalance < amount) {
-    errorEl.textContent = "လက်ကျန်ငွေ မလုံလောက်ပါ။"
-    errorEl.style.display = "block"
-    return
-  }
-  if (userProfileData.phone === phone) {
-    errorEl.textContent = "ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။"
-    errorEl.style.display = "block"
-    return
-  }
-
-  showProcessingOverlay("လက်ခံသူအား စစ်ဆေးနေသည်...")
-  try {
-    const { data: recipient, error: recipientError } = await supabase
-      .from("users")
-      .select("user_id, name, phone")
-      .eq("phone", phone)
-      .single()
-
-    if (recipientError || !recipient) {
-      errorEl.textContent = "လက်ခံမည့်သူ မတွေ့ရှိပါ။ ဖုန်းနံပါတ်စစ်ဆေးပါ။"
-      errorEl.style.display = "block"
-      hideProcessingOverlay()
-      return
-    }
-
-    sessionStorage.setItem("transferRecipient", JSON.stringify(recipient))
-    hideProcessingOverlay()
-    showPinEntryModal()
-  } catch (err) {
-    logToConsole(`Transfer initiation error: ${err.message}`, "error")
-    errorEl.textContent = "ငွေလွှဲရန် ပြင်ဆင်ရာတွင် အမှားရှိနေပါသည်။"
-    errorEl.style.display = "block"
-    hideProcessingOverlay()
-  }
-}
-
-async function processTransfer(pin) {
-  const recipientData = JSON.parse(sessionStorage.getItem("transferRecipient"))
-  if (!recipientData) {
-    showToast("လက်ခံသူ အချက်အလက် မတွေ့ရှိပါ။", "error")
-    pinEntryModal.classList.remove("active")
-    return
-  }
-
-  const amount = Number.parseInt(document.getElementById("transfer-amount").value)
-  const note = document.getElementById("transfer-note").value
-  const errorEl = document.getElementById("transfer-error")
-  const successEl = document.getElementById("transfer-success")
-
-  pinEntryModal.classList.remove("active")
-  showProcessingOverlay("ငွေလွှဲလုပ်ဆောင်နေသည်...")
-  updateProcessingStep("step-validate", true)
-
-  try {
-    if (userProfileData.payment_pin !== pin) {
-      errorEl.textContent = "PIN မှားယွင်းနေပါသည်။"
-      errorEl.style.display = "block"
-      hideProcessingOverlay()
-      return
-    }
-    updateProcessingStep("step-process", true)
-
-    const { data: transaction, error } = await supabase.rpc("process_transfer", {
-      sender_id: currentUser.user_id,
-      receiver_id: recipientData.user_id,
-      transfer_amount: amount,
-      transfer_note: note,
+        await loadUserData()
+        showAppContainer()
+      } catch (error) {
+        console.error("Login error:", error)
+        errorElement.textContent = "အကောင့်ဝင်ရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+      }
     })
 
-    if (error) throw error
+  document.getElementById("google-login-btn")?.addEventListener("click", () => {
+    playClickSound()
+    simulateGoogleLogin("login")
+  })
 
-    updateProcessingStep("step-confirm", true)
+  const signupBtn = document.getElementById("signup-btn")
+  if (signupBtn)
+    signupBtn.addEventListener("click", async () => {
+      playClickSound()
+      const email = document.getElementById("signup-email").value
+      const phone = document.getElementById("signup-phone").value
+      const password = document.getElementById("signup-password").value
+      const confirmPassword = document.getElementById("signup-confirm-password").value
+      const termsAgree = document.getElementById("terms-agree").checked
+      const errorElement = document.getElementById("signup-error")
+      const successElement = document.getElementById("signup-success")
 
-    userBalance -= amount
-    updateUserUI()
+      if (!email || !phone || !password || !confirmPassword) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (password !== confirmPassword) {
+        errorElement.textContent = "စကားဝှက်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (!termsAgree) {
+        errorElement.textContent = "စည်းမျဉ်းစည်းကမ်းများကို သဘောတူရန် လိုအပ်ပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
 
-    setTimeout(() => {
-      hideProcessingOverlay()
-      successEl.textContent = `${amount.toLocaleString()} Ks ကို ${recipientData.name || recipientData.phone} သို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`
-      successEl.style.display = "block"
-      showTransactionReceipt(transaction)
-      document.getElementById("transfer-form").reset()
-      document.getElementById("recipient-check-message").textContent = ""
-      sessionStorage.removeItem("transferRecipient")
-      speak(`ငွေ ${amount} ကျပ် ${recipientData.name || recipientData.phone} သို့ လွှဲပြောင်းပြီးပါပြီ။`)
-    }, 1500)
-  } catch (err) {
-    logToConsole(`Transfer processing error: ${err.message}`, "error")
-    errorEl.textContent = `ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။: ${err.message}`
-    errorEl.style.display = "block"
-    hideProcessingOverlay()
-  }
+      try {
+        const { data: existingUserByEmail } = await supabase
+          .from("auth_users")
+          .select("email")
+          .eq("email", email)
+          .single()
+        if (existingUserByEmail) {
+          errorElement.textContent = "ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
+        const { data: existingUserByPhone } = await supabase.from("users").select("phone").eq("phone", phone).single()
+        if (existingUserByPhone) {
+          errorElement.textContent = "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
+
+        const userId = generateUserId(email)
+        const { data: authUser, error: authError } = await supabase
+          .from("auth_users")
+          .insert([{ email, password, user_id: userId }])
+          .select()
+          .single()
+        if (authError) throw authError
+
+        const { error: profileError } = await supabase
+          .from("users")
+          .insert([{ user_id: userId, phone, balance: 0, passport_status: "pending" }])
+        if (profileError) throw profileError
+
+        errorElement.style.display = "none"
+        successElement.textContent = "အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။"
+        successElement.style.display = "block"
+        document.getElementById("signup-form").reset()
+        setTimeout(() => {
+          const loginTab = document.querySelector('.auth-tab[data-tab="login"]')
+          if (loginTab) loginTab.click()
+        }, 2000)
+      } catch (error) {
+        console.error("Signup error:", error)
+        errorElement.textContent = "အကောင့်ဖွင့်ရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+      }
+    })
+
+  document.getElementById("google-signup-btn")?.addEventListener("click", () => {
+    playClickSound()
+    simulateGoogleLogin("signup")
+  })
+
+  const transferBtn = document.getElementById("transfer-btn")
+  if (transferBtn)
+    transferBtn.addEventListener("click", async () => {
+      playClickSound()
+      const phone = document.getElementById("transfer-phone").value
+      const amount = Number.parseInt(document.getElementById("transfer-amount").value)
+      const errorElement = document.getElementById("transfer-error")
+      const successElement = document.getElementById("transfer-success")
+
+      if (!phone || !amount) {
+        errorElement.textContent = "ဖုန်းနံပါတ်နှင့် ငွေပမာဏ ထည့်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (amount < 1000) {
+        errorElement.textContent = "ငွေပမာဏ အနည်းဆုံး 1,000 Ks ဖြစ်ရပါမည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (!transfersEnabled) {
+        errorElement.textContent = "ငွေလွှဲခြင်းကို ယာယီပိတ်ထားပါသည်။ နောက်မှ ပြန်လည်ကြိုးစားပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (userKycStatus !== "approved") {
+        errorElement.textContent = "ငွေလွှဲရန် KYC အတည်ပြုရန် လိုအပ်ပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (userBalance < amount) {
+        errorElement.textContent = "လက်ကျန်ငွေ မလုံလောက်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      const { data: senderData } = await supabase
+        .from("users")
+        .select("phone")
+        .eq("user_id", currentUser.user_id)
+        .single()
+      if (senderData && senderData.phone === phone) {
+        errorElement.textContent = "ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      const { data: recipient, error: recipientError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("phone", phone)
+        .single()
+      if (recipientError || !recipient) {
+        errorElement.textContent = "လက်ခံမည့်သူ မတွေ့ရှိပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      errorElement.style.display = "none"
+      showPinEntryModal()
+    })
+
+  const kycSubmitBtn = document.getElementById("kyc-submit-btn")
+  if (kycSubmitBtn)
+    kycSubmitBtn.addEventListener("click", async () => {
+      playClickSound()
+      const passportNumber = document.getElementById("kyc-passport").value
+      const address = document.getElementById("kyc-address").value
+      const pin = document.getElementById("kyc-pin").value
+      const confirmPin = document.getElementById("kyc-confirm-pin").value
+      const passportFile = document.getElementById("passport-upload").files[0]
+      const selfieFile = document.getElementById("selfie-upload").files[0]
+      const errorElement = document.getElementById("kyc-error")
+      const successElement = document.getElementById("kyc-success")
+
+      if (!passportNumber || !address || !pin || !confirmPin || !passportFile || !selfieFile) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (pin !== confirmPin) {
+        errorElement.textContent = "PIN နှင့် အတည်ပြု PIN မတူညီပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+        errorElement.textContent = "PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      try {
+        const passportFileName = `passport_${currentUser.user_id}_${Date.now()}.${passportFile.name.split(".").pop()}`
+        const { error: passportError } = await supabase.storage
+          .from("kyc-documents")
+          .upload(passportFileName, passportFile)
+        if (passportError) throw passportError
+        const { data: passportUrlData } = supabase.storage.from("kyc-documents").getPublicUrl(passportFileName)
+
+        const selfieFileName = `selfie_${currentUser.user_id}_${Date.now()}.${selfieFile.name.split(".").pop()}`
+        const { error: selfieError } = await supabase.storage.from("kyc-documents").upload(selfieFileName, selfieFile)
+        if (selfieError) throw selfieError
+        const { data: selfieUrlData } = supabase.storage.from("kyc-documents").getPublicUrl(selfieFileName)
+
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({
+            passport_number: passportNumber,
+            address,
+            payment_pin: pin, // Store hashed PIN in real app
+            passport_image: passportUrlData.publicUrl,
+            selfie_image: selfieUrlData.publicUrl,
+            passport_status: "pending",
+            submitted_at: new Date().toISOString(),
+          })
+          .eq("user_id", currentUser.user_id)
+        if (updateError) throw updateError
+
+        errorElement.style.display = "none"
+        successElement.textContent = "KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။"
+        successElement.style.display = "block"
+        userKycStatus = "pending"
+        updateKycStatus()
+        document.getElementById("kyc-form").reset()
+        document.getElementById("passport-preview").innerHTML = ""
+        document.getElementById("selfie-preview").innerHTML = ""
+      } catch (error) {
+        console.error("KYC submission error:", error)
+        errorElement.textContent = "KYC တင်သွင်းရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+      }
+    })
+
+  const savePasswordBtn = document.getElementById("save-password-btn")
+  if (savePasswordBtn)
+    savePasswordBtn.addEventListener("click", async () => {
+      playClickSound()
+      const currentPassword = document.getElementById("current-password").value
+      const newPassword = document.getElementById("new-password").value
+      const confirmNewPassword = document.getElementById("confirm-new-password").value
+      const errorElement = document.getElementById("change-password-error")
+      const successElement = document.getElementById("change-password-success")
+
+      if (!currentPassword || !newPassword || !confirmNewPassword) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (newPassword !== confirmNewPassword) {
+        errorElement.textContent = "စကားဝှက်အသစ်နှင့် အတည်ပြုစကားဝှက် မတူညီပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      try {
+        const { data: user, error } = await supabase
+          .from("auth_users")
+          .select("password")
+          .eq("user_id", currentUser.user_id)
+          .single()
+
+        if (error) throw error
+
+        if (user.password !== currentPassword) {
+          errorElement.textContent = "လက်ရှိစကားဝှက် မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
+
+        const { error: updateError } = await supabase
+          .from("auth_users")
+          .update({ password: newPassword })
+          .eq("user_id", currentUser.user_id)
+
+        if (updateError) throw updateError
+
+        errorElement.style.display = "none"
+        successElement.textContent = "စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
+        successElement.style.display = "block"
+
+        document.getElementById("current-password").value = ""
+        document.getElementById("new-password").value = ""
+        document.getElementById("confirm-new-password").value = ""
+
+        setTimeout(() => {
+          document.getElementById("change-password-modal").classList.remove("active")
+        }, 2000)
+      } catch (error) {
+        console.error("Change password error:", error)
+        errorElement.textContent = "စကားဝှက်ပြောင်းရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+      }
+    })
+
+  const savePinBtn = document.getElementById("save-pin-btn")
+  if (savePinBtn)
+    savePinBtn.addEventListener("click", async () => {
+      playClickSound()
+      const currentPin = document.getElementById("current-pin").value
+      const newPin = document.getElementById("new-pin").value
+      const confirmNewPin = document.getElementById("confirm-new-pin").value
+      const errorElement = document.getElementById("change-pin-error")
+      const successElement = document.getElementById("change-pin-success")
+
+      if (!currentPin || !newPin || !confirmNewPin) {
+        errorElement.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (newPin !== confirmNewPin) {
+        errorElement.textContent = "PIN အသစ်နှင့် အတည်ပြု PIN မတူညီပါ။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+      if (newPin.length !== 6 || !/^\d+$/.test(newPin)) {
+        errorElement.textContent = "PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+        return
+      }
+
+      try {
+        const { data: user, error } = await supabase
+          .from("users")
+          .select("payment_pin")
+          .eq("user_id", currentUser.user_id)
+          .single()
+
+        if (error) throw error
+
+        if (user.payment_pin !== currentPin) {
+          errorElement.textContent = "လက်ရှိ PIN မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          successElement.style.display = "none"
+          return
+        }
+
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({ payment_pin: newPin })
+          .eq("user_id", currentUser.user_id)
+
+        if (updateError) throw updateError
+
+        errorElement.style.display = "none"
+        successElement.textContent = "PIN အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။"
+        successElement.style.display = "block"
+
+        document.getElementById("current-pin").value = ""
+        document.getElementById("new-pin").value = ""
+        document.getElementById("confirm-new-pin").value = ""
+
+        setTimeout(() => {
+          document.getElementById("change-pin-modal").classList.remove("active")
+        }, 2000)
+      } catch (error) {
+        console.error("Change PIN error:", error)
+        errorElement.textContent = "PIN ပြောင်းရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+        successElement.style.display = "none"
+      }
+    })
+
+  const confirmDeleteBtn = document.getElementById("confirm-delete-btn")
+  if (confirmDeleteBtn)
+    confirmDeleteBtn.addEventListener("click", async () => {
+      playClickSound()
+      const deletePassword = document.getElementById("delete-password").value
+      const confirmDelete = document.getElementById("confirm-delete").checked
+      const errorElement = document.getElementById("delete-account-error")
+
+      if (!deletePassword || !confirmDelete) {
+        errorElement.textContent = "စကားဝှက်ထည့်၍ အတည်ပြုပါ။"
+        errorElement.style.display = "block"
+        return
+      }
+
+      try {
+        const { data: user, error } = await supabase
+          .from("auth_users")
+          .select("password")
+          .eq("user_id", currentUser.user_id)
+          .single()
+
+        if (error) throw error
+
+        if (user.password !== deletePassword) {
+          errorElement.textContent = "စကားဝှက် မှားယွင်းနေပါသည်။"
+          errorElement.style.display = "block"
+          return
+        }
+
+        // Delete user data
+        await supabase.from("users").delete().eq("user_id", currentUser.user_id)
+        await supabase.from("auth_users").delete().eq("user_id", currentUser.user_id)
+
+        // Clear session and redirect
+        localStorage.removeItem("opperSession")
+        currentUser = null
+        showAuthContainer()
+        document.getElementById("delete-account-modal").classList.remove("active")
+
+        // Show success message
+        const loginSuccess = document.getElementById("login-success")
+        loginSuccess.textContent = "အကောင့်ဖျက်ပြီးပါပြီ။"
+        loginSuccess.style.display = "block"
+      } catch (error) {
+        console.error("Delete account error:", error)
+        errorElement.textContent = "အကောင့်ဖျက်ရာတွင် အမှားရှိနေပါသည်။"
+        errorElement.style.display = "block"
+      }
+    })
 }
 
-async function handleKycSubmit() {
-  const passportNumber = document.getElementById("kyc-passport").value
-  const address = document.getElementById("kyc-address").value
-  const pin = document.getElementById("kyc-pin").value
-  const confirmPin = document.getElementById("kyc-confirm-pin").value
-  const passportFile = document.getElementById("passport-upload").files[0]
-  const selfieFile = document.getElementById("selfie-upload").files[0]
-  const errorEl = document.getElementById("kyc-error")
-  const successEl = document.getElementById("kyc-success")
+// Show PIN entry modal
+function showPinEntryModal() {
+  document.querySelectorAll(".pin-input").forEach((input) => (input.value = ""))
+  document.getElementById("pin-error").style.display = "none"
+  pinEntryModal.classList.add("active")
+  const firstPinInput = document.querySelector(".pin-input")
+  if (firstPinInput) firstPinInput.focus()
+}
 
-  if (!passportNumber || !address || !pin || !confirmPin || !passportFile || !selfieFile) {
-    errorEl.textContent = "အချက်အလက်အားလုံး ဖြည့်စွက်ပါ။"
-    errorEl.style.display = "block"
-    return
-  }
-  if (pin !== confirmPin) {
-    errorEl.textContent = "PIN နှင့် အတည်ပြု PIN မတူညီပါ။"
-    errorEl.style.display = "block"
-    return
-  }
-  if (pin.length !== 6 || !/^\d+$/.test(pin)) {
-    errorEl.textContent = "PIN သည် ဂဏန်း ၆ လုံး ဖြစ်ရပါမည်။"
-    errorEl.style.display = "block"
-    return
-  }
-  showProcessingOverlay("KYC အချက်အလက်များ တင်သွင်းနေသည်...")
+// Process transfer with PIN
+async function processTransfer(pin) {
+  const phone = document.getElementById("transfer-phone").value
+  const amount = Number.parseInt(document.getElementById("transfer-amount").value)
+  const note = document.getElementById("transfer-note").value
+  const errorElement = document.getElementById("transfer-error")
+  const successElement = document.getElementById("transfer-success")
+
+  pinEntryModal.classList.remove("active")
+  processingOverlay.classList.add("active")
+
   try {
-    const uploadFile = async (file, type) => {
-      const fileName = `${type}_${currentUser.user_id}_${Date.now()}.${file.name.split(".").pop()}`
-      const { data, error } = await supabase.storage.from("kyc-documents").upload(fileName, file)
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from("kyc-documents").getPublicUrl(fileName)
-      return urlData.publicUrl
+    const { data: sender, error: senderError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", currentUser.user_id)
+      .single()
+    if (senderError) throw senderError
+    if (sender.payment_pin !== pin) {
+      // Compare with stored PIN (should be hashed in real app)
+      processingOverlay.classList.remove("active")
+      errorElement.textContent = "PIN မှားယွင်းနေပါသည်။"
+      errorElement.style.display = "block"
+      successElement.style.display = "none"
+      return
     }
 
-    const passportUrl = await uploadFile(passportFile, "passport")
-    const selfieUrl = await uploadFile(selfieFile, "selfie")
-
-    const { error: updateError } = await supabase
+    const { data: recipient, error: recipientError } = await supabase
       .from("users")
-      .update({
-        passport_number: passportNumber,
-        address,
-        payment_pin: pin,
-        passport_image: passportUrl,
-        selfie_image: selfieUrl,
-        passport_status: "pending",
-        submitted_at: new Date().toISOString(),
-      })
-      .eq("user_id", currentUser.user_id)
-    if (updateError) throw updateError
+      .select("*")
+      .eq("phone", phone)
+      .single()
+    if (recipientError) throw recipientError
 
-    userKycStatus = "pending"
-    updateKycStatusDisplay()
-    errorEl.style.display = "none"
-    successEl.textContent = "KYC အချက်အလက်များ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ။ စိစစ်နေပါပြီ။"
-    successEl.style.display = "block"
-    document.getElementById("kyc-form").reset()
-    document.getElementById("passport-preview").innerHTML = ""
-    document.getElementById("selfie-preview").innerHTML = ""
-  } catch (err) {
-    logToConsole(`KYC submission error: ${err.message}`, "error")
-    errorEl.textContent = "KYC တင်သွင်းရာတွင် အမှားရှိနေပါသည်။"
-    errorEl.style.display = "block"
-  } finally {
-    hideProcessingOverlay()
+    const transactionId = `OPPER${Math.floor(1000000 + Math.random() * 9000000)}`
+    const { data: transaction, error: transactionError } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          id: transactionId,
+          from_phone: sender.phone,
+          from_name: sender.name || sender.phone, // Use name if available
+          to_phone: recipient.phone,
+          to_name: recipient.name || recipient.phone, // Use name if available
+          amount,
+          note,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single()
+    if (transactionError) throw transactionError
+
+    // Update balances in a transaction if possible, or ensure atomicity
+    const { error: updateSenderError } = await supabase
+      .from("users")
+      .update({ balance: sender.balance - amount })
+      .eq("user_id", sender.user_id)
+    if (updateSenderError) throw updateSenderError
+
+    const { error: updateRecipientError } = await supabase
+      .from("users")
+      .update({ balance: recipient.balance + amount })
+      .eq("user_id", recipient.user_id)
+    if (updateRecipientError) {
+      // Attempt to roll back sender's balance if recipient update fails
+      await supabase.from("users").update({ balance: sender.balance }).eq("user_id", sender.user_id)
+      throw updateRecipientError
+    }
+
+    userBalance -= amount
+    document.getElementById("user-balance").textContent = `လက်ကျန်ငွေ: ${userBalance.toLocaleString()} Ks`
+    document.getElementById("balance-amount").textContent = `${userBalance.toLocaleString()} Ks`
+
+    if (transferSentSound) transferSentSound.play().catch((e) => console.warn("Sent sound failed", e))
+
+    setTimeout(() => {
+      processingOverlay.classList.remove("active")
+      errorElement.style.display = "none"
+      successElement.textContent = `${amount.toLocaleString()} Ks ကို ${phone} သို့ အောင်မြင်စွာ လွှဲပြောင်းပြီးပါပြီ။`
+      successElement.style.display = "block"
+
+      showTransactionReceipt(transaction)
+      if (autoSaveReceipt) {
+        setTimeout(downloadReceipt, 700) // Slight delay for modal animation and rendering
+      }
+
+      document.getElementById("transfer-phone").value = ""
+      document.getElementById("transfer-amount").value = ""
+      document.getElementById("transfer-note").value = ""
+      loadTransactions()
+    }, 2000)
+  } catch (error) {
+    console.error("Transfer error:", error)
+    processingOverlay.classList.remove("active")
+    errorElement.textContent = "ငွေလွှဲရာတွင် အမှားရှိနေပါသည်။"
+    errorElement.style.display = "block"
+    successElement.style.display = "none"
   }
 }
 
-async function handleChangePassword() {
-  /* ... implementation ... */
-}
-async function handleChangePin() {
-  /* ... implementation ... */
-}
-async function handleDeleteAccount() {
-  /* ... implementation ... */
-}
-
+// Show transaction receipt
 function showTransactionReceipt(transaction) {
-  const receiptContainer = document.getElementById("receipt-container")
-  const isSender = transaction.from_phone === userProfileData.phone
-  const logoUrl = "https://github.com/Opper125/opper-payment/raw/main/logo.png"
+  supabase
+    .from("users")
+    .select("phone")
+    .eq("user_id", currentUser.user_id)
+    .single()
+    .then(({ data: userData, error: userFetchError }) => {
+      if (userFetchError || !userData) {
+        console.error("Error fetching user data for receipt:", userFetchError)
+        // Fallback or show error
+        return
+      }
 
-  receiptContainer.innerHTML = `
-        <div class="receipt">
-            <div class="receipt-logo-area">
-                <div class="opper-logo-container">
-                    <img src="${logoUrl}" alt="OPPER Logo" class="opper-logo-img">
-                    <span class="opper-logo-text">OPPER Pay</span>
+      const userPhone = userData.phone
+      const isSender = transaction.from_phone === userPhone
+      const receiptContainer = document.getElementById("receipt-container")
+      if (!receiptContainer) return
+
+      const receiptHTML = `
+            <div class="receipt">
+                <div class="receipt-logo-area">
+                    <div class="opper-logo-container">
+                        <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="opper-logo-img">
+                        <span class="opper-logo-text">OPPER Pay</span>
+                    </div>
+                    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo" class="github-logo-img">
+                </div>
+                
+                <div class="receipt-status">
+                    <div class="receipt-status-icon ${isSender ? "sent animated" : "received animated"}">
+                        <i class="fas ${isSender ? "fa-paper-plane" : "fa-check-circle"}"></i>
+                    </div>
+                    <div class="receipt-status-text">
+                        ${isSender ? "ငွေပေးပို့ပြီးပါပြီ" : "ငွေလက်ခံရရှိပါပြီ"}
+                    </div>
+                </div>
+                
+                <div class="receipt-amount">
+                    <div class="receipt-amount-label">ငွေပမာဏ</div>
+                    <div class="receipt-amount-value">${transaction.amount.toLocaleString()} Ks</div>
+                </div>
+                
+                <div class="receipt-details">
+                    <div class="receipt-detail-row">
+                        <div class="receipt-detail-label">From</div>
+                        <div class="receipt-detail-value">${transaction.from_name} (${transaction.from_phone})</div>
+                    </div>
+                    <div class="receipt-detail-row">
+                        <div class="receipt-detail-label">To</div>
+                        <div class="receipt-detail-value">${transaction.to_name} (${transaction.to_phone})</div>
+                    </div>
+                    ${
+                      transaction.note
+                        ? `
+                    <div class="receipt-detail-row">
+                        <div class="receipt-detail-label">Note</div>
+                        <div class="receipt-detail-value">${transaction.note}</div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    <div class="receipt-detail-row">
+                        <div class="receipt-detail-label">Date</div>
+                        <div class="receipt-detail-value">${new Date(transaction.created_at).toLocaleString("my-MM", { dateStyle: "medium", timeStyle: "short" })}</div>
+                    </div>
+                    <div class="receipt-detail-row">
+                        <div class="receipt-detail-label">Payment Method</div>
+                        <div class="receipt-detail-value">OPPER Pay</div>
+                    </div>
+                </div>
+                
+                <div class="receipt-transaction-id">
+                    <div class="receipt-transaction-id-label">ငွေလွှဲလုပ်ဆောင်ချက်အမှတ်စဥ်</div>
+                    <div class="receipt-transaction-id-value">${transaction.id}</div>
+                </div>
+                
+                <div class="receipt-footer">
+                    OPPER Payment ကိုအသုံးပြုသည့်အတွက် ကျေးဇူးတင်ပါသည်
                 </div>
             </div>
-            <div class="receipt-status">
-                <div class="receipt-status-icon ${isSender ? "sent" : "received"}">
-                    <i class="fas ${isSender ? "fa-paper-plane" : "fa-check-circle"}"></i>
-                </div>
-                <div class="receipt-status-text">
-                    ${isSender ? "ငွေပေးပို့ပြီးပါပြီ" : "ငွေလက်ခံရရှိပါပြီ"}
-                </div>
-            </div>
-            <div class="receipt-amount">
-                <div class="receipt-amount-label">ငွေပမာဏ</div>
-                <div class="receipt-amount-value">${transaction.amount.toLocaleString()} Ks</div>
-            </div>
-            <div class="receipt-details">
-                <div class="receipt-detail-row">
-                    <div class="receipt-detail-label">From</div>
-                    <div class="receipt-detail-value">${transaction.from_name || transaction.from_phone}</div>
-                </div>
-                <div class="receipt-detail-row">
-                    <div class="receipt-detail-label">To</div>
-                    <div class="receipt-detail-value">${transaction.to_name || transaction.to_phone}</div>
-                </div>
-                ${
-                  transaction.note
-                    ? `
-                <div class="receipt-detail-row">
-                    <div class="receipt-detail-label">Note</div>
-                    <div class="receipt-detail-value">${transaction.note}</div>
-                </div>`
-                    : ""
-                }
-                <div class="receipt-detail-row">
-                    <div class="receipt-detail-label">Date</div>
-                    <div class="receipt-detail-value">${new Date(transaction.created_at).toLocaleString("my-MM")}</div>
-                </div>
-            </div>
-            <div class="receipt-transaction-id">
-                <div class="receipt-transaction-id-label">ငွေလွှဲလုပ်ဆောင်ချက်အမှတ်စဥ်</div>
-                <div class="receipt-transaction-id-value">${transaction.id}</div>
-            </div>
-            <div class="receipt-footer">
-                OPPER Payment ကိုအသုံးပြုသည့်အတွက် ကျေးဇူးတင်ပါသည်။
-            </div>
-        </div>`
-  receiptModal.classList.add("active")
+        `
+
+      receiptContainer.innerHTML = receiptHTML
+      receiptModal.classList.add("active", "receipt-modal-animated") // Add animation class
+      // Remove animation class after it finishes to allow re-triggering
+      setTimeout(() => {
+        receiptModal.classList.remove("receipt-modal-animated")
+      }, 600) // Match CSS animation duration
+    })
 }
 
+// Download receipt as PNG
 function downloadReceipt() {
-  const receiptElement = document.getElementById("receipt-container")
-  if (!receiptElement) return
-  html2canvas(receiptElement, { scale: 2, backgroundColor: "#ffffff" })
+  const receiptElement = document.getElementById("receipt-container")?.querySelector(".receipt") // Target the .receipt div
+  if (!receiptElement || typeof html2canvas === "undefined") {
+    console.error("Receipt element or html2canvas not found for download.")
+    return
+  }
+
+  html2canvas(receiptElement, {
+    backgroundColor: "#ffffff",
+    useCORS: true, // Important if logos are from different domains
+    scale: 2, // Increase scale for better quality
+  })
     .then((canvas) => {
       const link = document.createElement("a")
       link.download = `OPPER-Receipt-${Date.now()}.png`
       link.href = canvas.toDataURL("image/png")
       link.click()
-      showToast("ပြေစာကို ဒေါင်းလုဒ်လုပ်ပြီးပါပြီ။", "success")
     })
     .catch((err) => {
-      logToConsole(`Error downloading receipt: ${err.message}`, "error")
-      showToast("ပြေစာ ဒေါင်းလုဒ်လုပ်ရာတွင် အမှားဖြစ်ပေါ်နေပါသည်။", "error")
+      console.error("Error generating receipt image:", err)
     })
 }
 
-function simulateGoogleAuth(type) {
-  // This is a simplified simulation.
-  showToast("Google အကောင့်ဖြင့် ချိတ်ဆက်ခြင်းကို မကြာမီရရှိနိုင်ပါမည်။", "info")
+// Simulate Google login/signup
+function simulateGoogleLogin(type) {
+  // This is a placeholder. In a real app, use Supabase's Google Auth provider.
+  console.warn("Simulating Google Login/Signup. Replace with actual Supabase Google Auth.")
+  const mockEmail = "googleuser@example.com"
+  const mockUserId = generateUserId(mockEmail)
+
+  if (type === "login") {
+    // Simulate finding an existing user
+    currentUser = { email: mockEmail, user_id: mockUserId, password: "mockpassword" } // Add mock password
+    localStorage.setItem("opperSession", JSON.stringify({ email: currentUser.email, user_id: currentUser.user_id }))
+    loadUserData().then(showAppContainer)
+    document.getElementById("login-success").textContent = "Google ဖြင့် အကောင့်ဝင်ရောက်နေပါသည်..."
+    document.getElementById("login-success").style.display = "block"
+  } else if (type === "signup") {
+    // Simulate creating a new user
+    currentUser = { email: mockEmail, user_id: mockUserId, password: "mockpassword" } // Add mock password
+    localStorage.setItem("opperSession", JSON.stringify({ email: currentUser.email, user_id: currentUser.user_id }))
+    // Simulate creating profile
+    userBalance = 0
+    userKycStatus = "pending"
+    // Show success and switch to login (or directly to app)
+    document.getElementById("signup-success").textContent = "Google ဖြင့် အကောင့်ဖွင့်ပြီးပါပြီ။ အကောင့်ဝင်နိုင်ပါပြီ။"
+    document.getElementById("signup-success").style.display = "block"
+    setTimeout(() => {
+      const loginTab = document.querySelector('.auth-tab[data-tab="login"]')
+      if (loginTab) loginTab.click()
+    }, 2000)
+  }
 }
 
+// Generate user ID based on email
 function generateUserId(email) {
-  const namePart = email
+  const username = email
     .split("@")[0]
     .replace(/[^a-zA-Z0-9]/g, "")
-    .slice(0, 5)
-  const randomPart = Math.random().toString(36).substring(2, 7)
-  return `${namePart}${randomPart}`.toUpperCase()
+    .slice(0, 4) // Sanitize and shorten
+  const randomNum = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, "0")
+  const timestamp = Date.now().toString().slice(-4)
+  return `${username}${randomNum}${timestamp}`.toUpperCase()
 }
 
+// Show specific page
 function showPage(pageName) {
-  document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"))
-  document.getElementById(`${pageName}-page`).classList.add("active")
-  document.querySelectorAll(".sidebar-nav li").forEach((li) => li.classList.remove("active"))
-  const activeLink = document.querySelector(`.sidebar-nav a[data-page="${pageName}"]`)
-  if (activeLink) {
-    activeLink.parentElement.classList.add("active")
+  document.querySelectorAll(".sidebar-nav a").forEach((link) => {
+    link.parentElement.classList.remove("active")
+    if (link.getAttribute("data-page") === pageName) {
+      link.parentElement.classList.add("active")
+    }
+  })
+  document.querySelectorAll(".page").forEach((page) => {
+    page.classList.remove("active")
+    if (page.id === `${pageName}-page`) {
+      page.classList.add("active")
+    }
+  })
+  const profileDropdown = document.getElementById("profile-dropdown")
+  if (profileDropdown) profileDropdown.classList.remove("active")
+
+  if (window.innerWidth < 992) {
+    const sidebar = document.getElementById("sidebar")
+    if (sidebar) sidebar.classList.remove("active")
   }
-  if (window.innerWidth < 992) document.getElementById("sidebar").classList.remove("active")
-
-  if (pageName === "receive") generateUserQRCode()
-  if (pageName === "announcements") displayAnnouncements(announcements, "full-announcements-list")
 }
 
+// Logout function
 function logout() {
-  currentUser = null
-  userProfileData = null
   localStorage.removeItem("opperSession")
+  currentUser = null
+  userBalance = 0
+  userKycStatus = "pending"
+  transactions = []
+  // Optionally clear other user-specific UI elements if not handled by showAuthContainer
   showAuthContainer()
-  logToConsole("User logged out.")
 }
 
+// Loader, Auth, App container visibility functions
 function showLoader() {
-  loader.classList.add("active")
+  if (loader) loader.classList.add("active")
 }
 function hideLoader() {
-  loader.classList.remove("active")
+  if (loader) loader.classList.remove("active")
 }
 function showAuthContainer() {
-  authContainer.classList.remove("hidden")
-  appContainer.classList.add("hidden")
+  if (authContainer) authContainer.classList.remove("hidden")
+  if (appContainer) appContainer.classList.add("hidden")
+  // Reset forms in auth container
+  document.getElementById("login-form")?.reset()
+  document.getElementById("signup-form")?.reset()
+  document.getElementById("login-error")?.style.setProperty("display", "none")
+  document.getElementById("login-success")?.style.setProperty("display", "none")
+  document.getElementById("signup-error")?.style.setProperty("display", "none")
+  document.getElementById("signup-success")?.style.setProperty("display", "none")
 }
 function showAppContainer() {
-  authContainer.classList.add("hidden")
-  appContainer.classList.remove("hidden")
-}
-function showPinEntryModal() {
-  pinEntryModal.classList.add("active")
+  if (authContainer) authContainer.classList.add("hidden")
+  if (appContainer) appContainer.classList.remove("hidden")
 }
 
-function showProcessingOverlay(message) {
-  document.getElementById("processing-message").textContent = message
-  processingOverlay.classList.add("active")
-  document.querySelectorAll(".processing-steps .step").forEach((s) => s.classList.remove("active"))
-}
-function updateProcessingStep(stepId, isActive) {
-  const stepEl = document.getElementById(stepId)
-  if (stepEl) {
-    if (isActive) stepEl.classList.add("active")
-    else stepEl.classList.remove("active")
-  }
-}
-function hideProcessingOverlay() {
-  processingOverlay.classList.remove("active")
-}
-
-document.getElementById("scan-qr-btn")?.addEventListener("click", () => {
-  showToast("QR Code စကင်ဖတ်ခြင်း လုပ်ဆောင်ချက်ကို မကြာမီထည့်သွင်းပါမည်။", "info")
-  logToConsole("QR Scan button clicked - feature not yet implemented.")
-})
+// Initial theme setup
+document.body.setAttribute("data-theme", currentTheme)
+const autoSaveToggle = document.getElementById("auto-save-receipt")
+if (autoSaveToggle) autoSaveToggle.checked = autoSaveReceipt
