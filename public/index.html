@@ -24,9 +24,7 @@
     <!-- Loader -->
     <div class="loader-container" id="loader">
         <div class="loader">
-            <svg viewBox="0 0 80 80">
-                <circle id="loader-circle" cx="40" cy="40" r="32"></circle>
-            </svg>
+            <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="intro-logo-loader">
             <div class="loader-text">OPPER</div>
         </div>
     </div>
@@ -46,7 +44,7 @@
             </div>
 
             <!-- Login Form -->
-            <div class="auth-form active" id="login-form">
+            <form class="auth-form active" id="login-form">
                 <div class="form-group">
                     <label for="login-email">အီးမေးလ်</label>
                     <div class="input-with-icon">
@@ -69,23 +67,23 @@
                     </div>
                     <a href="#" class="forgot-password">စကားဝှက်မေ့သွားပြီလား?</a>
                 </div>
-                <button class="btn btn-primary btn-block" id="login-btn">
+                <button type="submit" class="btn btn-primary btn-block" id="login-btn">
                     <span>အကောင့်ဝင်မည်</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
                 <div class="auth-separator">
                     <span>သို့မဟုတ်</span>
                 </div>
-                <button class="btn btn-outline btn-block" id="google-login-btn">
+                <button type="button" class="btn btn-outline btn-block" id="google-login-btn">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
                     <span>Google ဖြင့် အကောင့်ဝင်မည်</span>
                 </button>
                 <div class="auth-message error" id="login-error"></div>
                 <div class="auth-message success" id="login-success"></div>
-            </div>
+            </form>
 
             <!-- Signup Form -->
-            <div class="auth-form" id="signup-form">
+            <form class="auth-form" id="signup-form">
                 <div class="form-group">
                     <label for="signup-email">အီးမေးလ်</label>
                     <div class="input-with-icon">
@@ -122,20 +120,20 @@
                         <label for="terms-agree">စည်းမျဉ်းစည်းကမ်းများကို သဘောတူပါသည်</label>
                     </div>
                 </div>
-                <button class="btn btn-primary btn-block" id="signup-btn">
+                <button type="submit" class="btn btn-primary btn-block" id="signup-btn">
                     <span>အကောင့်ဖွင့်မည်</span>
                     <i class="fas fa-user-plus"></i>
                 </button>
                 <div class="auth-separator">
                     <span>သို့မဟုတ်</span>
                 </div>
-                <button class="btn btn-outline btn-block" id="google-signup-btn">
+                <button type="button" class="btn btn-outline btn-block" id="google-signup-btn">
                     <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
                     <span>Google ဖြင့် အကောင့်ဖွင့်မည်</span>
                 </button>
                 <div class="auth-message error" id="signup-error"></div>
                 <div class="auth-message success" id="signup-success"></div>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -257,13 +255,13 @@
                     </div>
                     <div class="balance-amount" id="balance-amount">0 Ks</div>
                     <div class="balance-status">
-                        <div class="status-item">
+                        <div class="status-item" id="kyc-status-display">
                             <i class="fas fa-shield-alt"></i>
-                            <span id="kyc-status">KYC: စောင့်ဆိုင်းဆဲ</span>
+                            <span id="kyc-status-text">KYC: Level 1 (စောင့်ဆိုင်းဆဲ)</span>
                         </div>
-                        <div class="status-item">
+                        <div class="status-item" id="transfer-status-display">
                             <i class="fas fa-exchange-alt"></i>
-                            <span id="transfer-status">ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်</span>
+                            <span id="transfer-status-text">ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်</span>
                         </div>
                     </div>
                 </div>
@@ -321,13 +319,15 @@
                     <p>အခြားသူထံသို့ ငွေလွှဲပြောင်းပါ</p>
                 </div>
 
-                <div id="recipient-info" style="display: none;"></div>
-                <div class="transfer-form">
+                <form class="transfer-form" id="transfer-form">
                     <div class="form-group">
                         <label for="transfer-phone">လက်ခံမည့်သူ၏ ဖုန်းနံပါတ်</label>
                         <div class="input-with-icon">
                             <i class="fas fa-phone"></i>
                             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required>
+                        </div>
+                        <div id="recipient-info" class="recipient-info-card" style="display: none;">
+                            <!-- Recipient info will be injected here by script.js -->
                         </div>
                     </div>
                     <div class="form-group">
@@ -344,13 +344,13 @@
                             <input type="text" id="transfer-note" placeholder="မှတ်ချက်ထည့်ပါ">
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-block" id="transfer-btn">
+                    <button type="submit" class="btn btn-primary btn-block" id="transfer-btn">
                         <span>ငွေလွှဲမည်</span>
                         <i class="fas fa-paper-plane"></i>
                     </button>
                     <div class="auth-message error" id="transfer-error"></div>
                     <div class="auth-message success" id="transfer-success"></div>
-                </div>
+                </form>
             </section>
 
             <!-- History Page -->
@@ -400,12 +400,12 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="kyc-status-text">
-                        <h3>KYC အတည်ပြုမှု အခြေအနေ</h3>
+                        <h3 id="kyc-level-title">KYC Level 1</h3>
                         <p id="kyc-status-message">စောင့်ဆိုင်းဆဲ</p>
                     </div>
                 </div>
 
-                <div class="kyc-form" id="kyc-form">
+                <form class="kyc-form" id="kyc-form">
                     <div class="form-group">
                         <label for="kyc-passport">နိုင်ငံကူးလက်မှတ်နံပါတ်</label>
                         <div class="input-with-icon">
@@ -442,7 +442,7 @@
                             <input type="file" id="passport-upload" accept="image/*" required>
                             <label for="passport-upload" class="file-upload-label">
                                 <i class="fas fa-upload"></i>
-                                <span>ဖိုင်ရွေးရန်</span>
+                                <span id="passport-file-name">ဖိုင်ရွေးရန်</span>
                             </label>
                             <div class="file-preview" id="passport-preview"></div>
                         </div>
@@ -453,18 +453,18 @@
                             <input type="file" id="selfie-upload" accept="image/*" required>
                             <label for="selfie-upload" class="file-upload-label">
                                 <i class="fas fa-upload"></i>
-                                <span>ဖိုင်ရွေးရန်</span>
+                                <span id="selfie-file-name">ဖိုင်ရွေးရန်</span>
                             </label>
                             <div class="file-preview" id="selfie-preview"></div>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-block" id="kyc-submit-btn">
+                    <button type="submit" class="btn btn-primary btn-block" id="kyc-submit-btn">
                         <span>တင်သွင်းမည်</span>
                         <i class="fas fa-check-circle"></i>
                     </button>
                     <div class="auth-message error" id="kyc-error"></div>
                     <div class="auth-message success" id="kyc-success"></div>
-                </div>
+                </form>
             </section>
 
             <!-- Settings Page -->
@@ -505,17 +505,13 @@
                 <div class="settings-card">
                     <h3>အပြင်အဆင်</h3>
                     <div class="theme-selector">
-                        <div class="theme-option active" data-theme="light">
-                            <div class="theme-preview light"></div>
-                            <span>အလင်းရောင်</span>
-                        </div>
-                        <div class="theme-option" data-theme="dark">
+                        <div class="theme-option active" data-theme="dark">
                             <div class="theme-preview dark"></div>
                             <span>အမှောင်ရောင်</span>
                         </div>
-                        <div class="theme-option" data-theme="system">
-                            <div class="theme-preview system"></div>
-                            <span>စနစ်အတိုင်း</span>
+                        <div class="theme-option" data-theme="light">
+                            <div class="theme-preview light"></div>
+                            <span>အလင်းရောင်</span>
                         </div>
                     </div>
                 </div>
@@ -524,7 +520,7 @@
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
                         <p>OPPER Payment v1.0</p>
-                        <p>&copy; 2023 OPPER Payment. All rights reserved.</p>
+                        <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
 
@@ -556,7 +552,7 @@
         </div>
     </div>
 
-    <!-- Change Password Modal -->
+    <!-- Modals -->
     <div class="modal" id="change-password-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -598,7 +594,6 @@
         </div>
     </div>
 
-    <!-- Change PIN Modal -->
     <div class="modal" id="change-pin-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -640,7 +635,6 @@
         </div>
     </div>
 
-    <!-- Delete Account Modal -->
     <div class="modal" id="delete-account-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -675,25 +669,6 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div class="modal" id="confirmation-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="confirmation-title">အတည်ပြုပါ</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmation-message">သေချာပါသလား?</p>
-                <div class="auth-message error" id="confirmation-error"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline modal-cancel">မလုပ်တော့ပါ</button>
-                <button class="btn btn-primary" id="confirm-action-btn">အတည်ပြုသည်</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PIN Entry Modal -->
     <div class="modal" id="pin-entry-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -721,7 +696,6 @@
         </div>
     </div>
 
-    <!-- Receipt Modal -->
     <div class="modal" id="receipt-modal">
         <div class="modal-content receipt-modal-content">
             <div class="modal-header receipt-header">
@@ -743,10 +717,7 @@
     <div class="processing-overlay" id="processing-overlay">
         <div class="processing-content">
             <div class="loader">
-                <svg viewBox="0 0 80 80">
-                    <circle id="processing-circle" cx="40" cy="40" r="32"></circle>
-                </svg>
-                <div class="loader-text">OPPER</div>
+                <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="Processing..." class="processing-logo">
             </div>
             <p id="processing-message">ငွေလွှဲလုပ်ဆောင်နေသည်...</p>
         </div>
