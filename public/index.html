@@ -32,7 +32,6 @@
         <div class="gradient-orb orb-1"></div>
         <div class="gradient-orb orb-2"></div>
         <div class="gradient-orb orb-3"></div>
-        <!-- <div class="gradient-orb orb-4"></div> Removed as it was not in original CSS -->
         <div class="floating-particles">
             <div class="particle"></div>
             <div class="particle"></div>
@@ -402,7 +401,6 @@
                     <p>အခြားသူထံသို့ ငွေလွှဲပြောင်းပါ</p>
                 </div>
 
-                <div id="recipient-info" style="display: none;"></div>
                 <div class="transfer-form">
                     <div class="form-group">
                         <label for="transfer-phone">လက်ခံမည့်သူ၏ ဖုန်းနံပါတ်</label>
@@ -411,6 +409,7 @@
                             <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required>
                             <div class="input-focus-line"></div>
                         </div>
+                        <div id="recipient-info" class="recipient-info-box"></div>
                     </div>
                     <div class="form-group">
                         <label for="transfer-amount">ငွေပမာဏ (Ks)</label>
@@ -428,7 +427,7 @@
                             <div class="input-focus-line"></div>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-block clickable" id="transfer-btn">
+                    <button class="btn btn-primary btn-block clickable" id="transfer-btn" disabled>
                         <span class="btn-text">ငွေလွှဲမည်</span>
                         <i class="fas fa-paper-plane btn-icon"></i>
                         <div class="btn-ripple"></div>
@@ -640,7 +639,7 @@
                 <div class="settings-card">
                     <h3>အကြောင်း</h3>
                     <div class="about-info">
-                        <p>OPPER Payment v2.1</p> <!-- Version updated for new features -->
+                        <p>OPPER Payment v2.2</p> <!-- Version updated for new features -->
                         <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
                     </div>
                 </div>
@@ -848,7 +847,7 @@
     </div>
 
     <!-- Receipt Modal -->
-    <div class="modal receipt-modal-animated" id="receipt-modal"> <!-- Added receipt-modal-animated class -->
+    <div class="modal receipt-modal-animated" id="receipt-modal">
         <div class="modal-content receipt-modal-content">
             <div class="modal-header receipt-header">
                 <h3>ငွေလွှဲပြေစာ</h3>
@@ -914,7 +913,7 @@
     <!-- Audio Elements -->
     <audio id="transfer-sent-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_sent.mp3" preload="auto"></audio>
     <audio id="transfer-received-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_received.mp3" preload="auto"></audio>
-    <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio> <!-- Please ensure click.mp3 exists at this URL or replace it -->
+    <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio>
 
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
