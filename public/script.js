@@ -1065,17 +1065,19 @@ async function processTransfer(pin) {
 function showTransactionReceipt(transaction) {
   const userPhone = currentUser.phone
   const isSender = transaction.from_phone === userPhone
-  const logoUrl = "https://github.com/Opper125/opper-payment/raw/42da71c16cb8ee8f19310e9be230acd639efc48a/logo.png"
-  const githubLogoUrl = "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+  const logoUrl = "https://github.com/Opper125/opper-payment/raw/main/logo.png"
+
+  // Determine which phone numbers to display fully or masked
+  const fromDisplayPhone = isSender ? transaction.from_phone : maskPhoneNumber(transaction.from_phone)
+  const toDisplayPhone = isSender ? transaction.to_phone : maskPhoneNumber(transaction.to_phone)
 
   const receiptHTML = `
       <div class="receipt" id="receipt-to-download">
-          <div class="receipt-logo-area" style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="opper-logo-container" style="display: flex; align-items: center; gap: 10px;">
+          <div class="receipt-logo-area">
+              <div class="opper-logo-container">
                   <img src="${logoUrl}" alt="OPPER Logo" class="opper-logo-img" crossOrigin="anonymous">
                   <span class="opper-logo-text">OPPER Pay</span>
               </div>
-              <img src="${githubLogoUrl}" alt="GitHub Logo" style="width: 32px; height: 32px; opacity: 0.8;" crossOrigin="anonymous">
           </div>
           <div class="receipt-status">
               <div class="receipt-status-icon ${isSender ? "sent" : "received"}">
@@ -1090,11 +1092,11 @@ function showTransactionReceipt(transaction) {
           <div class="receipt-details">
               <div class="receipt-detail-row">
                   <div class="receipt-detail-label">From</div>
-                  <div class="receipt-detail-value">${transaction.from_name} (${transaction.from_phone})</div>
+                  <div class="receipt-detail-value">${transaction.from_name} (${fromDisplayPhone})</div>
               </div>
               <div class="receipt-detail-row">
                   <div class="receipt-detail-label">To</div>
-                  <div class="receipt-detail-value">${transaction.to_name} (${transaction.to_phone})</div>
+                  <div class="receipt-detail-value">${transaction.to_name} (${toDisplayPhone})</div>
               </div>
               ${transaction.note ? `<div class="receipt-detail-row"><div class="receipt-detail-label">Note</div><div class="receipt-detail-value">${transaction.note}</div></div>` : ""}
               <div class="receipt-detail-row">
