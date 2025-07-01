@@ -1058,7 +1058,7 @@ function showTransactionReceipt(transaction) {
       const userPhone = userData.phone
       const isSender = transaction.from_phone === userPhone
       // Use the direct raw link for the logo
-      const logoUrl = "https://github.com/Opper125/opper-payment/raw/42da71c16cb8ee8f19310e9be230acd639efc48a/logo.png"
+      const logoUrl = "https://github.com/Opper125/opper-payment/raw/main/logo.png"
 
       const receiptHTML = `
         <div class="receipt" id="receipt-to-download">
