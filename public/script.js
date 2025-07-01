@@ -94,6 +94,14 @@ function playSound(soundId) {
   }
 }
 
+// Mask phone number utility
+function maskPhoneNumber(phone) {
+  if (!phone || phone.length < 4) {
+    return phone // Return as is if invalid
+  }
+  return `*******${phone.slice(-4)}`
+}
+
 // --- AUTH & SESSION MANAGEMENT ---
 
 async function checkSession() {
@@ -140,6 +148,7 @@ async function loadUserData() {
 
     userBalance = userData.balance || 0
     userKycStatus = userData.passport_status || "pending"
+    currentUser.phone = userData.phone // Store phone number on current user object
 
     updateUserUI(userData)
 
@@ -318,95 +327,124 @@ function setupRealtimeSubscriptions() {
 
 async function loadTransactions() {
   try {
-    if (!currentUser) return
-
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("phone")
-      .eq("user_id", currentUser.user_id)
-      .single()
-
-    if (userError || !userData || !userData.phone) return
-
-    const userPhone = userData.phone
+    if (!currentUser || !currentUser.phone) return
 
     const { data: transactionsData, error } = await supabase
       .from("transactions")
       .select("*")
-      .or(`from_phone.eq.${userPhone},to_phone.eq.${userPhone}`)
+      .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
       .order("created_at", { ascending: false })
-      .limit(10)
 
     if (error) throw error
 
     transactions = transactionsData || []
-    updateTransactionsUI(transactions, userPhone)
+    renderRecentTransactions()
+    applyHistoryFilters() // Initial render for history page
   } catch (error) {
     console.error("Load transactions error:", error)
   }
 }
 
-function updateTransactionsUI(transactions, userPhone) {
-  const recentTransactionsList = document.getElementById("recent-transactions-list")
-  const historyTransactionsList = document.getElementById("history-transactions-list")
+function renderTransactionList(listElement, transactionsToRender, userPhone) {
+  listElement.innerHTML = ""
 
-  recentTransactionsList.innerHTML = ""
-  historyTransactionsList.innerHTML = ""
-
-  if (!transactions || transactions.length === 0) {
+  if (!transactionsToRender || transactionsToRender.length === 0) {
     const emptyState = `
-        <div class="empty-state">
-            <i class="fas fa-history"></i>
-            <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
-        </div>
-    `
-    recentTransactionsList.innerHTML = emptyState
-    historyTransactionsList.innerHTML = emptyState
+          <div class="empty-state">
+              <i class="fas fa-history"></i>
+              <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+          </div>
+      `
+    listElement.innerHTML = emptyState
     return
   }
 
-  transactions.forEach((transaction, index) => {
+  transactionsToRender.forEach((transaction) => {
     const isSender = transaction.from_phone === userPhone
-    const otherParty = isSender ? transaction.to_phone : transaction.from_phone
+    const otherPartyPhone = isSender ? transaction.to_phone : maskPhoneNumber(transaction.from_phone)
+    const otherPartyName = isSender ? transaction.to_name : transaction.from_name
     const transactionDate = new Date(transaction.created_at).toLocaleString()
 
     const transactionItem = `
-        <div class="transaction-item ${isSender ? "sent" : "received"}">
-            <div class="transaction-icon">
-                <i class="fas ${isSender ? "fa-arrow-up" : "fa-arrow-down"}"></i>
-            </div>
-            <div class="transaction-details">
-                <div class="transaction-title">
-                    ${isSender ? "ပို့ထားသော" : "လက်ခံရရှိသော"}
-                </div>
-                <div class="transaction-subtitle">
-                    ${otherParty} ${transaction.note ? `- ${transaction.note}` : ""}
-                </div>
-                <div class="transaction-date">${transactionDate}</div>
-            </div>
-            <div class="transaction-actions">
-                <div class="transaction-amount ${isSender ? "negative" : "positive"}">
-                    ${isSender ? "-" : "+"} ${transaction.amount.toLocaleString()} Ks
-                </div>
-                <button class="transaction-view-btn clickable" data-transaction-index="${index}">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-        </div>
-    `
-
-    if (index < 5) {
-      recentTransactionsList.innerHTML += transactionItem
-    }
-    historyTransactionsList.innerHTML += transactionItem
+          <div class="transaction-item ${isSender ? "sent" : "received"}">
+              <div class="transaction-icon">
+                  <i class="fas ${isSender ? "fa-arrow-up" : "fa-arrow-down"}"></i>
+              </div>
+              <div class="transaction-details">
+                  <div class="transaction-title">
+                      ${isSender ? "ပို့ထားသော" : "လက်ခံရရှိသော"}
+                  </div>
+                  <div class="transaction-subtitle">
+                      ${otherPartyName} (${otherPartyPhone}) ${transaction.note ? `- ${transaction.note}` : ""}
+                  </div>
+                  <div class="transaction-date">${transactionDate}</div>
+              </div>
+              <div class="transaction-actions">
+                  <div class="transaction-amount ${isSender ? "negative" : "positive"}">
+                      ${isSender ? "-" : "+"} ${transaction.amount.toLocaleString()} Ks
+                  </div>
+                  <button class="transaction-view-btn clickable" data-transaction-id="${transaction.id}">
+                      <i class="fas fa-eye"></i>
+                  </button>
+              </div>
+          </div>
+      `
+    listElement.innerHTML += transactionItem
   })
 
-  document.querySelectorAll(".transaction-view-btn").forEach((button) => {
+  listElement.querySelectorAll(".transaction-view-btn").forEach((button) => {
     button.addEventListener("click", () => {
-      const transactionIndex = button.getAttribute("data-transaction-index")
-      showTransactionReceipt(transactions[transactionIndex])
+      const transactionId = button.getAttribute("data-transaction-id")
+      const transaction = transactions.find((t) => t.id === transactionId)
+      if (transaction) {
+        showTransactionReceipt(transaction)
+      }
     })
   })
+}
+
+function renderRecentTransactions() {
+  const recentTransactionsList = document.getElementById("recent-transactions-list")
+  const recent = transactions.slice(0, 5)
+  renderTransactionList(recentTransactionsList, recent, currentUser.phone)
+}
+
+function applyHistoryFilters() {
+  const typeFilter = document.getElementById("history-type").value
+  const dateFilter = document.getElementById("history-date").value
+  const historyTransactionsList = document.getElementById("history-transactions-list")
+
+  let filtered = [...transactions]
+
+  // 1. Filter by type
+  if (typeFilter === "sent") {
+    filtered = filtered.filter((t) => t.from_phone === currentUser.phone)
+  } else if (typeFilter === "received") {
+    filtered = filtered.filter((t) => t.to_phone === currentUser.phone)
+  }
+
+  // 2. Filter by date
+  const now = new Date()
+  if (dateFilter !== "all") {
+    filtered = filtered.filter((t) => {
+      const txDate = new Date(t.created_at)
+      if (dateFilter === "today") {
+        return txDate.toDateString() === now.toDateString()
+      }
+      if (dateFilter === "week") {
+        const oneWeekAgo = new Date()
+        oneWeekAgo.setDate(now.getDate() - 7)
+        return txDate >= oneWeekAgo
+      }
+      if (dateFilter === "month") {
+        return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear()
+      }
+      return true
+    })
+  }
+
+  // 3. Render the filtered list
+  renderTransactionList(historyTransactionsList, filtered, currentUser.phone)
 }
 
 // --- UI INITIALIZATION & EVENT LISTENERS ---
@@ -455,7 +493,6 @@ function initializeUI() {
 
   // Sidebar navigation
   const sidebarLinks = document.querySelectorAll(".sidebar-nav a")
-  const pages = document.querySelectorAll(".page")
   sidebarLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault()
@@ -574,6 +611,10 @@ function initializeUI() {
 
   // Download receipt button
   document.getElementById("download-receipt").addEventListener("click", downloadReceipt)
+
+  // History filter listeners
+  document.getElementById("history-type").addEventListener("change", applyHistoryFilters)
+  document.getElementById("history-date").addEventListener("change", applyHistoryFilters)
 
   // Form submissions
   setupFormSubmissions()
@@ -731,21 +772,8 @@ function setupFormSubmissions() {
     transferBtn.disabled = true
 
     try {
-      // Fetch current user's phone number first
-      const { data: currentUserData, error: currentUserError } = await supabase
-        .from("users")
-        .select("phone")
-        .eq("user_id", currentUser.user_id)
-        .single()
-
-      if (currentUserError || !currentUserData) {
-        throw new Error("Could not fetch current user's phone number.")
-      }
-
-      const currentUserPhone = currentUserData.phone
-
       // Check if the input phone is the user's own phone
-      if (phone === currentUserPhone) {
+      if (phone === currentUser.phone) {
         recipientInfoBox.className = "recipient-info-box error show"
         recipientInfoBox.innerHTML = `<i class="icon fas fa-exclamation-circle"></i> ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။`
         transferBtn.disabled = true
@@ -814,21 +842,8 @@ function setupFormSubmissions() {
       return
     }
 
-    // Final validation: Prevent self-transfer
-    const { data: currentUserData, error: currentUserError } = await supabase
-      .from("users")
-      .select("phone")
-      .eq("user_id", currentUser.user_id)
-      .single()
-
-    if (currentUserError || !currentUserData) {
-      errorElement.textContent = "အသုံးပြုသူ အချက်အလက် ရယူရာတွင် အမှားရှိနေပါသည်။"
-      errorElement.style.display = "block"
-      return
-    }
-
     const recipientPhone = document.getElementById("transfer-phone").value
-    if (recipientPhone === currentUserData.phone) {
+    if (recipientPhone === currentUser.phone) {
       errorElement.textContent = "ကိုယ့်ကိုယ်ကို ငွေလွှဲ၍မရပါ။"
       errorElement.style.display = "block"
       return
@@ -1048,67 +1063,60 @@ async function processTransfer(pin) {
 }
 
 function showTransactionReceipt(transaction) {
-  supabase
-    .from("users")
-    .select("phone")
-    .eq("user_id", currentUser.user_id)
-    .single()
-    .then(({ data: userData }) => {
-      if (!userData) return
-      const userPhone = userData.phone
-      const isSender = transaction.from_phone === userPhone
-      // Use the direct raw link for the logo
-      const logoUrl = "https://github.com/Opper125/opper-payment/blob/284893e479d27f75281d4a6b8811ebb678f638f3/logo.png"
+  const userPhone = currentUser.phone
+  const isSender = transaction.from_phone === userPhone
+  const logoUrl = "https://github.com/Opper125/opper-payment/raw/42da71c16cb8ee8f19310e9be230acd639efc48a/logo.png"
+  const githubLogoUrl = "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
-      const receiptHTML = `
-        <div class="receipt" id="receipt-to-download">
-            <div class="receipt-logo-area">
-                <div class="opper-logo-container">
-                    <img src="${logoUrl}" alt="OPPER Logo" class="opper-logo-img" crossOrigin="anonymous">
-                    <span class="opper-logo-text">OPPER Pay</span>
-                </div>
-            </div>
-            <div class="receipt-status">
-                <div class="receipt-status-icon ${isSender ? "sent" : "received"}">
-                    <i class="fas ${isSender ? "fa-paper-plane" : "fa-check-circle"}"></i>
-                </div>
-                <div class="receipt-status-text">${isSender ? "ငွေပေးပို့ပြီးပါပြီ" : "ငွေလက်ခံရရှိပါပြီ"}</div>
-            </div>
-            <div class="receipt-amount">
-                <div class="receipt-amount-label">ငွေပမာဏ</div>
-                <div class="receipt-amount-value">${transaction.amount.toLocaleString()} Ks</div>
-            </div>
-            <div class="receipt-details">
-                <div class="receipt-detail-row">
-                    <div class="receipt-detail-label">From</div>
-                    <div class="receipt-detail-value">${transaction.from_name} (${transaction.from_phone})</div>
-                </div>
-                <div class="receipt-detail-row">
-                    <div class="receipt-detail-label">To</div>
-                    <div class="receipt-detail-value">${transaction.to_name} (${transaction.to_phone})</div>
-                </div>
-                ${transaction.note ? `<div class="receipt-detail-row"><div class="receipt-detail-label">Note</div><div class="receipt-detail-value">${transaction.note}</div></div>` : ""}
-                <div class="receipt-detail-row">
-                    <div class="receipt-detail-label">Date</div>
-                    <div class="receipt-detail-value">${new Date(transaction.created_at).toLocaleString()}</div>
-                </div>
-            </div>
-            <div class="receipt-transaction-id">
-                <div class="receipt-transaction-id-label">ငွေလွှဲလုပ်ဆောင်ချက်အမှတ်စဥ်</div>
-                <div class="receipt-transaction-id-value-wrapper">
-                    <span class="receipt-transaction-id-value">${transaction.id}</span>
-                    <button class="copy-tx-id-btn clickable" onclick="copyTransactionId('${transaction.id}', this)">
-                        <i class="far fa-copy"></i>
-                        <span class="tooltip-text">Copied!</span>
-                    </button>
-                </div>
-            </div>
-            <div class="receipt-footer">OPPER Payment ကိုအသုံးပြုသည့်အတွက် ကျေးဇူးတင်ပါသည်</div>
-        </div>
-    `
-      document.getElementById("receipt-container").innerHTML = receiptHTML
-      receiptModal.classList.add("active")
-    })
+  const receiptHTML = `
+      <div class="receipt" id="receipt-to-download">
+          <div class="receipt-logo-area" style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="opper-logo-container" style="display: flex; align-items: center; gap: 10px;">
+                  <img src="${logoUrl}" alt="OPPER Logo" class="opper-logo-img" crossOrigin="anonymous">
+                  <span class="opper-logo-text">OPPER Pay</span>
+              </div>
+              <img src="${githubLogoUrl}" alt="GitHub Logo" style="width: 32px; height: 32px; opacity: 0.8;" crossOrigin="anonymous">
+          </div>
+          <div class="receipt-status">
+              <div class="receipt-status-icon ${isSender ? "sent" : "received"}">
+                  <i class="fas ${isSender ? "fa-paper-plane" : "fa-check-circle"}"></i>
+              </div>
+              <div class="receipt-status-text">${isSender ? "ငွေပေးပို့ပြီးပါပြီ" : "ငွေလက်ခံရရှိပါပြီ"}</div>
+          </div>
+          <div class="receipt-amount">
+              <div class="receipt-amount-label">ငွေပမာဏ</div>
+              <div class="receipt-amount-value">${transaction.amount.toLocaleString()} Ks</div>
+          </div>
+          <div class="receipt-details">
+              <div class="receipt-detail-row">
+                  <div class="receipt-detail-label">From</div>
+                  <div class="receipt-detail-value">${transaction.from_name} (${transaction.from_phone})</div>
+              </div>
+              <div class="receipt-detail-row">
+                  <div class="receipt-detail-label">To</div>
+                  <div class="receipt-detail-value">${transaction.to_name} (${transaction.to_phone})</div>
+              </div>
+              ${transaction.note ? `<div class="receipt-detail-row"><div class="receipt-detail-label">Note</div><div class="receipt-detail-value">${transaction.note}</div></div>` : ""}
+              <div class="receipt-detail-row">
+                  <div class="receipt-detail-label">Date</div>
+                  <div class="receipt-detail-value">${new Date(transaction.created_at).toLocaleString()}</div>
+              </div>
+          </div>
+          <div class="receipt-transaction-id">
+              <div class="receipt-transaction-id-label">ငွေလွှဲလုပ်ဆောင်ချက်အမှတ်စဥ်</div>
+              <div class="receipt-transaction-id-value-wrapper">
+                  <span class="receipt-transaction-id-value">${transaction.id}</span>
+                  <button class="copy-tx-id-btn clickable" onclick="copyTransactionId('${transaction.id}', this)">
+                      <i class="far fa-copy"></i>
+                      <span class="tooltip-text">Copied!</span>
+                  </button>
+              </div>
+          </div>
+          <div class="receipt-footer">OPPER Payment ကိုအသုံးပြုသည့်အတွက် ကျေးဇူးတင်ပါသည်</div>
+      </div>
+  `
+  document.getElementById("receipt-container").innerHTML = receiptHTML
+  receiptModal.classList.add("active")
 }
 
 function copyTransactionId(txId, element) {
@@ -1125,14 +1133,8 @@ function downloadReceipt() {
   if (!receiptElement) return
   html2canvas(receiptElement, {
     useCORS: true,
-    backgroundColor: "#ffffff", // Force a white background for the canvas
-    scale: 3, // Increase scale for higher resolution output
-    windowWidth: receiptElement.scrollWidth,
-    windowHeight: receiptElement.scrollHeight,
-    onclone: (document) => {
-      // On the cloned document, find the receipt and apply a class to remove box-shadow for cleaner capture
-      document.getElementById("receipt-to-download").classList.add("no-shadow-for-download")
-    },
+    backgroundColor: "#ffffff",
+    scale: 3,
   }).then((canvas) => {
     const link = document.createElement("a")
     link.download = `OPPER-Receipt-${Date.now()}.png`
