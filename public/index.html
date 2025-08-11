@@ -1,20 +1,14 @@
 <!DOCTYPE html>
 <html lang="my">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OPPER Payment - Premium Mobile Banking</title>
-    <link rel="icon" type="image/png" href="https://github.com/Opper125/opper-payment/raw/main/logo.png">
-    
-    <!-- External Libraries -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OPPER Payment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
         :root {
             --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --primary-dark: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
@@ -904,1236 +898,913 @@
     </style>
 </head>
 <body>
-    <!-- Intro Animation -->
-    <div class="intro-animation" id="intro-animation">
-        <div class="logo-container">
-            <div class="logo-ring"></div>
-            <div class="logo-ring"></div>
-            <div class="logo-ring"></div>
-            <div class="logo-text">OPPER</div>
-            <div class="intro-tagline">Premium Mobile Banking</div>
-        </div>
-    </div>
-
-    <!-- Theme Switcher -->
-    <button class="theme-switcher" onclick="toggleTheme()" aria-label="Toggle Theme">
-        <i class="fas fa-moon" id="theme-icon"></i>
-    </button>
-
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Home Section -->
-        <section id="home" class="section active">
-            <div class="header slide-in-up">
-                <div class="profile-section">
-                    <div class="profile-avatar" id="profile-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div>
-                        <h2 style="font-weight: 700; margin-bottom: 5px;">မင်္ဂလာပါ!</h2>
-                        <p style="color: var(--text-secondary); font-size: 14px;" id="user-phone">အကောင့်ဝင်ရောက်ပါ</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Balance Card -->
-            <div class="balance-card card slide-in-up stagger-1">
-                <h3 style="color: var(--text-secondary); font-size: 16px; margin-bottom: 10px;">လက်ကျန်ငွေ</h3>
-                <div class="balance-display" id="balance-amount">0</div>
-                <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">Ks</div>
-                <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 14px;">
-                    <div>
-                        <span style="color: var(--text-secondary);">KYC:</span>
-                        <span class="status-badge status-pending" id="kyc-status">စောင့်ဆိုင်းဆဲ</span>
-                    </div>
-                    <div>
-                        <span style="color: var(--text-secondary);">ငွေလွှဲခြင်း:</span>
-                        <span class="status-badge status-approved">ခွင့်ပြုထားသည်</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="quick-actions slide-in-up stagger-2">
-                <div class="quick-action card ripple" onclick="showSection('transfer')">
-                    <i class="fas fa-paper-plane"></i>
-                    <h4 style="font-weight: 600; margin-bottom: 5px;">ငွေလွှဲရန်</h4>
-                    <p style="color: var(--text-secondary); font-size: 12px;">မြန်ဆန်သောငွေလွှဲခြင်း</p>
-                </div>
-                <div class="quick-action card ripple" onclick="showSection('history')">
-                    <i class="fas fa-history"></i>
-                    <h4 style="font-weight: 600; margin-bottom: 5px;">မှတ်တမ်းများ</h4>
-                    <p style="color: var(--text-secondary); font-size: 12px;">လုပ်ဆောင်ချက်များကြည့်ရန်</p>
-                </div>
-                <div class="quick-action card ripple" onclick="showSection('kyc')">
-                    <i class="fas fa-shield-alt"></i>
-                    <h4 style="font-weight: 600; margin-bottom: 5px;">KYC</h4>
-                    <p style="color: var(--text-secondary); font-size: 12px;">အကောင့်အတည်ပြုခြင်း</p>
-                </div>
-                <div class="quick-action card ripple" onclick="showSection('settings')">
-                    <i class="fas fa-cog"></i>
-                    <h4 style="font-weight: 600; margin-bottom: 5px;">ဆက်တင်များ</h4>
-                    <p style="color: var(--text-secondary); font-size: 12px;">အကောင့်စီမံခန့်ခွဲမှု</p>
-                </div>
-            </div>
-
-            <!-- Recent Transactions -->
-            <div class="slide-in-up stagger-3">
-                <h3 style="font-weight: 700; margin-bottom: 15px; color: var(--text-primary);">နောက်ဆုံးလုပ်ဆောင်ချက်များ</h3>
-                <div id="recent-transactions">
-                    <div class="empty-state">
-                        <i class="fas fa-receipt"></i>
-                        <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
-                    </div>
-                </div>
-                <button class="btn btn-accent" style="width: 100%; margin-top: 15px;" onclick="showSection('history')">
-                    အားလုံးကြည့်ရန်
-                </button>
-            </div>
-        </section>
-
-        <!-- Transfer Section -->
-        <section id="transfer" class="section">
-            <div class="header">
-                <h2 style="font-weight: 700; margin-bottom: 10px;">ငွေလွှဲရန်</h2>
-                <p style="color: var(--text-secondary);">အခြားသူထံသို့ ငွေလွှဲပြောင်းပါ</p>
-            </div>
-
-            <form id="transfer-form" class="slide-in-up">
-                <div class="form-group">
-                    <label class="form-label">လက်ခံသူဖုန်းနံပါတ်</label>
-                    <input type="tel" class="form-input" id="recipient-phone" placeholder="09xxxxxxxxx" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">ငွေပမာณ (Ks)</label>
-                    <input type="number" class="form-input" id="transfer-amount" placeholder="0" min="100" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">မှတ်ချက် (ထည့်လို က ထည့်နိုင်သည်)</label>
-                    <textarea class="form-input" id="transfer-note" rows="3" placeholder="မှတ်ချက်ရေးပါ..."></textarea>
-                </div>
-
-                <div id="recipient-info" style="display: none;"></div>
-
-                <button type="submit" class="btn btn-primary ripple" style="width: 100%; margin-top: 20px;">
-                    <i class="fas fa-paper-plane" style="margin-right: 10px;"></i>
-                    ငွေလွှဲမည်
-                </button>
-            </form>
-        </section>
-
-        <!-- History Section -->
-        <section id="history" class="section">
-            <div class="header">
-                <h2 style="font-weight: 700; margin-bottom: 10px;">မှတ်တမ်းများ</h2>
-                <p style="color: var(--text-secondary);">သင့်ငွေလွှဲပြောင်းမှုမှတ်တမ်းများ</p>
-            </div>
-
-            <div id="transaction-history" class="slide-in-up">
-                <div class="empty-state">
-                    <i class="fas fa-history"></i>
-                    <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- KYC Section -->
-        <section id="kyc" class="section">
-            <div class="header">
-                <h2 style="font-weight: 700; margin-bottom: 10px;">KYC အတည်ပြုရန်</h2>
-                <p style="color: var(--text-secondary);">သင့်ကိုယ်ရေးအချက်အလက်များ အတည်ပြုပါ</p>
-            </div>
-
-            <div class="balance-card card slide-in-up">
-                <h3 style="margin-bottom: 15px;">KYC အတည်ပြုမှု အခြေအနေ</h3>
-                <div class="status-badge status-pending" id="kyc-status-display">စောင့်ဆိုင်းဆဲ</div>
-                <p style="color: var(--text-secondary); margin-top: 15px; font-size: 14px;">
-                    သင့်အကောင့်ကို အပြည့်အဝ အသုံးပြုနိုင်ရန် KYC အတည်ပြုမှု လိုအပ်ပါသည်။
-                </p>
-            </div>
-
-            <form id="kyc-form" class="slide-in-up stagger-1">
-                <div class="form-group">
-                    <label class="form-label">နိုင်ငံသားစီစစ်ရေးကတ်/နိုင်ငံကူးလက်မှတ်</label>
-                    <input type="file" class="form-input" id="passport-file" accept="image/*" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">မိမိကိုယ်တိုင် ဓာတ်ပုံ (Selfie)</label>
-                    <input type="file" class="form-input" id="selfie-file" accept="image/*" required>
-                </div>
-
-                <button type="submit" class="btn btn-success ripple" style="width: 100%; margin-top: 20px;">
-                    <i class="fas fa-upload" style="margin-right: 10px;"></i>
-                    KYC တင်သွင်းမည်
-                </button>
-            </form>
-        </section>
-
-        <!-- Settings Section -->
-        <section id="settings" class="section">
-            <div class="header">
-                <h2 style="font-weight: 700; margin-bottom: 10px;">ဆက်တင်များ</h2>
-                <p style="color: var(--text-secondary);">သင့်အကောင့်ဆက်တင်များ ပြင်ဆင်ပါ</p>
-            </div>
-
-            <!-- Account Settings -->
-            <div class="balance-card card slide-in-up">
-                <h3 style="margin-bottom: 20px;">အကောင့်ဆက်တင်များ</h3>
-                
-                <div class="form-group">
-                    <label class="form-label">ငွေပေးချေမှု PIN (ဂဏန်း ၆ လုံး)</label>
-                    <div style="display: flex; justify-content: center; gap: 5px; margin-top: 10px;">
-                        <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 0)">
-                        <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 1)">
-                        <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 2)">
-                        <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 3)">
-                        <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 4)">
-                        <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 5)">
-                    </div>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="updatePin()">
-                        PIN ပြောင်းလဲမည်
-                    </button>
-                </div>
-            </div>
-
-            <!-- Theme Settings -->
-            <div class="balance-card card slide-in-up stagger-1">
-                <h3 style="margin-bottom: 20px;">အပြင်အဆင်</h3>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <span>မည်းရောင်ဖန်သားပြင်</span>
-                    <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                        <input type="checkbox" id="dark-mode-toggle" onchange="toggleTheme()" style="opacity: 0; width: 0; height: 0;">
-                        <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--glass); transition: 0.4s; border-radius: 34px; border: 1px solid var(--glass-border);"></span>
-                        <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
-                    </label>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>ငွေလွှဲပြေစာ အလိုအလျောက်သိမ်းဆည်းရန်</span>
-                    <label style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                        <input type="checkbox" id="auto-save-receipt" checked style="opacity: 0; width: 0; height: 0;">
-                        <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--success); transition: 0.4s; border-radius: 34px; border: 1px solid rgba(56, 239, 125, 0.3);"></span>
-                        <span style="position: absolute; content: ''; height: 26px; width: 26px; right: 4px; bottom: 4px; background: white; transition: 0.4s; border-radius: 50%;"></span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- About -->
-            <div class="balance-card card slide-in-up stagger-2">
-                <h3 style="margin-bottom: 15px;">အကြောင်း</h3>
-                <div style="text-align: center;">
-                    <div class="profile-avatar" style="margin: 0 auto 15px;">OPPER</div>
-                    <h4 style="font-weight: 600; margin-bottom: 5px;">OPPER Payment v2.2</h4>
-                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
-                        Premium Mobile Banking Solution
-                    </p>
-                    <p style="color: var(--text-secondary); font-size: 12px;">
-                        © 2024 OPPER Payment. All rights reserved.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Logout Button -->
-            <button class="btn btn-danger ripple" style="width: 100%; margin-top: 20px;" onclick="logout()">
-                <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>
-                အကောင့်မှထွက်မည်
-            </button>
-        </section>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="navigation">
-        <div class="nav-container">
-            <div class="nav-buttons">
-                <button class="nav-btn active" onclick="showSection('home')" data-section="home">
-                    <i class="fas fa-home"></i>
-                </button>
-                <button class="nav-btn" onclick="showSection('transfer')" data-section="transfer">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-                <button class="nav-btn" onclick="showSection('history')" data-section="history">
-                    <i class="fas fa-history"></i>
-                </button>
-                <button class="nav-btn" onclick="showSection('kyc')" data-section="kyc">
-                    <i class="fas fa-shield-alt"></i>
-                </button>
-                <button class="nav-btn" onclick="showSection('settings')" data-section="settings">
-                    <i class="fas fa-cog"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- PIN Modal -->
-    <div id="pin-modal" class="modal-overlay" style="display: none;">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">PIN ထည့်သွင်းပါ</h3>
-                <p style="color: var(--text-secondary); margin-top: 5px;">လုံခြုံရေးအတွက် PIN ထည့်ပါ</p>
-            </div>
-            <div class="modal-body">
-                <div style="display: flex; justify-content: center; gap: 8px; margin: 20px 0;">
-                    <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 0, 'modal')">
-                    <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 1, 'modal')">
-                    <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 2, 'modal')">
-                    <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 3, 'modal')">
-                    <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 4, 'modal')">
-                    <input type="password" class="pin-input" maxlength="1" oninput="movePinFocus(this, 5, 'modal')">
-                </div>
-                <div id="pin-error" class="alert alert-error" style="display: none;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>PIN မှားယွင်းနေပါသည်။ ထပ်မံကြိုးစားပါ။</span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" onclick="closePinModal()" style="background: var(--glass); color: var(--text-primary);">ပယ်ဖျက်မည်</button>
-                <button class="btn btn-primary" onclick="verifyPin()">အတည်ပြုမည်</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div>
-            <div class="loading-spinner"></div>
-            <p style="color: white; margin-top: 20px; text-align: center;">ခဏစောင့်ပါ...</p>
-        </div>
-    </div>
-
-    <script>
-        // Supabase Configuration
-        const { createClient } = supabase;
-        const supabaseUrl = 'https://hwuoekpgfxjfpykmdrlk.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dW9la3BnZnhqZnB5a21kcmxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY4MjMyNzksImV4cCI6MjA0MjM5OTI3OX0.l6wjDOCW4r3fBahMa1Qzg1jdHzKqBKsxzQKZOLYVu9o';
-        const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-        // Global Variables
-        let currentUser = null;
-        let currentBalance = 0;
-        let transferData = null;
-
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-            setupEventListeners();
-        });
-
-        async function initializeApp() {
-            // Hide intro animation after delay
-            setTimeout(() => {
-                document.getElementById('intro-animation').style.display = 'none';
-            }, 3000);
-
-            // Load user data if logged in
-            const userData = localStorage.getItem('currentUser');
-            if (userData) {
-                currentUser = JSON.parse(userData);
-                await loadUserData();
-            }
-
-            // Load theme preference
-            const theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-            updateThemeIcon(theme);
-        }
-
-        function setupEventListeners() {
-            // Form submissions
-            document.getElementById('transfer-form').addEventListener('submit', handleTransferSubmit);
-            document.getElementById('kyc-form').addEventListener('submit', handleKYCSubmit);
-
-            // Phone number input for recipient lookup
-            document.getElementById('recipient-phone').addEventListener('input', debounce(lookupRecipient, 500));
-
-            // Pin input handling
-            const pinInputs = document.querySelectorAll('.pin-input');
-            pinInputs.forEach((input, index) => {
-                input.addEventListener('keydown', handlePinKeydown);
-                input.addEventListener('paste', handlePinPaste);
-            });
-        }
-
-        // Navigation Functions
-        function showSection(sectionName) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-
-            // Show selected section
-            document.getElementById(sectionName).classList.add('active');
-
-            // Update navigation
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
-
-            // Load section-specific data
-            switch(sectionName) {
-                case 'home':
-                    loadDashboard();
-                    break;
-                case 'history':
-                    loadTransactionHistory();
-                    break;
-                case 'kyc':
-                    loadKYCStatus();
-                    break;
-            }
-        }
-
-        // User Authentication and Data
-        async function loadUserData() {
-            if (!currentUser) return;
-
-            try {
-                showLoading(true);
-
-                // Update UI with user data
-                document.getElementById('user-phone').textContent = currentUser.phone;
-                document.getElementById('profile-avatar').textContent = currentUser.phone.slice(-2);
-
-                // Get user balance and status
-                const { data: userData, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('phone', currentUser.phone)
-                    .single();
-
-                if (error) throw error;
-
-                currentUser = { ...currentUser, ...userData };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-                // Update balance with animation
-                animateBalance(currentBalance, userData.balance || 0);
-                currentBalance = userData.balance || 0;
-
-                // Update KYC status
-                updateKYCStatus(userData.kyc_status);
-
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                showAlert('ဒေတာခေါ်ယူရာတွင် အမှားအယွင်းရှိပါသည်', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function animateBalance(from, to) {
-            const element = document.getElementById('balance-amount');
-            const duration = 2000; // 2 seconds
-            const steps = 60;
-            const increment = (to - from) / steps;
-            let current = from;
-            let step = 0;
-
-            const timer = setInterval(() => {
-                step++;
-                current += increment;
-                
-                if (step >= steps) {
-                    current = to;
-                    clearInterval(timer);
-                }
-                
-                element.textContent = Math.floor(current).toLocaleString();
-            }, duration / steps);
-        }
-
-        function updateKYCStatus(status) {
-            const statusElements = document.querySelectorAll('#kyc-status, #kyc-status-display');
-            
-            statusElements.forEach(element => {
-                element.className = 'status-badge ';
-                
-                switch(status) {
-                    case 'approved':
-                        element.className += 'status-approved';
-                        element.textContent = 'အတည်ပြုပြီး';
-                        break;
-                    case 'rejected':
-                        element.className += 'status-rejected';
-                        element.textContent = 'ငြင်းပယ်ခံထား';
-                        break;
-                    default:
-                        element.className += 'status-pending';
-                        element.textContent = 'စောင့်ဆိုင်းဆဲ';
-                }
-            });
-        }
-
-        // Transfer Functions
-        async function handleTransferSubmit(e) {
-            e.preventDefault();
-            
-            const recipientPhone = document.getElementById('recipient-phone').value;
-            const amount = parseInt(document.getElementById('transfer-amount').value);
-            const note = document.getElementById('transfer-note').value;
-
-            // Validation
-            if (!recipientPhone || !amount) {
-                showAlert('ကျေးဇူးပြု၍ လိုအပ်သော အချက်အလက်များ ဖြည့်သွင်းပါ', 'warning');
-                return;
-            }
-
-            if (amount < 100) {
-                showAlert('အနည်းဆုံး ၁၀၀ ကျပ် လွှဲပြောင်းရပါမည်', 'warning');
-                return;
-            }
-
-            if (amount > currentBalance) {
-                showAlert('လက်ကျန်ငွေ မလုံလောက်ပါ', 'error');
-                return;
-            }
-
-            if (recipientPhone === currentUser.phone) {
-                showAlert('မိမိကိုယ်တိုင်ကို ငွေလွှဲ၍မရပါ', 'error');
-                return;
-            }
-
-            // Store transfer data and show PIN modal
-            transferData = { recipientPhone, amount, note };
-            showPinModal();
-        }
-
-        async function lookupRecipient(phone) {
-            if (!phone || phone.length < 8) {
-                document.getElementById('recipient-info').style.display = 'none';
-                return;
-            }
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('users')
-                    .select('phone, created_at')
-                    .eq('phone', phone)
-                    .single();
-
-                const recipientInfo = document.getElementById('recipient-info');
-                
-                if (error || !data) {
-                    recipientInfo.innerHTML = `
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှာမတွေ့ပါ</span>
-                        </div>
-                    `;
-                } else {
-                    recipientInfo.innerHTML = `
-                        <div class="user-info-card">
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <div class="profile-avatar" style="width: 40px; height: 40px; font-size: 16px;">
-                                    ${data.phone.slice(-2)}
-                                </div>
-                                <div>
-                                    <h4 style="font-weight: 600; margin-bottom: 5px;">${data.phone}</h4>
-                                    <p style="color: var(--text-secondary); font-size: 14px;">
-                                        <i class="fas fa-check-circle" style="color: var(--success); margin-right: 5px;"></i>
-                                        အတည်ပြုပြီးသော အကောင့်
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                recipientInfo.style.display = 'block';
-            } catch (error) {
-                console.error('Error looking up recipient:', error);
-            }
-        }
-
-        async function processTransfer() {
-            if (!transferData) return;
-
-            try {
-                showLoading(true);
-
-                const { recipientPhone, amount, note } = transferData;
-
-                // Create transaction record
-                const { data: transaction, error: transactionError } = await supabaseClient
-                    .from('transactions')
-                    .insert([{
-                        from_phone: currentUser.phone,
-                        to_phone: recipientPhone,
-                        amount: amount,
-                        note: note || '',
-                        status: 'completed'
-                    }])
-                    .select()
-                    .single();
-
-                if (transactionError) throw transactionError;
-
-                // Update sender balance
-                const { error: senderError } = await supabaseClient
-                    .from('users')
-                    .update({ balance: currentBalance - amount })
-                    .eq('phone', currentUser.phone);
-
-                if (senderError) throw senderError;
-
-                // Update recipient balance
-                const { data: recipient } = await supabaseClient
-                    .from('users')
-                    .select('balance')
-                    .eq('phone', recipientPhone)
-                    .single();
-
-                if (recipient) {
-                    const { error: recipientError } = await supabaseClient
-                        .from('users')
-                        .update({ balance: (recipient.balance || 0) + amount })
-                        .eq('phone', recipientPhone);
-
-                    if (recipientError) throw recipientError;
-                }
-
-                // Update local balance
-                currentBalance -= amount;
-                animateBalance(currentBalance + amount, currentBalance);
-
-                // Show success message
-                showAlert('ငွေလွှဲခြင်း အောင်မြင်ပါသည်', 'success');
-
-                // Generate and show receipt
-                generateReceipt(transaction);
-
-                // Clear form
-                document.getElementById('transfer-form').reset();
-                document.getElementById('recipient-info').style.display = 'none';
-
-                // Refresh data
-                await loadUserData();
-                loadTransactionHistory();
-
-            } catch (error) {
-                console.error('Error processing transfer:', error);
-                showAlert('ငွေလွှဲရာတွင် အမှားအယွင်းရှိပါသည်', 'error');
-            } finally {
-                showLoading(false);
-                transferData = null;
-            }
-        }
-
-        // Receipt Generation
-        function generateReceipt(transaction) {
-            const receiptContent = `
-                <div class="receipt-container" id="receipt-content">
-                    <div class="receipt-header">
-                        <div class="receipt-logo">
-                            <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" 
-                                 alt="OPPER" 
-                                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
-                                 onerror="this.outerHTML='<div style=\'width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:bold;\'>OP</div>'">
-                        </div>
-                        <div class="receipt-title">OPPER Payment</div>
-                        <div class="receipt-subtitle">ငွေလွှဲပြေစာ</div>
-                    </div>
-                    
-                    <div class="receipt-content">
-                        <div class="receipt-amount">${transaction.amount.toLocaleString()} Ks</div>
-                        
-                        <div class="receipt-row">
-                            <span>လွှဲသူ:</span>
-                            <span>${transaction.from_phone}</span>
-                        </div>
-                        
-                        <div class="receipt-row">
-                            <span>လက်ခံသူ:</span>
-                            <span>${transaction.to_phone}</span>
-                        </div>
-                        
-                        <div class="receipt-row">
-                            <span>ရက်စွဲ:</span>
-                            <span>${new Date(transaction.created_at).toLocaleString('my-MM')}</span>
-                        </div>
-                        
-                        <div class="receipt-row">
-                            <span>လုပ်ဆောင်ချက်ID:</span>
-                            <span>#${transaction.id}</span>
-                        </div>
-                        
-                        ${transaction.note ? `
-                        <div class="receipt-row">
-                            <span>မှတ်ချက်:</span>
-                            <span>${transaction.note}</span>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="receipt-row total">
-                            <span>စုစုပေါင်း:</span>
-                            <span>${transaction.amount.toLocaleString()} Ks</span>
-                        </div>
-                    </div>
-                    
-                    <div class="receipt-footer">
-                        <p>အထူးကျေးဇူးတင်ပါတယ်</p>
-                        <p>OPPER Payment ကို အသုံးပြုပေးတဲ့အတွက်</p>
-                        <p style="margin-top: 10px; font-size: 10px;">
-                            လုပ်ဆောင်ချက်အား ၂၄ နာရီအတွင်း ပြန်ဖျက်နိုင်ပါသည်
-                        </p>
-                    </div>
-                </div>
-            `;
-
-            // Show receipt modal
-            showModal('ငွေလွှဲပြေစာ', receiptContent, [
-                {
-                    text: 'ပြေစာ Download လုပ်မည်',
-                    class: 'btn-primary',
-                    onclick: () => downloadReceipt('receipt-content', `OPPER_Receipt_${transaction.id}`)
-                },
-                {
-                    text: 'ပိတ်မည်',
-                    class: 'btn-secondary',
-                    onclick: closeModal
-                }
-            ]);
-        }
-
-        async function downloadReceipt(elementId, filename) {
-            try {
-                const element = document.getElementById(elementId);
-                const canvas = await html2canvas(element, {
-                    backgroundColor: '#ffffff',
-                    scale: 2,
-                    logging: false,
-                    useCORS: true
-                });
-
-                const link = document.createElement('a');
-                link.download = `${filename}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-
-                showAlert('ပြေစာကို အောင်မြင်စွာ Download လုပ်ပြီးပါပြီ', 'success');
-            } catch (error) {
-                console.error('Error downloading receipt:', error);
-                showAlert('ပြေစာ Download လုပ်ရာတွင် အမှားအယွင်းရှိပါသည်', 'error');
-            }
-        }
-
-        // Transaction History
-        async function loadTransactionHistory() {
-            if (!currentUser) return;
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('transactions')
-                    .select('*')
-                    .or(`from_phone.eq.${currentUser.phone},to_phone.eq.${currentUser.phone}`)
-                    .order('created_at', { ascending: false })
-                    .limit(50);
-
-                if (error) throw error;
-
-                const container = document.getElementById('transaction-history');
-                const recentContainer = document.getElementById('recent-transactions');
-
-                if (!data || data.length === 0) {
-                    const emptyState = `
-                        <div class="empty-state">
-                            <i class="fas fa-history"></i>
-                            <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
-                        </div>
-                    `;
-                    container.innerHTML = emptyState;
-                    recentContainer.innerHTML = emptyState;
-                    return;
-                }
-
-                const transactionsHTML = data.map((transaction, index) => {
-                    const isSent = transaction.from_phone === currentUser.phone;
-                    const otherPhone = isSent ? transaction.to_phone : transaction.from_phone;
-                    const amount = isSent ? -transaction.amount : transaction.amount;
-                    const type = isSent ? 'sent' : 'received';
-                    
-                    return `
-                        <div class="transaction-item transaction-${type} slide-in-up stagger-${Math.min(index + 1, 5)}">
-                            <div class="transaction-icon">
-                                <i class="fas fa-${isSent ? 'arrow-up' : 'arrow-down'}"></i>
-                            </div>
-                            <div style="flex: 1;">
-                                <h4 style="font-weight: 600; margin-bottom: 5px;">
-                                    ${isSent ? 'ငွေလွှဲခြင်း' : 'ငွေလက်ခံခြင်း'}
-                                </h4>
-                                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 5px;">
-                                    ${isSent ? 'လက်ခံသူ' : 'ပေးပို့သူ'}: ${otherPhone}
-                                </p>
-                                <p style="color: var(--text-secondary); font-size: 12px;">
-                                    ${new Date(transaction.created_at).toLocaleDateString('my-MM')}
-                                </p>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: bold; font-size: 16px; color: ${isSent ? '#e53e3e' : '#0f9960'};">
-                                    ${amount > 0 ? '+' : ''}${amount.toLocaleString()} Ks
-                                </div>
-                                ${transaction.note ? `
-                                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 5px;">
-                                    ${transaction.note}
-                                </p>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                container.innerHTML = transactionsHTML;
-                
-                // Show only recent 3 transactions in home
-                const recentHTML = data.slice(0, 3).map((transaction, index) => {
-                    const isSent = transaction.from_phone === currentUser.phone;
-                    const otherPhone = isSent ? transaction.to_phone : transaction.from_phone;
-                    const amount = isSent ? -transaction.amount : transaction.amount;
-                    const type = isSent ? 'sent' : 'received';
-                    
-                    return `
-                        <div class="transaction-item transaction-${type} slide-in-up stagger-${index + 1}">
-                            <div class="transaction-icon">
-                                <i class="fas fa-${isSent ? 'arrow-up' : 'arrow-down'}"></i>
-                            </div>
-                            <div style="flex: 1;">
-                                <h4 style="font-weight: 600; margin-bottom: 5px;">
-                                    ${isSent ? 'ငွေလွှဲခြင်း' : 'ငွေလက်ခံခြင်း'}
-                                </h4>
-                                <p style="color: var(--text-secondary); font-size: 14px;">
-                                    ${otherPhone}
-                                </p>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: bold; color: ${isSent ? '#e53e3e' : '#0f9960'};">
-                                    ${amount > 0 ? '+' : ''}${amount.toLocaleString()} Ks
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                recentContainer.innerHTML = recentHTML || `
-                    <div class="empty-state">
-                        <i class="fas fa-receipt"></i>
-                        <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
-                    </div>
-                `;
-
-            } catch (error) {
-                console.error('Error loading transaction history:', error);
-            }
-        }
-
-        // KYC Functions
-        async function handleKYCSubmit(e) {
-            e.preventDefault();
-            
-            const passportFile = document.getElementById('passport-file').files[0];
-            const selfieFile = document.getElementById('selfie-file').files[0];
-
-            if (!passportFile || !selfieFile) {
-                showAlert('ကျေးဇူးပြု၍ လိုအပ်သော ဖိုင်များ ရွေးချယ်ပါ', 'warning');
-                return;
-            }
-
-            try {
-                showLoading(true);
-
-                // Convert files to base64
-                const passportBase64 = await fileToBase64(passportFile);
-                const selfieBase64 = await fileToBase64(selfieFile);
-
-                // Submit KYC data
-                const { error } = await supabaseClient
-                    .from('kyc_submissions')
-                    .upsert([{
-                        phone: currentUser.phone,
-                        passport_image: passportBase64,
-                        selfie_image: selfieBase64,
-                        status: 'pending'
-                    }]);
-
-                if (error) throw error;
-
-                // Update user KYC status
-                const { error: userError } = await supabaseClient
-                    .from('users')
-                    .update({ kyc_status: 'pending' })
-                    .eq('phone', currentUser.phone);
-
-                if (userError) throw userError;
-
-                showAlert('KYC လျှောက်လွှာ အောင်မြင်စွာ တင်သွင်းပြီးပါပြီ', 'success');
-                
-                // Clear form
-                document.getElementById('kyc-form').reset();
-                
-                // Update UI
-                updateKYCStatus('pending');
-
-            } catch (error) {
-                console.error('Error submitting KYC:', error);
-                showAlert('KYC တင်သွင်းရာတွင် အမှားအယွင်းရှိပါသည်', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        async function loadKYCStatus() {
-            if (!currentUser) return;
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('users')
-                    .select('kyc_status')
-                    .eq('phone', currentUser.phone)
-                    .single();
-
-                if (error) throw error;
-
-                updateKYCStatus(data.kyc_status);
-            } catch (error) {
-                console.error('Error loading KYC status:', error);
-            }
-        }
-
-        // PIN Functions
-        function showPinModal() {
-            document.getElementById('pin-modal').style.display = 'flex';
-            // Focus first pin input
-            const firstInput = document.querySelector('#pin-modal .pin-input');
-            if (firstInput) {
-                setTimeout(() => firstInput.focus(), 100);
-            }
-        }
-
-        function closePinModal() {
-            document.getElementById('pin-modal').style.display = 'none';
-            document.getElementById('pin-error').style.display = 'none';
-            // Clear pin inputs
-            document.querySelectorAll('#pin-modal .pin-input').forEach(input => {
-                input.value = '';
-                input.classList.remove('filled');
-            });
-        }
-
-        function movePinFocus(input, index, context = '') {
-            if (input.value.length === 1) {
-                input.classList.add('filled');
-                // Move to next input
-                const nextIndex = index + 1;
-                const nextInput = context === 'modal' 
-                    ? document.querySelectorAll('#pin-modal .pin-input')[nextIndex]
-                    : document.querySelectorAll('.pin-input')[nextIndex];
-                
-                if (nextInput) {
-                    nextInput.focus();
-                } else {
-                    // All pins filled, auto-verify if in modal
-                    if (context === 'modal') {
-                        setTimeout(verifyPin, 200);
-                    }
-                }
-            } else {
-                input.classList.remove('filled');
-            }
-        }
-
-        function handlePinKeydown(e) {
-            const input = e.target;
-            const index = Array.from(input.parentElement.children).indexOf(input);
-            
-            if (e.key === 'Backspace' && input.value === '') {
-                // Move to previous input
-                const prevInput = input.parentElement.children[index - 1];
-                if (prevInput) {
-                    prevInput.focus();
-                    prevInput.value = '';
-                    prevInput.classList.remove('filled');
-                }
-            }
-        }
-
-        function handlePinPaste(e) {
-            e.preventDefault();
-            const paste = (e.clipboardData || window.clipboardData).getData('text');
-            const pins = paste.replace(/\D/g, '').slice(0, 6).split('');
-            
-            const inputs = e.target.parentElement.children;
-            pins.forEach((pin, index) => {
-                if (inputs[index]) {
-                    inputs[index].value = pin;
-                    inputs[index].classList.add('filled');
-                }
-            });
-        }
-
-        async function verifyPin() {
-            const pinInputs = document.querySelectorAll('#pin-modal .pin-input');
-            const pin = Array.from(pinInputs).map(input => input.value).join('');
-
-            if (pin.length !== 6) {
-                document.getElementById('pin-error').style.display = 'flex';
-                return;
-            }
-
-            try {
-                // Verify PIN with stored user PIN
-                if (currentUser.pin && currentUser.pin === pin) {
-                    closePinModal();
-                    await processTransfer();
-                } else {
-                    document.getElementById('pin-error').style.display = 'flex';
-                    // Clear inputs
-                    pinInputs.forEach(input => {
-                        input.value = '';
-                        input.classList.remove('filled');
-                    });
-                    pinInputs[0].focus();
-                }
-            } catch (error) {
-                console.error('Error verifying PIN:', error);
-                document.getElementById('pin-error').style.display = 'flex';
-            }
-        }
-
-        async function updatePin() {
-            const pinInputs = document.querySelectorAll('#settings .pin-input');
-            const newPin = Array.from(pinInputs).map(input => input.value).join('');
-
-            if (newPin.length !== 6) {
-                showAlert('ကျေးဇူးပြု၍ PIN ၆ လုံးကို ဖြည့်သွင်းပါ', 'warning');
-                return;
-            }
-
-            try {
-                showLoading(true);
-
-                const { error } = await supabaseClient
-                    .from('users')
-                    .update({ pin: newPin })
-                    .eq('phone', currentUser.phone);
-
-                if (error) throw error;
-
-                currentUser.pin = newPin;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-                showAlert('PIN အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ', 'success');
-                
-                // Clear inputs
-                pinInputs.forEach(input => {
-                    input.value = '';
-                    input.classList.remove('filled');
-                });
-
-            } catch (error) {
-                console.error('Error updating PIN:', error);
-                showAlert('PIN ပြောင်းလဲရာတွင် အမှားအယွင်းရှိပါသည်', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Theme Functions
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
-
-        function updateThemeIcon(theme) {
-            const icon = document.getElementById('theme-icon');
-            const toggle = document.getElementById('dark-mode-toggle');
-            
-            if (theme === 'dark') {
-                icon.className = 'fas fa-sun';
-                if (toggle) toggle.checked = true;
-            } else {
-                icon.className = 'fas fa-moon';
-                if (toggle) toggle.checked = false;
-            }
-        }
-
-        // Dashboard Functions
-        async function loadDashboard() {
-            await loadUserData();
-            loadTransactionHistory();
-        }
-
-        // Utility Functions
-        function showLoading(show) {
-            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-        }
-
-        function showAlert(message, type = 'info') {
-            // Remove existing alerts
-            const existingAlerts = document.querySelectorAll('.alert');
-            existingAlerts.forEach(alert => alert.remove());
-
-            const alertHTML = `
-                <div class="alert alert-${type}" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10001; max-width: 90%; animation: slideInUp 0.3s ease-out;">
-                    <i class="fas fa-${getAlertIcon(type)}"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-
-            document.body.insertAdjacentHTML('afterbegin', alertHTML);
-
-            // Auto remove after 4 seconds
-            setTimeout(() => {
-                const alert = document.querySelector('.alert');
-                if (alert) {
-                    alert.style.animation = 'slideInUp 0.3s ease-out reverse';
-                    setTimeout(() => alert.remove(), 300);
-                }
-            }, 4000);
-        }
-
-        function getAlertIcon(type) {
-            switch(type) {
-                case 'success': return 'check-circle';
-                case 'error': return 'exclamation-triangle';
-                case 'warning': return 'exclamation-circle';
-                default: return 'info-circle';
-            }
-        }
-
-        function showModal(title, content, buttons = []) {
-            const modalHTML = `
-                <div class="modal-overlay" id="custom-modal" style="display: flex;">
-                    <div class="modal">
-                        <div class="modal-header">
-                            <h3 class="modal-title">${title}</h3>
-                        </div>
-                        <div class="modal-body">
-                            ${content}
-                        </div>
-                        <div class="modal-footer">
-                            ${buttons.map(btn => `
-                                <button class="btn ${btn.class}" onclick="${btn.onclick}">
-                                    ${btn.text}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Remove existing modal
-            const existingModal = document.getElementById('custom-modal');
-            if (existingModal) existingModal.remove();
-
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('custom-modal');
-            if (modal) modal.remove();
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        function logout() {
-            if (confirm('အကောင့်မှ ထွက်ရန် သေချာပါသလား?')) {
-                localStorage.removeItem('currentUser');
-                location.reload();
-            }
-        }
-
-        // Simulated login function (replace with actual authentication)
-        function simulateLogin() {
-            const phone = prompt('ဖုန်းနံပါတ် ထည့်ပါ (စမ်းသပ်ရန်):') || '09123456789';
-            currentUser = {
-                phone: phone,
-                pin: '123456'
-            };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            loadUserData();
-        }
-
-        // Initialize with simulated user if no user is logged in
-        if (!currentUser) {
-            setTimeout(() => {
-                simulateLogin();
-            }, 3500);
-        }
-
-        // Service Worker Registration for PWA support
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(console.error);
-        }
-
-        // Add ripple effect to buttons
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('ripple') || e.target.closest('.ripple')) {
-                const button = e.target.classList.contains('ripple') ? e.target : e.target.closest('.ripple');
-                const ripple = document.createElement('span');
-                const rect = button.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-                
-                ripple.style.width = ripple.style.height = size + 'px';
-                ripple.style.left = x + 'px';
-                ripple.style.top = y + 'px';
-                ripple.classList.add('ripple-effect');
-                
-                button.appendChild(ripple);
-                
-                setTimeout(() => ripple.remove(), 600);
-            }
-        });
-
-        // Add CSS for ripple effect
-        const rippleCSS = `
-            .ripple-effect {
-                position: absolute;
-                border-radius: 50%;
-                background: rgba(255, 255, 255, 0.6);
-                transform: scale(0);
-                animation: ripple 0.6s linear;
-                pointer-events: none;
-            }
-            
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        
-        const style = document.createElement('style');
-        style.textContent = rippleCSS;
-        document.head.appendChild(style);
-    </script>
+  <!-- Intro Animation -->
+  <div class="intro-animation" id="intro-animation">
+      <div class="intro-logo">
+          <div class="logo-container">
+              <div class="logo-ring"></div>
+              <div class="logo-ring"></div>
+              <div class="logo-ring"></div>
+              <div class="logo-text">OPPER</div>
+          </div>
+      </div>
+      <div class="intro-text">OPPER Payment</div>
+      <div class="intro-tagline">ငွေလွှဲရန် အကောင့်ဖွင့်ပါ</div>
+      <div class="intro-progress">
+          <div class="progress-bar"></div>
+      </div>
+  </div>
+
+  <!-- Background Elements -->
+  <div class="background-elements">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+      <div class="floating-particles">
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+      </div>
+      <div class="geometric-shapes">
+          <div class="shape triangle"></div>
+          <div class="shape hexagon"></div>
+          <div class="shape diamond"></div>
+          <div class="shape circle"></div>
+      </div>
+  </div>
+
+  <!-- Enhanced Loader -->
+  <div class="loader-container" id="loader">
+      <div class="advanced-loader">
+          <div class="loader-rings">
+              <div class="ring ring-1"></div>
+              <div class="ring ring-2"></div>
+              <div class="ring ring-3"></div>
+          </div>
+          <div class="loader-core">
+              <div class="core-text">OPPER</div>
+              <div class="core-pulse"></div>
+          </div>
+          <div class="loader-progress">
+              <div class="progress-text">Loading...</div>
+              <div class="progress-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Auth Container -->
+  <div class="auth-container" id="auth-container">
+      <div class="auth-card">
+          <div class="auth-header">
+              <div class="auth-logo-container">
+                  <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo" class="auth-logo">
+                  <div class="logo-glow"></div>
+              </div>
+              <h1 class="auth-title">OPPER Payment</h1>
+              <p class="auth-subtitle">ငွေလွှဲရန် အကောင့်ဖွင့်ပါ</p>
+          </div>
+
+          <div class="auth-tabs">
+              <div class="tab-indicator"></div>
+              <button class="auth-tab active clickable" data-tab="login">အကောင့်ဝင်ရန်</button>
+              <button class="auth-tab clickable" data-tab="signup">အကောင့်ဖွင့်ရန်</button>
+          </div>
+
+          <!-- Login Form -->
+          <div class="auth-form active" id="login-form">
+              <div class="form-group">
+                  <label for="login-email">အီးမေးလ်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-envelope"></i>
+                      <input type="email" id="login-email" placeholder="သင့်အီးမေးလ်ထည့်ပါ" required>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="login-password">စကားဝှက်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="login-password" placeholder="သင့်စကားဝှက်ထည့်ပါ" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group remember-forgot">
+                  <div class="checkbox-container clickable">
+                      <input type="checkbox" id="remember-me">
+                      <label for="remember-me">မှတ်ထားမည်</label>
+                      <div class="checkbox-checkmark"></div>
+                  </div>
+                  <a href="#" class="forgot-password clickable">စကားဝှက်မေ့သွားပြီလား?</a>
+              </div>
+              <button class="btn btn-primary btn-block clickable" id="login-btn">
+                  <span class="btn-text">အကောင့်ဝင်မည်</span>
+                  <i class="fas fa-arrow-right btn-icon"></i>
+                  <div class="btn-ripple"></div>
+              </button>
+              <div class="auth-separator">
+                  <span>သို့မဟုတ်</span>
+              </div>
+              <button class="btn btn-outline btn-block clickable" id="google-login-btn">
+                  <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
+                  <span>Google ဖြင့် အကောင့်ဝင်မည်</span>
+                  <div class="btn-ripple"></div>
+              </button>
+              <div class="auth-message error" id="login-error"></div>
+              <div class="auth-message success" id="login-success"></div>
+          </div>
+
+          <!-- Signup Form -->
+          <div class="auth-form" id="signup-form">
+              <div class="form-group">
+                  <label for="signup-email">အီးမေးလ်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-envelope"></i>
+                      <input type="email" id="signup-email" placeholder="သင့်အီးမေးလ်ထည့်ပါ" required>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="signup-phone">ဖုန်းနံပါတ်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-phone"></i>
+                      <input type="tel" id="signup-phone" placeholder="09xxxxxxxxx" required>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="signup-password">စကားဝှက်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="signup-password" placeholder="စကားဝှက်အသစ်ထည့်ပါ" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="signup-confirm-password">စကားဝှက်အတည်ပြုပါ</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="signup-confirm-password" placeholder="စကားဝှက်ပြန်ထည့်ပါ" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <div class="checkbox-container clickable">
+                      <input type="checkbox" id="terms-agree" required>
+                      <label for="terms-agree">စည်းမျဉ်းစည်းကမ်းများကို သဘောတူပါသည်</label>
+                      <div class="checkbox-checkmark"></div>
+                  </div>
+              </div>
+              <button class="btn btn-primary btn-block clickable" id="signup-btn">
+                  <span class="btn-text">အကောင့်ဖွင့်မည်</span>
+                  <i class="fas fa-user-plus btn-icon"></i>
+                  <div class="btn-ripple"></div>
+              </button>
+              <div class="auth-separator">
+                  <span>သို့မဟုတ်</span>
+              </div>
+              <button class="btn btn-outline btn-block clickable" id="google-signup-btn">
+                  <img src="https://github.com/Opper125/opper-payment/raw/main/google.png" alt="Google" class="btn-icon">
+                  <span>Google ဖြင့် အကောင့်ဖွင့်မည်</span>
+                  <div class="btn-ripple"></div>
+              </button>
+              <div class="auth-message error" id="signup-error"></div>
+              <div class="auth-message success" id="signup-success"></div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Main App Container -->
+  <div class="app-container hidden" id="app-container">
+      <!-- Header -->
+      <header class="app-header">
+          <div class="header-left">
+              <button class="menu-toggle clickable" id="menu-toggle">
+                  <span class="hamburger-line"></span>
+                  <span class="hamburger-line"></span>
+                  <span class="hamburger-line"></span>
+              </button>
+              <div class="app-logo clickable">
+                  <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                  <h1>OPPER</h1>
+              </div>
+          </div>
+          <div class="header-right">
+              <div class="notification-bell clickable">
+                  <i class="fas fa-bell"></i>
+                  <span class="notification-badge">2</span>
+                  <div class="notification-pulse"></div>
+              </div>
+              <div class="user-profile clickable" id="profile-dropdown-trigger">
+                  <div class="user-avatar">
+                      <span id="user-initial">A</span>
+                      <div class="avatar-status"></div>
+                  </div>
+                  <div class="user-info">
+                      <h3 id="user-name">အကောင့်</h3>
+                      <p id="user-id">ID: xxxxxxxx</p>
+                  </div>
+                  <i class="fas fa-chevron-down"></i>
+              </div>
+          </div>
+      </header>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+              <div class="app-logo clickable">
+                  <img src="https://github.com/Opper125/opper-payment/raw/main/logo.png" alt="OPPER Logo">
+                  <h1>OPPER</h1>
+              </div>
+              <button class="close-sidebar clickable" id="close-sidebar">
+                  <i class="fas fa-times"></i>
+              </button>
+          </div>
+          <div class="user-profile-sidebar">
+              <div class="user-avatar large">
+                  <span id="user-initial-sidebar">A</span>
+                  <div class="avatar-status"></div>
+              </div>
+              <div class="user-info">
+                  <h3 id="user-name-sidebar">အကောင့်</h3>
+                  <p id="user-id-sidebar">ID: xxxxxxxx</p>
+                  <p id="user-balance">လက်ကျန်ငွေ: 0 Ks</p>
+              </div>
+          </div>
+          <nav class="sidebar-nav">
+              <ul>
+                  <li class="active">
+                      <a href="#dashboard" data-page="dashboard" class="clickable">
+                          <i class="fas fa-home"></i>
+                          <span>ပင်မစာမျက်နှာ</span>
+                          <div class="nav-indicator"></div>
+                      </a>
+                  </li>
+                  <li>
+                      <a href="#transfer" data-page="transfer" class="clickable">
+                          <i class="fas fa-exchange-alt"></i>
+                          <span>ငွေလွှဲရန်</span>
+                          <div class="nav-indicator"></div>
+                      </a>
+                  </li>
+                  <li>
+                      <a href="#history" data-page="history" class="clickable">
+                          <i class="fas fa-history"></i>
+                          <span>မှတ်တမ်းများ</span>
+                          <div class="nav-indicator"></div>
+                      </a>
+                  </li>
+                  <li>
+                      <a href="#kyc" data-page="kyc" class="clickable">
+                          <i class="fas fa-id-card"></i>
+                          <span>KYC အတည်ပြုရန်</span>
+                          <div class="nav-indicator"></div>
+                      </a>
+                  </li>
+                  <li>
+                      <a href="#settings" data-page="settings" class="clickable">
+                          <i class="fas fa-cog"></i>
+                          <span>ဆက်တင်များ</span>
+                          <div class="nav-indicator"></div>
+                      </a>
+                  </li>
+              </ul>
+          </nav>
+          <div class="sidebar-footer">
+              <button class="btn btn-outline btn-block clickable" id="logout-btn">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>အကောင့်ထွက်ရန်</span>
+                  <div class="btn-ripple"></div>
+              </button>
+          </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+          <!-- Dashboard Page -->
+          <section class="page active" id="dashboard-page">
+              <div class="page-header">
+                  <h2>ပင်မစာမျက်နှာ</h2>
+                  <p>မင်္ဂလာပါ <span id="greeting-name">အကောင့်</span>!</p>
+              </div>
+
+              <!-- Balance Card -->
+              <div class="balance-card">
+                  <div class="balance-header">
+                      <h3>လက်ကျန်ငွေ</h3>
+                      <div class="balance-actions">
+                          <button class="btn btn-sm btn-outline clickable" id="refresh-balance">
+                              <i class="fas fa-sync-alt"></i>
+                          </button>
+                          <button class="btn btn-sm btn-outline clickable" id="hide-balance">
+                              <i class="fas fa-eye-slash"></i>
+                          </button>
+                      </div>
+                  </div>
+                  <div class="balance-amount" id="balance-amount">0 Ks</div>
+                  <div class="balance-status">
+                      <div class="status-item">
+                          <i class="fas fa-shield-alt"></i>
+                          <span id="kyc-status">KYC: စောင့်ဆိုင်းဆဲ</span>
+                      </div>
+                      <div class="status-item">
+                          <i class="fas fa-exchange-alt"></i>
+                          <span id="transfer-status">ငွေလွှဲခြင်း: ခွင့်ပြုထားသည်</span>
+                      </div>
+                  </div>
+                  <div class="balance-chart">
+                      <div class="chart-line"></div>
+                  </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="quick-actions">
+                  <h3>အမြန်လုပ်ဆောင်ချက်များ</h3>
+                  <div class="action-grid">
+                      <div class="action-card clickable" data-page="transfer">
+                          <div class="action-icon">
+                              <i class="fas fa-paper-plane"></i>
+                              <div class="icon-glow"></div>
+                          </div>
+                          <div class="action-text">ငွေလွှဲရန်</div>
+                          <div class="card-hover-effect"></div>
+                      </div>
+                      <div class="action-card clickable" data-page="history">
+                          <div class="action-icon">
+                              <i class="fas fa-history"></i>
+                              <div class="icon-glow"></div>
+                          </div>
+                          <div class="action-text">မှတ်တမ်းများ</div>
+                          <div class="card-hover-effect"></div>
+                      </div>
+                      <div class="action-card clickable" data-page="kyc">
+                          <div class="action-icon">
+                              <i class="fas fa-id-card"></i>
+                              <div class="icon-glow"></div>
+                          </div>
+                          <div class="action-text">KYC အတည်ပြုရန်</div>
+                          <div class="card-hover-effect"></div>
+                      </div>
+                      <div class="action-card clickable" data-page="settings">
+                          <div class="action-icon">
+                              <i class="fas fa-cog"></i>
+                              <div class="icon-glow"></div>
+                          </div>
+                          <div class="action-text">ဆက်တင်များ</div>
+                          <div class="card-hover-effect"></div>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Recent Transactions -->
+              <div class="recent-transactions">
+                  <div class="section-header">
+                      <h3>နောက်ဆုံးလုပ်ဆောင်ချက်များ</h3>
+                      <a href="#history" class="view-all clickable" data-page="history">အားလုံးကြည့်ရန် <i class="fas fa-chevron-right"></i></a>
+                  </div>
+                  <div class="transaction-list" id="recent-transactions-list">
+                      <div class="empty-state">
+                          <i class="fas fa-history"></i>
+                          <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+                      </div>
+                  </div>
+              </div>
+          </section>
+
+          <!-- Transfer Page -->
+          <section class="page" id="transfer-page">
+              <div class="page-header">
+                  <h2>ငွေလွှဲရန်</h2>
+                  <p>အခြားသူထံသို့ ငွေလွှဲပြောင်းပါ</p>
+              </div>
+
+              <div class="transfer-form">
+                  <div class="form-group">
+                      <label for="transfer-phone">လက်ခံမည့်သူ၏ ဖုန်းနံပါတ်</label>
+                      <div class="input-with-icon">
+                          <i class="fas fa-phone"></i>
+                          <input type="tel" id="transfer-phone" placeholder="09xxxxxxxxx" required>
+                          <div class="input-focus-line"></div>
+                      </div>
+                      <div id="recipient-info" class="recipient-info-box"></div>
+                  </div>
+                  <div class="form-group">
+                      <label for="transfer-amount">ငွေပမာဏ (Ks)</label>
+                      <div class="input-with-icon">
+                          <i class="fas fa-money-bill-wave"></i>
+                          <input type="number" id="transfer-amount" placeholder="ငွေပမာဏထည့်ပါ" min="1000" required>
+                          <div class="input-focus-line"></div>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label for="transfer-note">မှတ်ချက် (ထည့်လိုက ထည့်နိုင်သည်)</label>
+                      <div class="input-with-icon">
+                          <i class="fas fa-sticky-note"></i>
+                          <input type="text" id="transfer-note" placeholder="မှတ်ချက်ထည့်ပါ">
+                          <div class="input-focus-line"></div>
+                      </div>
+                  </div>
+                  <button class="btn btn-primary btn-block clickable" id="transfer-btn" disabled>
+                      <span class="btn-text">ငွေလွှဲမည်</span>
+                      <i class="fas fa-paper-plane btn-icon"></i>
+                      <div class="btn-ripple"></div>
+                  </button>
+                  <div class="auth-message error" id="transfer-error"></div>
+                  <div class="auth-message success" id="transfer-success"></div>
+              </div>
+          </section>
+
+          <!-- History Page -->
+          <section class="page" id="history-page">
+              <div class="page-header">
+                  <h2>မှတ်တမ်းများ</h2>
+                  <p>သင့်ငွေလွှဲပြောင်းမှုမှတ်တမ်းများ</p>
+              </div>
+
+              <div class="history-filters">
+                  <div class="filter-group">
+                      <label for="history-type">အမျိုးအစား</label>
+                      <select id="history-type" class="clickable">
+                          <option value="all">အားလုံး</option>
+                          <option value="sent">ပို့ထားသော</option>
+                          <option value="received">လက်ခံရရှိသော</option>
+                      </select>
+                  </div>
+                  <div class="filter-group">
+                      <label for="history-date">ရက်စွဲ</label>
+                      <select id="history-date" class="clickable">
+                          <option value="all">အားလုံး</option>
+                          <option value="today">ယနေ့</option>
+                          <option value="week">ယခုအပတ်</option>
+                          <option value="month">ယခုလ</option>
+                      </select>
+                  </div>
+              </div>
+
+              <div class="transaction-list" id="history-transactions-list">
+                  <div class="empty-state">
+                      <i class="fas fa-history"></i>
+                      <p>လုပ်ဆောင်ချက်မှတ်တမ်းမရှိသေးပါ</p>
+                  </div>
+              </div>
+          </section>
+
+          <!-- KYC Page -->
+          <section class="page" id="kyc-page">
+              <div class="page-header">
+                  <h2>KYC အတည်ပြုရန်</h2>
+                  <p>သင့်ကိုယ်ရေးအချက်အလက်များ အတည်ပြုပါ</p>
+              </div>
+
+              <div class="kyc-status-card" id="kyc-status-card">
+                  <div class="kyc-status-icon pending">
+                      <i class="fas fa-clock"></i>
+                      <div class="status-pulse"></div>
+                  </div>
+                  <div class="kyc-status-text">
+                      <h3>KYC အတည်ပြုမှု အခြေအနေ</h3>
+                      <p id="kyc-status-message">စောင့်ဆိုင်းဆဲ</p>
+                  </div>
+              </div>
+
+              <div class="kyc-form" id="kyc-form">
+                  <div class="form-group">
+                      <label for="kyc-passport">နိုင်ငံကူးလက်မှတ်နံပါတ်</label>
+                      <div class="input-with-icon">
+                          <i class="fas fa-passport"></i>
+                          <input type="text" id="kyc-passport" placeholder="နိုင်ငံကူးလက်မှတ်နံပါတ်ထည့်ပါ" required>
+                          <div class="input-focus-line"></div>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label for="kyc-address">နေရပ်လိပ်စာ</label>
+                      <div class="input-with-icon">
+                          <i class="fas fa-home"></i>
+                          <input type="text" id="kyc-address" placeholder="နေရပ်လိပ်စာထည့်ပါ" required>
+                          <div class="input-focus-line"></div>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label for="kyc-pin">ငွေပေးချေမှု PIN (ဂဏန်း ၆ လုံး)</label>
+                      <div class="input-with-icon">
+                          <i class="fas fa-lock"></i>
+                          <input type="password" id="kyc-pin" placeholder="PIN ထည့်ပါ" maxlength="6" required>
+                          <i class="fas fa-eye-slash toggle-password clickable"></i>
+                          <div class="input-focus-line"></div>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label for="kyc-confirm-pin">PIN အတည်ပြုပါ</label>
+                      <div class="input-with-icon">
+                          <i class="fas fa-lock"></i>
+                          <input type="password" id="kyc-confirm-pin" placeholder="PIN ပြန်ထည့်ပါ" maxlength="6" required>
+                          <i class="fas fa-eye-slash toggle-password clickable"></i>
+                          <div class="input-focus-line"></div>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label>နိုင်ငံကူးလက်မှတ်ဓာတ်ပုံ</label>
+                      <div class="file-upload">
+                          <input type="file" id="passport-upload" accept="image/*" required>
+                          <label for="passport-upload" class="file-upload-label clickable">
+                              <i class="fas fa-upload"></i>
+                              <span>ဖိုင်ရွေးရန်</span>
+                              <div class="upload-progress"></div>
+                          </label>
+                          <div class="file-preview" id="passport-preview"></div>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label>ကိုယ်တိုင်ဓာတ်ပုံ</label>
+                      <div class="file-upload">
+                          <input type="file" id="selfie-upload" accept="image/*" required>
+                          <label for="selfie-upload" class="file-upload-label clickable">
+                              <i class="fas fa-upload"></i>
+                              <span>ဖိုင်ရွေးရန်</span>
+                              <div class="upload-progress"></div>
+                          </label>
+                          <div class="file-preview" id="selfie-preview"></div>
+                      </div>
+                  </div>
+                  <button class="btn btn-primary btn-block clickable" id="kyc-submit-btn">
+                      <span class="btn-text">တင်သွင်းမည်</span>
+                      <i class="fas fa-check-circle btn-icon"></i>
+                      <div class="btn-ripple"></div>
+                  </button>
+                  <div class="auth-message error" id="kyc-error"></div>
+                  <div class="auth-message success" id="kyc-success"></div>
+              </div>
+          </section>
+
+          <!-- Settings Page -->
+          <section class="page" id="settings-page">
+              <div class="page-header">
+                  <h2>ဆက်တင်များ</h2>
+                  <p>သင့်အကောင့်ဆက်တင်များ ပြင်ဆင်ပါ</p>
+              </div>
+
+              <div class="settings-card">
+                  <h3>အကောင့်ဆက်တင်များ</h3>
+                  <div class="settings-form">
+                      <div class="form-group">
+                          <label for="settings-phone">ဖုန်းနံပါတ်</label>
+                          <div class="input-with-icon">
+                              <i class="fas fa-phone"></i>
+                              <input type="tel" id="settings-phone" placeholder="09xxxxxxxxx" disabled>
+                              <div class="input-focus-line"></div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="settings-email">အီးမေးလ်</label>
+                          <div class="input-with-icon">
+                              <i class="fas fa-envelope"></i>
+                              <input type="email" id="settings-email" placeholder="သင့်အီးမေးလ်" disabled>
+                              <div class="input-focus-line"></div>
+                          </div>
+                      </div>
+                      <button class="btn btn-outline btn-block clickable" id="change-password-btn">
+                          <i class="fas fa-lock"></i>
+                          <span>စကားဝှက်ပြောင်းရန်</span>
+                          <div class="btn-ripple"></div>
+                      </button>
+                      <button class="btn btn-outline btn-block clickable" id="change-pin-btn">
+                          <i class="fas fa-key"></i>
+                          <span>PIN ပြောင်းရန်</span>
+                          <div class="btn-ripple"></div>
+                      </button>
+                  </div>
+              </div>
+
+              <div class="settings-card">
+                  <h3>အပြင်အဆင်</h3>
+                  <div class="theme-selector">
+                      <div class="theme-option active clickable" data-theme="light">
+                          <div class="theme-preview light">
+                              <div class="preview-header"></div>
+                              <div class="preview-content"></div>
+                          </div>
+                          <span>အလင်းရောင်</span>
+                      </div>
+                      <div class="theme-option clickable" data-theme="dark">
+                          <div class="theme-preview dark">
+                              <div class="preview-header"></div>
+                              <div class="preview-content"></div>
+                          </div>
+                          <span>အမှောင်ရောင်</span>
+                      </div>
+                      <div class="theme-option clickable" data-theme="system">
+                          <div class="theme-preview system">
+                              <div class="preview-header"></div>
+                              <div class="preview-content"></div>
+                          </div>
+                          <span>စနစ်အတိုင်း</span>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="settings-card">
+                  <h3>ငွေလွှဲပြေစာ</h3>
+                  <div class="form-group">
+                      <div class="checkbox-container clickable" id="auto-save-receipt-container">
+                          <input type="checkbox" id="auto-save-receipt">
+                          <label for="auto-save-receipt">ငွေလွှဲပြေစာ အလိုအလျောက်သိမ်းဆည်းရန်</label>
+                          <div class="checkbox-checkmark"></div>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="settings-card">
+                  <h3>အကြောင်း</h3>
+                  <div class="about-info">
+                      <p>OPPER Payment v2.2</p> <!-- Version updated for new features -->
+                      <p>&copy; 2024 OPPER Payment. All rights reserved.</p>
+                  </div>
+              </div>
+
+              <div class="settings-card danger-zone">
+                  <h3>အန္တရာယ်ရှိသောဇုန်</h3>
+                  <button class="btn btn-danger btn-block clickable" id="delete-account-btn">
+                      <i class="fas fa-trash-alt"></i>
+                      <span>အကောင့်ဖျက်ရန်</span>
+                      <div class="btn-ripple"></div>
+                  </button>
+              </div>
+          </section>
+      </main>
+  </div>
+
+  <!-- Profile Dropdown -->
+  <div class="dropdown-menu" id="profile-dropdown">
+      <div class="dropdown-item clickable" id="view-profile">
+          <i class="fas fa-user"></i>
+          <span>ပရိုဖိုင်ကြည့်ရန်</span>
+      </div>
+      <div class="dropdown-item clickable" id="go-to-settings">
+          <i class="fas fa-cog"></i>
+          <span>ဆက်တင်များ</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item clickable" id="dropdown-logout">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>အကောင့်ထွက်ရန်</span>
+      </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div class="modal" id="change-password-modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3>စကားဝှက်ပြောင်းရန်</h3>
+              <button class="modal-close clickable">&times;</button>
+          </div>
+          <div class="modal-body">
+              <div class="form-group">
+                  <label for="current-password">လက်ရှိစကားဝှက်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="current-password" placeholder="လက်ရှိစကားဝှက်ထည့်ပါ" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="new-password">စကားဝှက်အသစ်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="new-password" placeholder="စကားဝှက်အသစ်ထည့်ပါ" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="confirm-new-password">စကားဝှက်အသစ်အတည်ပြုပါ</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="confirm-new-password" placeholder="စကားဝှက်အသစ်ပြန်ထည့်ပါ" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="auth-message error" id="change-password-error"></div>
+              <div class="auth-message success" id="change-password-success"></div>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+              <button class="btn btn-primary clickable" id="save-password-btn">သိမ်းမည်</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Change PIN Modal -->
+  <div class="modal" id="change-pin-modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3>PIN ပြောင်းရန်</h3>
+              <button class="modal-close clickable">&times;</button>
+          </div>
+          <div class="modal-body">
+              <div class="form-group">
+                  <label for="current-pin">လက်ရှိ PIN</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="current-pin" placeholder="လက်ရှိ PIN ထည့်ပါ" maxlength="6" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="new-pin">PIN အသစ်</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="new-pin" placeholder="PIN အသစ်ထည့်ပါ" maxlength="6" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="confirm-new-pin">PIN အသစ်အတည်ပြုပါ</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="confirm-new-pin" placeholder="PIN အသစ်ပြန်ထည့်ပါ" maxlength="6" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="auth-message error" id="change-pin-error"></div>
+              <div class="auth-message success" id="change-pin-success"></div>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+              <button class="btn btn-primary clickable" id="save-pin-btn">သိမ်းမည်</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Delete Account Modal -->
+  <div class="modal" id="delete-account-modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3>အကောင့်ဖျက်ရန်</h3>
+              <button class="modal-close clickable">&times;</button>
+          </div>
+          <div class="modal-body">
+              <div class="warning-message">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <p>သတိပေးချက်: အကောင့်ဖျက်ခြင်းသည် ပြန်လည်ပြင်ဆင်၍မရနိုင်ပါ။ သင့်အကောင့်နှင့် ဆက်စပ်သောအချက်အလက်အားလုံး ပျက်သွားမည်ဖြစ်သည်။</p>
+              </div>
+              <div class="form-group">
+                  <label for="delete-password">သင့်စကားဝှက်ထည့်၍ အတည်ပြုပါ</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password" id="delete-password" placeholder="စကားဝှက်ထည့်ပါ" required>
+                      <i class="fas fa-eye-slash toggle-password clickable"></i>
+                      <div class="input-focus-line"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <div class="checkbox-container clickable">
+                      <input type="checkbox" id="confirm-delete" required>
+                      <label for="confirm-delete">ကျွန်ုပ်၏အကောင့်ကို ဖျက်လိုကြောင်း အတည်ပြုပါသည်</label>
+                      <div class="checkbox-checkmark"></div>
+                  </div>
+              </div>
+              <div class="auth-message error" id="delete-account-error"></div>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+              <button class="btn btn-danger clickable" id="confirm-delete-btn">အကောင့်ဖျက်မည်</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal" id="confirmation-modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3 id="confirmation-title">အတည်ပြုပါ</h3>
+              <button class="modal-close clickable">&times;</button>
+          </div>
+          <div class="modal-body">
+              <p id="confirmation-message">သေချာပါသလား?</p>
+              <div class="auth-message error" id="confirmation-error"></div>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+              <button class="btn btn-primary clickable" id="confirm-action-btn">အတည်ပြုသည်</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- PIN Entry Modal -->
+  <div class="modal" id="pin-entry-modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3>ငွေပေးချေမှု PIN</h3>
+              <button class="modal-close clickable">&times;</button>
+          </div>
+          <div class="modal-body">
+              <p class="text-center mb-4">ငွေလွှဲရန် သင့် PIN ကုဒ်ထည့်ပါ</p>
+              <div class="pin-input-container">
+                  <div class="pin-input-wrapper">
+                      <input type="password" class="pin-input" maxlength="1" data-index="0">
+                      <input type="password" class="pin-input" maxlength="1" data-index="1">
+                      <input type="password" class="pin-input" maxlength="1" data-index="2">
+                      <input type="password" class="pin-input" maxlength="1" data-index="3">
+                      <input type="password" class="pin-input" maxlength="1" data-index="4">
+                      <input type="password" class="pin-input" maxlength="1" data-index="5">
+                  </div>
+              </div>
+              <div class="auth-message error" id="pin-error"></div>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-outline modal-cancel clickable">မလုပ်တော့ပါ</button>
+              <button class="btn btn-primary clickable" id="confirm-pin-btn">အတည်ပြုသည်</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal receipt-modal-animated" id="receipt-modal">
+      <div class="modal-content receipt-modal-content">
+          <div class="modal-header receipt-header">
+              <h3>ငွေလွှဲပြေစာ</h3>
+              <div class="receipt-actions">
+                  <button class="btn-icon clickable" id="download-receipt">
+                      <i class="fas fa-download"></i>
+                  </button>
+                  <button class="modal-close clickable">&times;</button>
+              </div>
+          </div>
+          <div class="modal-body receipt-body" id="receipt-container">
+              <!-- Receipt content will be dynamically generated -->
+          </div>
+      </div>
+  </div>
+
+  <!-- Processing Overlay -->
+  <div class="processing-overlay" id="processing-overlay">
+      <div class="processing-content">
+          <div class="advanced-loader">
+              <div class="loader-rings">
+                  <div class="ring ring-1"></div>
+                  <div class="ring ring-2"></div>
+                  <div class="ring ring-3"></div>
+              </div>
+              <div class="loader-core">
+                  <div class="core-text">OPPER</div>
+                  <div class="core-pulse"></div>
+              </div>
+          </div>
+          <p id="processing-message">ငွေလွှဲလုပ်ဆောင်နေသည်...</p>
+          <div class="processing-steps">
+              <div class="step active">
+                  <div class="step-icon"><i class="fas fa-check"></i></div>
+                  <span>အချက်အလက်စစ်ဆေးခြင်း</span>
+              </div>
+              <div class="step">
+                  <div class="step-icon"><i class="fas fa-exchange-alt"></i></div>
+                  <span>ငွေလွှဲပြောင်းခြင်း</span>
+              </div>
+              <div class="step">
+                  <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                  <span>အတည်ပြုခြင်း</span>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Console Output -->
+  <div class="console-container" id="console-container">
+      <div class="console-header">
+          <span>OPPER Console</span>
+          <button class="console-toggle clickable" id="console-toggle">
+              <i class="fas fa-terminal"></i>
+          </button>
+      </div>
+      <div class="console-output" id="console-output">
+          <div class="console-line console-info">[INFO] OPPER Payment System Initialized</div>
+          <div class="console-line console-success">[SUCCESS] Connection established</div>
+      </div>
+  </div>
+
+  <!-- Audio Elements -->
+  <audio id="transfer-sent-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_sent.mp3" preload="auto"></audio>
+  <audio id="transfer-received-sound" src="https://github.com/Opper125/opper-payment/raw/main/transfer_received.mp3" preload="auto"></audio>
+  <audio id="click-sound" src="https://github.com/Opper125/opper-payment/raw/main/click.mp3" preload="auto"></audio>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>
